@@ -44,10 +44,6 @@ public class LauncherIcons extends BaseIconFactory implements AutoCloseable {
 
     private static final MainThreadInitializedObject<Pool> POOL = new MainThreadInitializedObject<>(Pool::new);
 
-    public static LauncherIcons obtain(Context context) {
-        return obtain(context, IconShape.getShape().enableShapeDetection());
-    }
-
     /**
      * Return a new Message instance from the global pool. Allows us to
      * avoid allocating new objects in many cases.
@@ -63,6 +59,8 @@ public class LauncherIcons extends BaseIconFactory implements AutoCloseable {
     private final ConcurrentLinkedQueue<LauncherIcons> mPool;
 
     private MonochromeIconFactory mMonochromeIconFactory;
+
+    public boolean mMonoIconEnabled = false;
 
     protected LauncherIcons(Context context, int fillResIconDpi, int iconBitmapSize,
             ConcurrentLinkedQueue<LauncherIcons> pool) {

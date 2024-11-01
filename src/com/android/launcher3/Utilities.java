@@ -136,6 +136,10 @@ public final class Utilities {
 
     public static final boolean ATLEAST_O_MR1 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1;
 
+    public static final boolean ATLEAST_P = Build.VERSION.SDK_INT >= VERSION_CODES.P;
+
+    public static final boolean ATLEAST_Q = Build.VERSION.SDK_INT >= VERSION_CODES.Q;
+
     @ChecksSdkIntAtLeast(api = VERSION_CODES.R)
     public static final boolean ATLEAST_R = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
 

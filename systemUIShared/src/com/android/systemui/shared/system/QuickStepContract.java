@@ -34,6 +34,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.StringJoiner;
 
+import app.lawnchair.compat.LawnchairQuickstepCompat;
+
 /**
  * Various shared constants between Launcher and SysUI as part of quickstep
  */
@@ -381,8 +383,27 @@ public class QuickStepContract {
      * These values are expressed in pixels because they should not respect display or font
      * scaling. The corner radius may change when folding/unfolding the device.
      */
+    public static boolean sRecentsDisabled = false;
+    public static boolean sHasCustomCornerRadius = false;
+    public static float sCustomCornerRadius = 0f;
+
+    /**
+     * Corner radius that should be used on windows in order to cover the display.
+     * These values are expressed in pixels because they should not respect display or font
+     * scaling, this means that we don't have to reload them on config changes.
+     */
     public static float getWindowCornerRadius(Context context) {
-        return ScreenDecorationsUtils.getWindowCornerRadius(context);
+        if (sRecentsDisabled || !LawnchairQuickstepCompat.ATLEAST_S) {
+            return 0;
+        }
+        if (sHasCustomCornerRadius) {
+            return sCustomCornerRadius;
+        }
+        try {
+            return ScreenDecorationsUtils.getWindowCornerRadius(context);
+        } catch (Throwable t) {
+            return 0;
+        }
     }
 
     /**

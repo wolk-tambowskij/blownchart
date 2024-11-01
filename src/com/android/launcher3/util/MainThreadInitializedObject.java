@@ -87,6 +87,13 @@ public class MainThreadInitializedObject<T extends SafeCloseable> {
         mValue = value;
     }
 
+    protected void onPostInit(Context context) {
+    }
+
+    public T getNoCreate() {
+        return mValue;
+    }
+
     /**
      * Initializes a provider based on resource overrides
      */

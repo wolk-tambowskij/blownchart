@@ -50,6 +50,7 @@ import com.android.launcher3.R
 import com.android.launcher3.graphics.IconShape as L3IconShape
 import com.android.launcher3.util.DynamicResource
 import com.android.launcher3.util.MainThreadInitializedObject
+import com.android.launcher3.util.SafeCloseable
 import com.patrykmichalik.opto.core.PreferenceManager
 import com.patrykmichalik.opto.core.firstBlocking
 import com.patrykmichalik.opto.core.setBlocking
@@ -60,7 +61,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.encodeToString
 
-class PreferenceManager2 private constructor(private val context: Context) : PreferenceManager {
+class PreferenceManager2 private constructor(private val context: Context) : PreferenceManager, SafeCloseable {
 
     private val scope = MainScope()
     private val resourceProvider = DynamicResource.provider(context)
@@ -635,6 +636,9 @@ class PreferenceManager2 private constructor(private val context: Context) : Pre
         CustomAdaptiveIconDrawable.sInitialized = true
         CustomAdaptiveIconDrawable.sMaskId = shape.getHashString()
         CustomAdaptiveIconDrawable.sMask = shape.getMaskPath()
+    }
+
+    override fun close() {
     }
 
     companion object {

@@ -6,8 +6,9 @@ import app.lawnchair.util.requireSystemService
 import app.lawnchair.wallpaper.WallpaperColorsCompat.Companion.HINT_SUPPORTS_DARK_THEME
 import com.android.launcher3.Utilities
 import com.android.launcher3.util.MainThreadInitializedObject
+import com.android.launcher3.util.SafeCloseable
 
-sealed class WallpaperManagerCompat(val context: Context) {
+sealed class WallpaperManagerCompat(val context: Context) : SafeCloseable {
 
     private val listeners = mutableListOf<OnColorsChangedListener>()
     private val colorHints: Int get() = wallpaperColors?.colorHints ?: 0

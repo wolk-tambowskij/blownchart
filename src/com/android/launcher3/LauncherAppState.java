@@ -96,6 +96,10 @@ public class LauncherAppState implements SafeCloseable {
         return INSTANCE.get(context);
     }
 
+    public static LauncherAppState getInstanceNoCreate() {
+        return INSTANCE.getNoCreate();
+    }
+
     public Context getContext() {
         return mContext;
     }
@@ -210,6 +214,10 @@ public class LauncherAppState implements SafeCloseable {
 
     private void onPrivateSpaceHideWhenLockChanged(boolean isPrivateSpaceHideOnLockEnabled) {
         mModel.forceReload();
+    }
+
+    public void reloadIcons() {
+        refreshAndReloadLauncher();
     }
 
     private void refreshAndReloadLauncher() {
