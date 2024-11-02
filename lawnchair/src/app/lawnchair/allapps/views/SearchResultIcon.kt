@@ -19,6 +19,7 @@ import com.android.launcher3.BubbleTextView
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings
 import com.android.launcher3.R
+import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.IconProvider
 import com.android.launcher3.icons.LauncherIcons
@@ -209,7 +210,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
                 info.hasFlags(SearchActionItemInfo.FLAG_PRIMARY_ICON_FROM_TITLE) ->
                     li.createIconBitmap("${info.title}", packageIcon.color)
                 icon == null -> packageIcon
-                else -> li.createBadgedIconBitmap(icon.loadDrawable(context), info.user, target.packageName != SHORTCUT)
+                else -> icon.loadDrawable(context)?.let { li.createBadgedIconBitmap(it, BaseIconFactory.IconOptions().setUser(info.user)) }
             }
             if (info.hasFlags(SearchActionItemInfo.FLAG_BADGE_WITH_COMPONENT_NAME) && target.extras.containsKey("class")) {
                 try {
@@ -218,7 +219,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
                         ComponentName(target.packageName, target.extras.getString("class")!!)
                     val activityInfo = context.packageManager.getActivityInfo(componentName, 0)
                     val activityIcon = iconProvider.getIcon(activityInfo)
-                    val bitmap = li.createIconBitmap(activityIcon, 1f, iconSize)
+                    val bitmap = li.createIconBitmap(activityIcon, 1f)
                     val bitmapInfo = BitmapInfo.of(bitmap, packageIcon.color)
                     info.bitmap = li.badgeBitmap(info.bitmap.icon, bitmapInfo)
                 } catch (_: PackageManager.NameNotFoundException) {
