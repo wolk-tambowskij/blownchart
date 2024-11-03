@@ -10,11 +10,12 @@ import app.lawnchair.util.requireSystemService
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 import com.android.launcher3.util.MainThreadInitializedObject
+import com.android.launcher3.util.SafeCloseable
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class LawnchairBugReporter(private val context: Context) {
+class LawnchairBugReporter(private val context: Context) : SafeCloseable {
 
     private val notificationManager: NotificationManager = context.requireSystemService()
     private val logsFolder by lazy { File(context.cacheDir, "logs").apply { mkdirs() } }

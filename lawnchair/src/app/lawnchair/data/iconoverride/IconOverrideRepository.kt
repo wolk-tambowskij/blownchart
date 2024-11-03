@@ -4,17 +4,20 @@ import android.content.Context
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.icons.IconPickerItem
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.pm.PackageInstallInfo
+import com.android.launcher3.pm.PackageInstallInfo.STATUS_INSTALLED
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MainThreadInitializedObject
-import java.util.concurrent.ConcurrentLinkedQueue
+import com.android.launcher3.util.SafeCloseable
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import java.util.concurrent.ConcurrentLinkedQueue
 
-class IconOverrideRepository(private val context: Context) {
+class IconOverrideRepository(private val context: Context) : SafeCloseable {
 
     private val scope = MainScope() + CoroutineName("IconOverrideRepository")
     private val dao = AppDatabase.INSTANCE.get(context).iconOverrideDao()
@@ -61,7 +64,13 @@ class IconOverrideRepository(private val context: Context) {
 
     private fun updatePackageIcons(target: ComponentKey) {
         val model = LauncherAppState.getInstance(context).model
-        model.onPackageChanged(target.componentName.packageName, target.user)
+        model.onPackageStateChanged(PackageInstallInfo.fromState(
+            STATUS_INSTALLED,
+            target.componentName.packageName, target.user))
+    }
+
+    override fun close() {
+        TODO("Not yet implemented")
     }
 
     companion object {

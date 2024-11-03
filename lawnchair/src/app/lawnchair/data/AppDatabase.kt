@@ -8,10 +8,11 @@ import androidx.sqlite.db.SimpleSQLiteQuery
 import app.lawnchair.data.iconoverride.IconOverride
 import app.lawnchair.data.iconoverride.IconOverrideDao
 import com.android.launcher3.util.MainThreadInitializedObject
+import com.android.launcher3.util.SafeCloseable
 
 @Database(entities = [IconOverride::class], version = 1)
 @TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase() {
+abstract class AppDatabase : RoomDatabase(), SafeCloseable {
 
     abstract fun iconOverrideDao(): IconOverrideDao
 
@@ -24,7 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
             Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
-                "preferences",
+                "preferences"
             ).build()
         }
     }

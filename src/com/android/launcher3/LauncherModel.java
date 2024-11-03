@@ -27,7 +27,6 @@ import static com.android.launcher3.icons.cache.BaseIconCache.EMPTY_CLASS_NAME;
 import static com.android.launcher3.model.PackageUpdatedTask.OP_UPDATE;
 import static com.android.launcher3.pm.UserCache.ACTION_PROFILE_AVAILABLE;
 import static com.android.launcher3.pm.UserCache.ACTION_PROFILE_UNAVAILABLE;
-import static com.android.launcher3.testing.shared.TestProtocol.sDebugTracing;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 
@@ -246,7 +245,7 @@ public class LauncherModel implements InstallSessionTracker.Callback {
     }
 
     public void onBroadcastIntent(@NonNull final Intent intent) {
-        if (DEBUG_RECEIVER || sDebugTracing)
+        if (DEBUG_RECEIVER)
             Log.d(TAG, "onReceive intent=" + intent);
         final String action = intent.getAction();
         if (Intent.ACTION_LOCALE_CHANGED.equals(action)) {

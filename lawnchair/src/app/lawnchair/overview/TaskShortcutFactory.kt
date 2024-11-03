@@ -21,8 +21,8 @@ import com.android.launcher3.R
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
 import com.android.launcher3.popup.SystemShortcut
 import com.android.quickstep.TaskShortcutFactory
+import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.views.RecentsView
-import com.android.quickstep.views.TaskThumbnailView
 import com.android.quickstep.views.TaskView
 import com.android.quickstep.views.TaskView.TaskIdAttributeContainer
 import com.android.systemui.shared.recents.view.AppTransitionAnimationSpecCompat
@@ -36,7 +36,7 @@ object TaskShortcutFactory {
         iconRes: Int,
         textRes: Int,
         activity: BaseDraggingActivity,
-        taskContainer: TaskIdAttributeContainer,
+        taskContainer: TaskView.TaskContainer,
         private val mLauncherEvent: LauncherEvent,
     ) : SystemShortcut<BaseDraggingActivity?>(
         iconRes,
