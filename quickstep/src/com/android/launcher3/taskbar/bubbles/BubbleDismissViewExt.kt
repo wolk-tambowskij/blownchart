@@ -17,8 +17,8 @@
 
 package com.android.launcher3.taskbar.bubbles
 
-import app.lawnchair.bubbles.DismissView
 import com.android.launcher3.R
+import com.android.wm.shell.common.bubbles.DismissView
 
 /**
  * Dismiss view is shared from WMShell. It requires setup with local resources.
