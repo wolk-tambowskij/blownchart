@@ -9,13 +9,13 @@ import com.android.launcher3.pm.PackageInstallInfo.STATUS_INSTALLED
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import java.util.concurrent.ConcurrentLinkedQueue
 
 class IconOverrideRepository(private val context: Context) : SafeCloseable {
 
@@ -64,9 +64,13 @@ class IconOverrideRepository(private val context: Context) : SafeCloseable {
 
     private fun updatePackageIcons(target: ComponentKey) {
         val model = LauncherAppState.getInstance(context).model
-        model.onPackageStateChanged(PackageInstallInfo.fromState(
-            STATUS_INSTALLED,
-            target.componentName.packageName, target.user))
+        model.onPackageStateChanged(
+            PackageInstallInfo.fromState(
+                STATUS_INSTALLED,
+                target.componentName.packageName,
+                target.user,
+            ),
+        )
     }
 
     override fun close() {

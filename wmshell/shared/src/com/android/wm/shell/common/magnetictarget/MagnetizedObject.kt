@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2020 The Android Open Source Project
  *
@@ -14,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package app.lawnchair.common
+package com.android.wm.shell.common.magnetictarget
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -150,7 +149,7 @@ abstract class MagnetizedObject<T : Any>(
     private val velocityTracker: VelocityTracker = VelocityTracker.obtain()
     private val vibrator: Vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
     private val vibrationAttributes: VibrationAttributes = VibrationAttributes.createForUsage(
-        VibrationAttributes.USAGE_TOUCH)
+            VibrationAttributes.USAGE_TOUCH)
 
     private var touchDown = PointF()
     private var touchSlop = 0
@@ -191,7 +190,7 @@ abstract class MagnetizedObject<T : Any>(
      * was flung, and a callback you must call after your animation completes.
      */
     var animateStuckToTarget: (MagneticTarget, Float, Float, Boolean, (() -> Unit)?) -> Unit =
-        ::animateStuckToTargetInternal
+            ::animateStuckToTargetInternal
 
     /**
      * Sets whether forcefully flinging the object vertically towards a target causes it to be
@@ -264,7 +263,7 @@ abstract class MagnetizedObject<T : Any>(
 
     /** Default spring configuration to use for animating the object into a target. */
     var springConfig = PhysicsAnimator.SpringConfig(
-        SpringForce.STIFFNESS_MEDIUM, SpringForce.DAMPING_RATIO_NO_BOUNCY)
+            SpringForce.STIFFNESS_MEDIUM, SpringForce.DAMPING_RATIO_NO_BOUNCY)
 
     /**
      * Spring configuration to use to spring the object into a target specifically when it's flung
@@ -357,23 +356,23 @@ abstract class MagnetizedObject<T : Any>(
 
         val targetObjectIsInMagneticFieldOf = associatedTargets.firstOrNull { target ->
             val distanceFromTargetCenter = hypot(
-                ev.rawX - target.centerOnDisplayX(),
-                ev.rawY - target.centerOnDisplayY())
+                    ev.rawX - target.centerOnDisplayX(),
+                    ev.rawY - target.centerOnDisplayY())
             distanceFromTargetCenter < target.magneticFieldRadiusPx
         }
 
         // If we aren't currently stuck to a target, and we're in the magnetic field of a target,
         // we're newly stuck.
         val objectNewlyStuckToTarget =
-            !objectStuckToTarget && targetObjectIsInMagneticFieldOf != null
+                !objectStuckToTarget && targetObjectIsInMagneticFieldOf != null
 
         // If we are currently stuck to a target, we're in the magnetic field of a target, and that
         // target isn't the one we're currently stuck to, then touch events have moved into a
         // adjacent target's magnetic field.
         val objectMovedIntoDifferentTarget =
-            objectStuckToTarget &&
-                    targetObjectIsInMagneticFieldOf != null &&
-                    targetObjectIsStuckTo != targetObjectIsInMagneticFieldOf
+                objectStuckToTarget &&
+                        targetObjectIsInMagneticFieldOf != null &&
+                        targetObjectIsStuckTo != targetObjectIsInMagneticFieldOf
 
         if (objectNewlyStuckToTarget || objectMovedIntoDifferentTarget) {
             velocityTracker.computeCurrentVelocity(1000)
@@ -402,9 +401,9 @@ abstract class MagnetizedObject<T : Any>(
             // move the object out of the target using its own movement logic.
             cancelAnimations()
             magnetListener.onUnstuckFromTarget(
-                targetObjectIsStuckTo!!, this,
-                velocityTracker.xVelocity, velocityTracker.yVelocity,
-                wasFlungOut = false)
+                    targetObjectIsStuckTo!!, this,
+                    velocityTracker.xVelocity, velocityTracker.yVelocity,
+                    wasFlungOut = false)
             targetObjectIsStuckTo = null
 
             vibrateIfEnabled(VibrationEffect.EFFECT_TICK)
@@ -426,8 +425,8 @@ abstract class MagnetizedObject<T : Any>(
                     // the upward direction, tell the listener so the object can be animated out of
                     // the target.
                     magnetListener.onUnstuckFromTarget(
-                        targetObjectIsStuckTo!!, this,
-                        velX, velY, wasFlungOut = true)
+                            targetObjectIsStuckTo!!, this,
+                            velX, velY, wasFlungOut = true)
                 } else {
                     // If the object is stuck and not flung away, it was released inside the target.
                     magnetListener.onReleasedInTarget(targetObjectIsStuckTo!!, this)
@@ -510,10 +509,10 @@ abstract class MagnetizedObject<T : Any>(
 
         // Animate to the center of the target.
         animator
-            .spring(xProperty, xProperty.getValue(underlyingObject) + xDiff, velX,
-                springConfig)
-            .spring(yProperty, yProperty.getValue(underlyingObject) + yDiff, velY,
-                springConfig)
+                .spring(xProperty, xProperty.getValue(underlyingObject) + xDiff, velX,
+                        springConfig)
+                .spring(yProperty, yProperty.getValue(underlyingObject) + yDiff, velY,
+                        springConfig)
 
         if (physicsAnimatorUpdateListener != null) {
             animator.addUpdateListener(physicsAnimatorUpdateListener!!)
@@ -548,8 +547,8 @@ abstract class MagnetizedObject<T : Any>(
         // Whether velocity is sufficient, depending on whether we're flinging into a target at the
         // top or the bottom of the screen.
         val velocitySufficient =
-            if (rawY < target.centerOnDisplayY()) velY > flingToTargetMinVelocity
-            else velY < flingToTargetMinVelocity
+                if (rawY < target.centerOnDisplayY()) velY > flingToTargetMinVelocity
+                else velY < flingToTargetMinVelocity
 
         if (!velocitySufficient) {
             return false
@@ -589,7 +588,7 @@ abstract class MagnetizedObject<T : Any>(
         // Update the touch slop, since the configuration may have changed.
         if (associatedTargets.size > 0) {
             touchSlop =
-                ViewConfiguration.get(associatedTargets[0].targetView.context).scaledTouchSlop
+                    ViewConfiguration.get(associatedTargets[0].targetView.context).scaledTouchSlop
         }
     }
 
@@ -632,8 +631,8 @@ abstract class MagnetizedObject<T : Any>(
                 // Add half of the target size to get the center, and subtract translation since the
                 // target could be animating in while we're doing this calculation.
                 centerOnScreen.set(
-                    tempLoc[0] + targetView.width / 2f - targetView.translationX,
-                    tempLoc[1] + targetView.height / 2f - targetView.translationY)
+                        tempLoc[0] + targetView.width / 2f - targetView.translationX,
+                        tempLoc[1] + targetView.height / 2f - targetView.translationY)
             }
         }
 
@@ -682,10 +681,10 @@ abstract class MagnetizedObject<T : Any>(
         @JvmStatic
         fun <T : View> magnetizeView(view: T): MagnetizedObject<T> {
             return object : MagnetizedObject<T>(
-                view.context,
-                view,
-                DynamicAnimation.TRANSLATION_X,
-                DynamicAnimation.TRANSLATION_Y) {
+                    view.context,
+                    view,
+                    DynamicAnimation.TRANSLATION_X,
+                    DynamicAnimation.TRANSLATION_Y) {
                 override fun getWidth(underlyingObject: T): Float {
                     return underlyingObject.width.toFloat()
                 }

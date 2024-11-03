@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import app.lawnchair.launcher
-import app.lawnchair.search.adapter.SHORTCUT
 import app.lawnchair.search.adapter.SearchTargetCompat
 import app.lawnchair.search.model.SearchResultActionCallBack
 import app.lawnchair.util.runOnMainThread

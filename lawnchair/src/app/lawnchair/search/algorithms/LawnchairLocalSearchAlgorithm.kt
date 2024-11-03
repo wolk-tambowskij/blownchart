@@ -36,7 +36,6 @@ import com.android.launcher3.LauncherModel
 import com.android.launcher3.R
 import com.android.launcher3.allapps.BaseAllAppsAdapter
 import com.android.launcher3.model.AllAppsList
-import com.android.launcher3.model.CacheDataUpdatedTask
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.data.AppInfo

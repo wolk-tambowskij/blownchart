@@ -23,13 +23,13 @@ import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_TASK
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.icons.BitmapInfo
+import com.android.launcher3.model.data.AppInfo as ModelAppInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.PackageManagerHelper
 import com.patrykmichalik.opto.core.firstBlocking
 import java.net.URISyntaxException
-import com.android.launcher3.model.data.AppInfo as ModelAppInfo
 
 class LawnchairShortcut {
 

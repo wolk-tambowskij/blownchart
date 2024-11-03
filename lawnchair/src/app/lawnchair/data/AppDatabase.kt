@@ -24,7 +24,7 @@ abstract class AppDatabase : RoomDatabase() {
             Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
-                "preferences"
+                "preferences",
             ).build()
         }
     }

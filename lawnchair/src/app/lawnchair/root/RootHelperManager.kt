@@ -9,6 +9,8 @@ import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.util.MainThreadInitializedObject
 import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ipc.RootService
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -16,8 +18,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class RootHelperManager(private val context: Context) {
     private val scope = MainScope() + CoroutineName("RootHelperManager")

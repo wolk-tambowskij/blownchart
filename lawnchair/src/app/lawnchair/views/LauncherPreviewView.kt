@@ -102,7 +102,7 @@ class LauncherPreviewView(
                         emptyList(),
                         "",
                         null,
-                        null
+                        null,
                     )
                     MAIN_EXECUTOR.execute {
                         renderView(previewContext, mBgDataModel, mWidgetProvidersMap)

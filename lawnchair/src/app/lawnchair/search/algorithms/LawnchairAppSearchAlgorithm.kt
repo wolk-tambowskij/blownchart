@@ -55,7 +55,7 @@ class LawnchairAppSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm(c
     }
 
     override fun doSearch(query: String, callback: SearchCallback<BaseAllAppsAdapter.AdapterItem>) {
-        appState.model.enqueueModelUpdateTask(object: LauncherModel.ModelUpdateTask {
+        appState.model.enqueueModelUpdateTask(object : LauncherModel.ModelUpdateTask {
             override fun execute(app: ModelTaskController, dataModel: BgDataModel, apps: AllAppsList) {
                 coroutineScope.launch(Dispatchers.Main) {
                     val results = getResult(apps.data, query)

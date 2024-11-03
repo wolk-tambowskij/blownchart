@@ -1,5 +1,3 @@
 package app.lawnchair.overview
 
-object TaskShortcutFactory {
-
-}
+object TaskShortcutFactory

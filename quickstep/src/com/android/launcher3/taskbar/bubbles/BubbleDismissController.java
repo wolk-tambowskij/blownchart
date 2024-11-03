@@ -29,9 +29,8 @@ import androidx.dynamicanimation.animation.DynamicAnimation;
 import com.android.launcher3.R;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarDragLayer;
-
-import app.lawnchair.bubbles.DismissView;
-import app.lawnchair.common.MagnetizedObject;
+import com.android.wm.shell.common.bubbles.DismissView;
+import com.android.wm.shell.common.magnetictarget.MagnetizedObject;
 
 
 /**

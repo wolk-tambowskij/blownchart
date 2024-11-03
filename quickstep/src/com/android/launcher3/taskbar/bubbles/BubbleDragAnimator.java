@@ -30,9 +30,9 @@ import androidx.dynamicanimation.animation.FloatPropertyCompat;
 
 import com.android.launcher3.R;
 import com.android.wm.shell.common.bubbles.DismissCircleView;
+import com.android.wm.shell.common.bubbles.DismissView;
 
 import app.lawnchair.animation.PhysicsAnimator;
-import app.lawnchair.bubbles.DismissView;
 
 /**
  * The animator performs the bubble animations while dragging and coordinates
