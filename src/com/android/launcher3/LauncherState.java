@@ -465,6 +465,14 @@ public abstract class LauncherState implements BaseState<LauncherState> {
         // Do nothing. To be overridden by child class.
     }
 
+    public void onBackPressed(Launcher launcher) {
+        if (this != NORMAL) {
+            StateManager<LauncherState, Launcher> lsm = launcher.getStateManager();
+            LauncherState lastState = lsm.getLastState();
+            lsm.goToState(lastState);
+        }
+    }
+
     /**
      * Find {@link StateManager} and target {@link LauncherState} to handle back progress in
      * predictive back gesture.

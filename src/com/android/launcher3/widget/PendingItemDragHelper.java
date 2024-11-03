@@ -191,7 +191,7 @@ public class PendingItemDragHelper extends DragPreviewProvider {
                     .getFullResIcon(app.getIconCache());
             LauncherIcons li = LauncherIcons.obtain(launcher);
             preview = new FastBitmapDrawable(
-                    li.createScaledBitmapWithoutShadow(icon, true));
+                    li.createBadgedIconBitmap(icon));
             previewWidth = preview.getIntrinsicWidth();
             previewHeight = preview.getIntrinsicHeight();
             li.recycle();

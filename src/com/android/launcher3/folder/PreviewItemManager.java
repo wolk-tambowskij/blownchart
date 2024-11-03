@@ -22,6 +22,7 @@ import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.EXIT_INDE
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.MAX_NUM_ITEMS_IN_PREVIEW;
 import static com.android.launcher3.folder.FolderIcon.DROP_IN_ANIMATION_DURATION;
 import static com.android.launcher3.graphics.PreloadIconDrawable.newPendingIcon;
+import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;

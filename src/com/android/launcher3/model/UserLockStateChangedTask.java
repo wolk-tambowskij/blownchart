@@ -16,7 +16,6 @@
 package com.android.launcher3.model;
 
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_DISABLED_LOCKED_USER;
-import static com.android.launcher3.testing.shared.TestProtocol.WORK_TAB_MISSING;
 
 import android.content.Context;
 import android.content.pm.ShortcutInfo;
@@ -32,7 +31,6 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.shortcuts.ShortcutRequest.QueryResult;
-import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.ItemInfoMatcher;
 
@@ -65,10 +63,6 @@ public class UserLockStateChangedTask implements ModelUpdateTask {
         if (mIsUserUnlocked) {
             QueryResult shortcuts = new ShortcutRequest(context, mUser)
                     .query(ShortcutRequest.PINNED);
-            if (TestProtocol.sDebugTracing) {
-                Log.d(WORK_TAB_MISSING, "shortcutQuery success? "
-                        + shortcuts.wasSuccess());
-            }
             if (shortcuts.wasSuccess()) {
                 for (ShortcutInfo shortcut : shortcuts) {
                     pinnedShortcuts.put(ShortcutKey.fromInfo(shortcut), shortcut);
@@ -91,9 +85,6 @@ public class UserLockStateChangedTask implements ModelUpdateTask {
                     if (mIsUserUnlocked) {
                         ShortcutKey key = ShortcutKey.fromItemInfo(si);
                         ShortcutInfo shortcut = pinnedShortcuts.get(key);
-                        if (TestProtocol.sDebugTracing) {
-                            Log.d(WORK_TAB_MISSING, "shortcutInfo: " + shortcut);
-                        }
                         // We couldn't verify the shortcut during loader. If its no longer available
                         // (probably due to clear data), delete the workspace item as well
                         if (shortcut == null) {

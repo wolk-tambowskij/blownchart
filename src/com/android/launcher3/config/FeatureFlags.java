@@ -18,8 +18,8 @@ package com.android.launcher3.config;
 
 import static com.android.launcher3.config.FeatureFlags.BooleanFlag.DISABLED;
 import static com.android.launcher3.config.FeatureFlags.BooleanFlag.ENABLED;
-import static com.android.wm.shell.Flags.enableTaskbarNavbarUnification;
 
+import android.content.Context;
 import android.content.res.Resources;
 
 import androidx.annotation.VisibleForTesting;
@@ -27,8 +27,6 @@ import androidx.annotation.VisibleForTesting;
 import com.android.launcher3.Utilities;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
-import java.util.function.Predicate;
-import java.util.function.ToIntFunction;
 import com.android.launcher3.BuildConfig;
 import com.android.launcher3.Flags;
 
@@ -204,7 +202,7 @@ public final class FeatureFlags {
         public static final BooleanFlag NOTIFY_CRASHES = getDebugFlag(270393108, "NOTIFY_CRASHES",
                         DISABLED, "Sends a notification whenever launcher encounters an uncaught exception.");
 
-        public static final boolean ENABLE_TASKBAR_NAVBAR_UNIFICATION = enableTaskbarNavbarUnification() && !isPhone();
+        public static final boolean ENABLE_TASKBAR_NAVBAR_UNIFICATION = !isPhone();
 
         private static boolean isPhone() {
                 final boolean isPhone;
@@ -266,9 +264,6 @@ public final class FeatureFlags {
         public static final BooleanFlag INJECT_FALLBACK_APP_CORPUS_RESULTS = getReleaseFlag(270391706,
                         "INJECT_FALLBACK_APP_CORPUS_RESULTS", DISABLED,
                         "Inject fallback app corpus result when AiAi fails to return it.");
-        public static final BooleanFlag ENABLE_LONG_PRESS_NAV_HANDLE = getReleaseFlag(282993230,
-                        "ENABLE_LONG_PRESS_NAV_HANDLE_MPR", TEAMFOOD,
-                        "Enables long pressing on the bottom bar nav handle to trigger events.");
         // TODO(Block 17): Clean up flags
         // Aconfig migration complete for ENABLE_TASKBAR_PINNING.
         private static final BooleanFlag ENABLE_TASKBAR_PINNING = getDebugFlag(296231746,

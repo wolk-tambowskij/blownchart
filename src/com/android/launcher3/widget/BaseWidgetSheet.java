@@ -48,6 +48,7 @@ import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
+import com.android.launcher3.touch.ItemLongClickListener;
 import com.android.launcher3.util.SystemUiController;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.window.WindowManagerProxy;
@@ -281,7 +282,7 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
     public boolean onLongClick(View v) {
         TestLogging.recordEvent(TestProtocol.SEQUENCE_MAIN, "Widgets.onLongClick");
         v.cancelLongPress();
-        if (!ItemLongClickListener.canStartDrag(mActivityContext))
+        if (!ItemLongClickListener.canStartDrag(Launcher.getLauncher(mActivityContext)))
             return false;
 
         boolean result;

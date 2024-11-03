@@ -113,7 +113,7 @@ public class RecentsAnimationCallbacks implements
         if (transaction != null) {
             transaction.apply();
         }
-        onAnimationStart(controller, apps, wallpapers, homeContentInsets, minimizedHomeBounds);
+//        onAnimationStart(controller, apps, wallpapers, homeContentInsets, minimizedHomeBounds);
     }
 
     // Called only in R+ platform

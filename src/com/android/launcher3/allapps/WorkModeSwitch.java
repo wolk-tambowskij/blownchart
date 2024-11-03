@@ -23,7 +23,9 @@ import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.view.View;
 import android.view.WindowInsets;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -63,6 +65,7 @@ public class WorkModeSwitch extends LinearLayout implements Insettable,
     // extend/collapse
     private final int mScrollThreshold;
     private TextView mTextView;
+    private ImageView mIcon;
 
     public WorkModeSwitch(@NonNull Context context) {
         this(context, null, 0);

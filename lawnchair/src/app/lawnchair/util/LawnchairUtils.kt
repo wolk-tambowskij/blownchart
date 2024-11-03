@@ -53,13 +53,13 @@ import com.android.launcher3.util.Themes
 import com.android.systemui.shared.system.QuickStepContract
 import com.google.android.renderscript.Toolkit
 import com.patrykmichalik.opto.core.firstBlocking
+import kotlinx.serialization.json.Json
+import org.json.JSONArray
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
-import kotlinx.serialization.json.Json
-import org.json.JSONArray
 
 fun <T, A> ensureOnMainThread(creator: (A) -> T): (A) -> T = { it ->
     if (Looper.myLooper() == Looper.getMainLooper()) {
@@ -184,9 +184,9 @@ fun getAllAppsScrimColor(context: Context): Int {
 fun Context.checkPackagePermission(packageName: String, permissionName: String): Boolean {
     try {
         val info = packageManager.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS)
-        info.requestedPermissions.forEachIndexed { index, s ->
+        info.requestedPermissions?.forEachIndexed { index, s ->
             if (s == permissionName) {
-                return info.requestedPermissionsFlags[index].hasFlag(REQUESTED_PERMISSION_GRANTED)
+                return info.requestedPermissionsFlags?.get(index)?.hasFlag(REQUESTED_PERMISSION_GRANTED)!!
             }
         }
     } catch (_: PackageManager.NameNotFoundException) {

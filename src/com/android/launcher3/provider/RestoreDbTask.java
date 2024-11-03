@@ -18,7 +18,7 @@ package com.android.launcher3.provider;
 
 import static android.os.Process.myUserHandle;
 
-import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
+import static com.android.launcher3.BuildConfigs.WIDGETS_ENABLED;
 import static com.android.launcher3.Flags.enableLauncherBrMetricsFixed;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_MULTI_DISPLAY;
 import static com.android.launcher3.LauncherPrefs.APP_WIDGET_IDS;

@@ -588,8 +588,7 @@ public class IconCache extends BaseIconCache {
 
         try (LauncherIcons li = LauncherIcons.obtain(mContext)) {
             final BitmapInfo tempBitmap = li.createBadgedIconBitmap(
-                    mContext.getDrawable(widgetSection.mSectionDrawable),
-                    Process.myUserHandle(), false);
+                    mContext.getDrawable(widgetSection.mSectionDrawable));
             mWidgetCategoryBitmapInfos.put(infoInOut.widgetCategory, tempBitmap);
             infoInOut.bitmap = getBadgedIcon(tempBitmap, infoInOut.user);
         } catch (Exception e) {

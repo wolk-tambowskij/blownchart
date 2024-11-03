@@ -90,9 +90,6 @@ public final class WidgetsRecommendationTableLayout extends TableLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-
-        var mContent = ViewCompat.requireViewById(this, R.id.recommended_widget_table);
-        mContent.setBackground(DrawableTokens.WidgetsRecommendationBackground.resolve(getContext()));
     }
 
     /**

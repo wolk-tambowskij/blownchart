@@ -20,8 +20,8 @@ import static android.provider.Settings.Global.DEVELOPMENT_SETTINGS_ENABLED;
 
 import static androidx.preference.PreferenceFragmentCompat.ARG_PREFERENCE_ROOT;
 
-import static com.android.launcher3.BuildConfig.IS_DEBUG_DEVICE;
-import static com.android.launcher3.BuildConfig.IS_STUDIO_BUILD;
+import static com.android.launcher3.BuildConfigs.IS_DEBUG_DEVICE;
+import static com.android.launcher3.BuildConfigs.IS_STUDIO_BUILD;
 import static com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY;
 
 import android.app.Activity;
@@ -49,6 +49,7 @@ import androidx.preference.PreferenceScreen;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.launcher3.BuildConfig;
+import com.android.launcher3.BuildConfigs;
 import com.android.launcher3.LauncherFiles;
 import com.android.launcher3.R;
 import com.android.launcher3.states.RotationHelper;
@@ -68,6 +69,7 @@ public class SettingsActivity extends FragmentActivity
     private static final String NOTIFICATION_DOTS_PREFERENCE_KEY = "pref_icon_badging";
 
     public static final String EXTRA_FRAGMENT_ARGS = ":settings:fragment_args";
+    public static final String EXTRA_SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args";
 
     // Intent extra to indicate the pref-key to highlighted when opening the
     // settings activity
@@ -173,7 +175,7 @@ public class SettingsActivity extends FragmentActivity
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
-            if (BuildConfig.IS_DEBUG_DEVICE) {
+            if (BuildConfigs.IS_DEBUG_DEVICE) {
                 Uri devUri = Settings.Global.getUriFor(DEVELOPMENT_SETTINGS_ENABLED);
                 SettingsCache settingsCache = SettingsCache.INSTANCE.get(getContext());
                 mDeveloperOptionsEnabled = settingsCache.getValue(devUri);
@@ -239,7 +241,7 @@ public class SettingsActivity extends FragmentActivity
         protected boolean initPreference(Preference preference) {
             switch (preference.getKey()) {
                 case NOTIFICATION_DOTS_PREFERENCE_KEY:
-                    return BuildConfig.NOTIFICATION_DOTS_ENABLED;
+                    return BuildConfigs.NOTIFICATION_DOTS_ENABLED;
 
                 case ALLOW_ROTATION_PREFERENCE_KEY:
                     DisplayController.Info info = DisplayController.INSTANCE.get(getContext()).getInfo();

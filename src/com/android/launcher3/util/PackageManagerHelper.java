@@ -20,6 +20,7 @@ import static android.view.WindowManager.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM
 
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
 
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
@@ -32,6 +33,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Process;
 import android.os.UserHandle;
@@ -52,6 +54,7 @@ import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 
@@ -156,6 +159,7 @@ public class PackageManagerHelper implements SafeCloseable {
     /**
      * Returns the installing app package for the given package
      */
+    @SuppressLint("NewApi")
     public String getAppInstallerPackage(@NonNull final String packageName) {
         try {
             return mPm.getInstallSourceInfo(packageName).getInstallingPackageName();
@@ -246,13 +250,12 @@ public class PackageManagerHelper implements SafeCloseable {
     /**
      * Starts the details activity for {@code info}
      */
-    public void startDetailsActivityForInfo(ItemInfo info, Rect sourceBounds, Bundle opts) {
-        if (info instanceof ItemInfoWithIcon
-                && (((ItemInfoWithIcon) info).runtimeStatusFlags
-                        & ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE) != 0) {
-            ItemInfoWithIcon appInfo = (ItemInfoWithIcon) info;
-            mContext.startActivity(new PackageManagerHelper(mContext)
-                    .getMarketIntent(appInfo.getTargetComponent().getPackageName()));
+    public static void startDetailsActivityForInfo(Context context, ItemInfo info,
+                                                   Rect sourceBounds, Bundle opts) {
+        if (info instanceof ItemInfoWithIcon appInfo
+                && (appInfo.runtimeStatusFlags & FLAG_INSTALL_SESSION_ACTIVE) != 0) {
+            context.startActivity(ApiWrapper.INSTANCE.get(context).getAppMarketActivityIntent(
+                    appInfo.getTargetComponent().getPackageName(), Process.myUserHandle()));
             return;
         }
         ComponentName componentName = null;

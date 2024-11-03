@@ -1255,10 +1255,6 @@ public class DeviceProfile {
             } else {
                 iconDrawablePaddingPx = getNormalizedIconDrawablePadding();
             }
-            iconSizePx = cellContentDimensions.getIconSizePx();
-            iconDrawablePaddingPx = cellContentDimensions.getIconDrawablePaddingPx();
-            iconTextSizePx = cellContentDimensions.getIconTextSizePx();
-            int cellContentHeight = cellContentDimensions.getCellContentHeight();
 
             CellContentDimensions cellContentDimensions = new CellContentDimensions(iconSizePx,
                     iconDrawablePaddingPx,

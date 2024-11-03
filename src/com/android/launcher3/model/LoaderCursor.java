@@ -121,6 +121,7 @@ public class LoaderCursor extends CursorWrapper {
     public int container;
     public int itemType;
     public int restoreFlag;
+    private PreferenceManager2 preferenceManager2;
 
     public LoaderCursor(Cursor cursor, LauncherAppState app, UserManagerState userManagerState,
             PackageManagerHelper pmHelper,

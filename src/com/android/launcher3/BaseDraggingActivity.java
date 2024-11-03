@@ -23,8 +23,11 @@ import static com.android.launcher3.util.Executors.THREAD_POOL_EXECUTOR;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.ActionMode;
+import android.view.Display;
 import android.view.View;
 
 import androidx.annotation.MainThread;
@@ -179,7 +182,7 @@ public abstract class BaseDraggingActivity extends BaseActivity
         Display display = getWindowManager().getDefaultDisplay();
         Point mwSize = new Point();
         display.getSize(mwSize);
-        return new WindowBounds(new Rect(0, 0, mwSize.x, mwSize.y), new Rect());
+        return new WindowBounds(new Rect(0, 0, mwSize.x, mwSize.y), new Rect ());
     }
 
     @Override

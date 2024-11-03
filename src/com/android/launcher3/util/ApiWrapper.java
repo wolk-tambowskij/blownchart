@@ -60,7 +60,7 @@ public class ApiWrapper implements ResourceBasedOverride, SafeCloseable {
     /**
      * Returns the list of persons associated with the provided shortcut info
      */
-    public Person[] getPersons(ShortcutInfo si) {
+    public static Person[] getPersons(ShortcutInfo si) {
         return Utilities.EMPTY_PERSON_ARRAY;
     }
 

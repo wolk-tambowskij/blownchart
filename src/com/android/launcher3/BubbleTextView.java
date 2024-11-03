@@ -18,8 +18,6 @@
 
 package com.android.launcher3;
 
-import static com.android.launcher3.config.FeatureFlags.ENABLE_DOWNLOAD_APP_UX_V2;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_ICON_LABEL_AUTO_SCALING;
 import static com.android.launcher3.graphics.PreloadIconDrawable.newPendingIcon;
 import static android.text.Layout.Alignment.ALIGN_NORMAL;
 
@@ -242,6 +240,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mDeviceProfile = mActivity.getDeviceProfile();
         mCenterVertically = a.getBoolean(R.styleable.BubbleTextView_centerVertically, false);
 
+        var grid = mDeviceProfile;
         mDisplay = a.getInteger(R.styleable.BubbleTextView_iconDisplay, DISPLAY_WORKSPACE);
         final int defaultIconSize;
         if (mDisplay == DISPLAY_WORKSPACE) {
@@ -323,14 +322,14 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      */
     public void reset() {
         mDotInfo = null;
-        mDotParams.color = Color.TRANSPARENT;
+        mDotParams.dotColor = Color.TRANSPARENT;
         mDotParams.appColor = Color.TRANSPARENT;
         cancelDotScaleAnim();
         mDotParams.scale = 0f;
         mForceHideDot = false;
         setBackground(null);
-        if (FeatureFlags.twoLineAllApps(this.getContext())
-                || FeatureFlags.ENABLE_TWOLINE_DEVICESEARCH.get()) {
+        if (com.android.launcher3.config.FeatureFlags.twoLineAllApps(this.getContext())
+                || com.android.launcher3.config.FeatureFlags.ENABLE_TWOLINE_DEVICESEARCH.get()) {
             setMaxLines(1);
         }
 
@@ -458,7 +457,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         boolean useTheme = shouldUseTheme();
         FastBitmapDrawable iconDrawable = info.newIcon(getContext(), useTheme);
         mDotParams.appColor = iconDrawable.getIconColor();
-        mDotParams.color = IconPalette.getMutedColor(iconDrawable.getIconColor(), 0.54f);
+        mDotParams.dotColor = IconPalette.getMutedColor(iconDrawable.getIconColor(), 0.54f);
         setIcon(iconDrawable);
         applyLabel(info);
     }
@@ -475,8 +474,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      * be effective.
      */
     protected boolean shouldUseTwoLine() {
-        return (FeatureFlags.twoLineAllApps(this.getContext()) && mDisplay == DISPLAY_ALL_APPS)
-                || (FeatureFlags.ENABLE_TWOLINE_DEVICESEARCH.get()
+        return (com.android.launcher3.config.FeatureFlags.twoLineAllApps(this.getContext()) && mDisplay == DISPLAY_ALL_APPS)
+                || (com.android.launcher3.config.FeatureFlags.ENABLE_TWOLINE_DEVICESEARCH.get()
                         && mDisplay == DISPLAY_SEARCH_RESULT);
     }
 

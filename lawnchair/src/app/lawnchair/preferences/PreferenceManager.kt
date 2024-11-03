@@ -23,6 +23,7 @@ import app.lawnchair.LawnchairLauncher
 import app.lawnchair.font.FontCache
 import app.lawnchair.util.isOnePlusStock
 import com.android.launcher3.InvariantDeviceProfile
+import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
 import com.android.launcher3.model.DeviceGridState
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MainThreadInitializedObject
@@ -49,7 +50,7 @@ class PreferenceManager private constructor(private val context: Context) : Base
     val workspaceColumns = IntPref("pref_workspaceColumns", 4)
     val workspaceRows = IntPref("pref_workspaceRows", 5)
     val workspaceIncreaseMaxGridSize = BoolPref("pref_workspace_increase_max_grid_size", false)
-    val folderRows = IdpIntPref("pref_folderRows", { numFolderRows }, reloadGrid)
+    val folderRows = IdpIntPref("pref_folderRows", { numFolderRows[INDEX_DEFAULT] }, reloadGrid)
 
     val drawerOpacity = FloatPref("pref_drawerOpacity", 1F, recreate)
     val coloredBackgroundLightness = FloatPref("pref_coloredBackgroundLightness", 0.9F, recreate)

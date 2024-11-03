@@ -96,6 +96,7 @@ import com.android.launcher3.taskbar.navbutton.NavButtonLayoutFactory;
 import com.android.launcher3.taskbar.navbutton.NavButtonLayoutFactory.NavButtonLayoutter;
 import com.android.launcher3.taskbar.navbutton.NearestTouchFrame;
 import com.android.launcher3.util.DimensionUtils;
+import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiValueAlpha;
 import com.android.launcher3.util.TouchController;
@@ -260,7 +261,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mIsImeRenderingNavButtons = app.lawnchair.LawnchairApp.isAtleastT()
                 ? InputMethodService.canImeRenderGesturalNavButtons() && mContext.imeDrawsImeNavBar()
                 : mContext.imeDrawsImeNavBar();
-        mDisplayController = DisplayController.INSTANCE.get(mContext);
+//        mDisplayController = DisplayController.INSTANCE.get(mContext);
 
         if (!mIsImeRenderingNavButtons) {
             // IME switcher

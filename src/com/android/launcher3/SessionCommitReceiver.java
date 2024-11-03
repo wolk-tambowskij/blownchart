@@ -58,7 +58,7 @@ public class SessionCommitReceiver extends BroadcastReceiver {
     @WorkerThread
     private static void processIntent(Context context, Intent intent) {
         UserHandle user = intent.getParcelableExtra(Intent.EXTRA_USER);
-        if (!isEnabled(context, user)) {
+        if (!isEnabled(context)) {
             // User has decided to not add icons on homescreen.
             return;
         }

@@ -16,7 +16,7 @@
 
 package com.android.launcher3.icons;
 
-import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
+import static com.android.launcher3.BuildConfigs.WIDGETS_ENABLED;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -80,7 +80,7 @@ public class ShortcutCachingLogic implements CachingLogic<ShortcutInfo> {
                     context, info, LauncherAppState.getIDP(context).fillResIconDpi);
             if (unbadgedDrawable == null)
                 return BitmapInfo.LOW_RES_INFO;
-            return li.createBadgedIconBitmap(unbadgedDrawable, Process.myUserHandle(), true);
+            return li.createBadgedIconBitmap(unbadgedDrawable);
         }
     }
 

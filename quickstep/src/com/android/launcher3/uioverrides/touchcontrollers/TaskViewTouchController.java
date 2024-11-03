@@ -47,8 +47,6 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.TaskView;
 
-import app.lawnchair.util.RecentHelper;
-
 /**
  * Touch controller for handling task view card swipes
  */
@@ -60,9 +58,11 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
     private static final long MIN_TASK_DISMISS_ANIMATION_DURATION = 300;
     private static final long MAX_TASK_DISMISS_ANIMATION_DURATION = 600;
 
-    public static final int TASK_DISMISS_VIBRATION_PRIMITIVE = VibrationEffect.Composition.PRIMITIVE_TICK;
+    public static final int TASK_DISMISS_VIBRATION_PRIMITIVE =
+            VibrationEffect.Composition.PRIMITIVE_TICK;
     public static final float TASK_DISMISS_VIBRATION_PRIMITIVE_SCALE = 1f;
-    public static final VibrationEffect TASK_DISMISS_VIBRATION_FALLBACK = VibrationConstants.EFFECT_TEXTURE_TICK;
+    public static final VibrationEffect TASK_DISMISS_VIBRATION_FALLBACK =
+            VibrationConstants.EFFECT_TEXTURE_TICK;
 
     protected final CONTAINER mContainer;
     private final SingleAxisSwipeDetector mDetector;
@@ -92,7 +92,8 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
         mContainer = container;
         mRecentsView = container.getOverviewPanel();
         mIsRtl = Utilities.isRtl(container.getResources());
-        SingleAxisSwipeDetector.Direction dir = mRecentsView.getPagedOrientationHandler().getUpDownSwipeDirection();
+        SingleAxisSwipeDetector.Direction dir =
+                mRecentsView.getPagedOrientationHandler().getUpDownSwipeDirection();
         mDetector = new SingleAxisSwipeDetector(container, this, dir);
     }
 
@@ -225,15 +226,15 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
             mCurrentAnimation.dispatchOnCancel();
         }
 
-        RecentsPagedOrientationHandler orientationHandler = mRecentsView.getPagedOrientationHandler();
+        RecentsPagedOrientationHandler orientationHandler =
+                mRecentsView.getPagedOrientationHandler();
         mCurrentAnimationIsGoingUp = goingUp;
         BaseDragLayer dl = mContainer.getDragLayer();
         final int secondaryLayerDimension = orientationHandler.getSecondaryDimension(dl);
         long maxDuration = 2 * secondaryLayerDimension;
         int verticalFactor = orientationHandler.getTaskDragDisplacementFactor(mIsRtl);
         int secondaryTaskDimension = orientationHandler.getSecondaryDimension(mTaskBeingDragged);
-        // The interpolator controlling the most prominent visual movement. We use this
-        // to determine
+        // The interpolator controlling the most prominent visual movement. We use this to determine
         // whether we passed SUCCESS_TRANSITION_PROGRESS.
         final Interpolator currentInterpolator;
         PendingAnimation pa;
@@ -242,7 +243,7 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
             pa = new PendingAnimation(maxDuration);
             mRecentsView.createTaskDismissAnimation(pa, mTaskBeingDragged,
                     true /* animateTaskView */, true /* removeTask */, maxDuration,
-                    false /* dismissingForSplitSelection */);
+                    false /* dismissingForSplitSelection*/);
 
             mEndDisplacement = -secondaryTaskDimension;
         } else {
@@ -250,8 +251,7 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
             pa = mRecentsView.createTaskLaunchAnimation(
                     mTaskBeingDragged, maxDuration, currentInterpolator);
 
-            // Since the thumbnail is what is filling the screen, based the end displacement
-            // on it.
+            // Since the thumbnail is what is filling the screen, based the end displacement on it.
             View thumbnailView = mTaskBeingDragged.getFirstThumbnailViewDeprecated();
             mTempCords[1] = orientationHandler.getSecondaryDimension(thumbnailView);
             dl.getDescendantCoordRelativeToSelf(thumbnailView, mTempCords);
@@ -260,8 +260,7 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
         mEndDisplacement *= verticalFactor;
         mCurrentAnimation = pa.createPlaybackController();
 
-        // Setting this interpolator doesn't affect the visual motion, but is used to
-        // determine
+        // Setting this interpolator doesn't affect the visual motion, but is used to determine
         // whether we successfully reached the target state in onDragEnd().
         mCurrentAnimation.getTarget().setInterpolator(currentInterpolator);
         onUserControlledAnimationCreated(mCurrentAnimation);
@@ -272,10 +271,10 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
 
     @Override
     public void onDragStart(boolean start, float startDisplacement) {
-        if (!mDraggingEnabled)
-            return;
+        if (!mDraggingEnabled) return;
 
-        RecentsPagedOrientationHandler orientationHandler = mRecentsView.getPagedOrientationHandler();
+        RecentsPagedOrientationHandler orientationHandler =
+                mRecentsView.getPagedOrientationHandler();
         if (mCurrentAnimation == null) {
             reInitAnimationController(orientationHandler.isGoingUp(startDisplacement, mIsRtl));
             mDisplacementShift = 0;
@@ -289,13 +288,13 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
 
     @Override
     public boolean onDrag(float displacement) {
-        if (!mDraggingEnabled)
-            return true;
+        if (!mDraggingEnabled) return true;
 
-        RecentsPagedOrientationHandler orientationHandler = mRecentsView.getPagedOrientationHandler();
+        RecentsPagedOrientationHandler orientationHandler =
+                mRecentsView.getPagedOrientationHandler();
         float totalDisplacement = displacement + mDisplacementShift;
-        boolean isGoingUp = totalDisplacement == 0 ? mCurrentAnimationIsGoingUp
-                : orientationHandler.isGoingUp(totalDisplacement, mIsRtl);
+        boolean isGoingUp = totalDisplacement == 0 ? mCurrentAnimationIsGoingUp :
+                orientationHandler.isGoingUp(totalDisplacement, mIsRtl);
         if (isGoingUp != mCurrentAnimationIsGoingUp) {
             reInitAnimationController(isGoingUp);
             mFlingBlockCheck.blockFling();
@@ -314,7 +313,8 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
                 int velocityDimenId = R.dimen.default_task_dismiss_drag_velocity;
                 if (mRecentsView.showAsGrid()) {
                     if (mTaskBeingDragged.isFocusedTask()) {
-                        velocityDimenId = R.dimen.default_task_dismiss_drag_velocity_grid_focus_task;
+                        velocityDimenId =
+                                R.dimen.default_task_dismiss_drag_velocity_grid_focus_task;
                     } else {
                         velocityDimenId = R.dimen.default_task_dismiss_drag_velocity_grid;
                     }
@@ -351,9 +351,9 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
         if (blockedFling) {
             fling = false;
         }
-        PagedOrientationHandler orientationHandler = mRecentsView.getPagedOrientationHandler();
-        boolean goingUp = orientationHandler.isGoingUp(velocity, mIsRtl) && !RecentHelper.INSTANCE
-                .isAppLocked(mTaskBeingDragged.getTask().key.getPackageName(), mActivity.getBaseContext());
+        RecentsPagedOrientationHandler orientationHandler =
+                mRecentsView.getPagedOrientationHandler();
+        boolean goingUp = orientationHandler.isGoingUp(velocity, mIsRtl);
         float progress = mCurrentAnimation.getProgressFraction();
         float interpolatedProgress = mCurrentAnimation.getInterpolatedProgress();
         if (fling) {
@@ -366,10 +366,8 @@ public abstract class TaskViewTouchController<CONTAINER extends Context & Recent
         if (blockedFling && !goingToEnd) {
             animationDuration *= LauncherAnimUtils.blockedFlingDurationFactor(velocity);
         }
-        // Due to very high or low velocity dismissals, animation durations can be
-        // inconsistently
-        // long or short. Bound the duration for animation of task translations for a
-        // more
+        // Due to very high or low velocity dismissals, animation durations can be inconsistently
+        // long or short. Bound the duration for animation of task translations for a more
         // standardized feel.
         animationDuration = Utilities.boundToRange(animationDuration,
                 MIN_TASK_DISMISS_ANIMATION_DURATION, MAX_TASK_DISMISS_ANIMATION_DURATION);

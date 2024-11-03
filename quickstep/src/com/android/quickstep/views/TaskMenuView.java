@@ -231,7 +231,6 @@ public class TaskMenuView extends AbstractFloatingView {
         // responsible for
         // ending LiveTile mode on the thumbnail if needed.
         menuOptionView.setOnClickListener(menuOption::onClick);
-        menuOptionView.setBackground(DrawableTokens.TaskMenuItemBg.resolve(mActivity));
         mOptionLayout.addView(menuOptionView);
     }
 

@@ -43,6 +43,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.search.SearchAdapterProvider;
+import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
@@ -68,10 +69,11 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
     // A divider that separates the apps list and the search market button
     public static final int VIEW_TYPE_ALL_APPS_DIVIDER = 1 << 4;
 
-    public static final int VIEW_TYPE_WORK_EDU_CARD = 1 << 4;
     public static final int VIEW_TYPE_WORK_DISABLED_CARD = 1 << 5;
     public static final int VIEW_TYPE_PRIVATE_SPACE_HEADER = 1 << 6;
     public static final int VIEW_TYPE_PRIVATE_SPACE_SYS_APPS_DIVIDER = 1 << 7;
+    public static final int VIEW_TYPE_WORK_EDU_CARD = 1 << 8;
+
     public static final int NEXT_ID = 8;
 
     // Common view type masks
@@ -239,9 +241,6 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                 icon.setOnLongClickListener(mOnIconLongClickListener);
                 // Ensure the all apps icon height matches the workspace icons in portrait mode.
                 icon.getLayoutParams().height = mActivityContext.getDeviceProfile().allAppsCellHeightPx;
-                if (FeatureFlags.twoLineAllApps(parent.getContext())) {
-                    icon.getLayoutParams().height += mExtraTextHeight;
-                }
                 return new ViewHolder(icon);
             case VIEW_TYPE_EMPTY_SEARCH:
                 return new ViewHolder(mLayoutInflater.inflate(R.layout.all_apps_empty_search,

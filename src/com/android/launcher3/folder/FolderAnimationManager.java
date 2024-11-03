@@ -12,8 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * Modifications copyright 2021, Lawnchair
  */
 
 package com.android.launcher3.folder;
@@ -37,8 +35,6 @@ import android.util.Property;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 
-import androidx.core.graphics.ColorUtils;
-
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.DeviceProfile;
@@ -54,9 +50,6 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.BaseDragLayer;
 
 import java.util.List;
-
-import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.util.LawnchairUtilsKt;
 
 /**
  * Manages the opening and closing animations for a {@link Folder}.
@@ -186,9 +179,8 @@ public class FolderAnimationManager {
         final float yDistance = initialY - lp.y;
 
         // Set up the Folder background.
-        final int previewColor = ColorTokens.FolderPreviewColor.resolveColor(mContext);
-        final int initialColor = ColorUtils.setAlphaComponent(previewColor, LawnchairUtilsKt.getFolderPreviewAlpha(mContext));
-        final int finalColor = ColorTokens.FolderBackgroundColor.resolveColor(mContext);
+        final int initialColor = Themes.getAttrColor(mContext, R.attr.folderPreviewColor);
+        final int finalColor = Themes.getAttrColor(mContext, R.attr.folderBackgroundColor);
 
         mFolderBackground.mutate();
         mFolderBackground.setColor(mIsOpening ? initialColor : finalColor);
@@ -374,7 +366,7 @@ public class FolderAnimationManager {
      * Animate the items on the current page.
      */
     private void addPreviewItemAnimators(AnimatorSet animatorSet, final float folderScale,
-            int previewItemOffsetX, int previewItemOffsetY) {
+                                         int previewItemOffsetX, int previewItemOffsetY) {
         ClippedFolderIconLayoutRule rule = mFolderIcon.getLayoutRule();
         boolean isOnFirstPage = mFolder.mContent.getCurrentPage() == 0;
         final List<View> itemsInPreview = getPreviewIconsOnPage(

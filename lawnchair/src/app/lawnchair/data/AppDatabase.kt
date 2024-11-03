@@ -7,12 +7,11 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SimpleSQLiteQuery
 import app.lawnchair.data.iconoverride.IconOverride
 import app.lawnchair.data.iconoverride.IconOverrideDao
-import com.android.launcher3.util.MainThreadInitializedObject
-import com.android.launcher3.util.SafeCloseable
+import app.lawnchair.util.MainThreadInitializedObject
 
 @Database(entities = [IconOverride::class], version = 1)
 @TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase(), SafeCloseable {
+abstract class AppDatabase : RoomDatabase() {
 
     abstract fun iconOverrideDao(): IconOverrideDao
 

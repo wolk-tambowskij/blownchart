@@ -267,7 +267,7 @@ public class DatabaseWidgetPreviewLoader {
             LauncherIcons li = LauncherIcons.obtain(mContext);
             Drawable icon = li.createBadgedIconBitmap(
                     mutateOnMainThread(info.getFullResIcon(
-                            LauncherAppState.getInstance(mContext).getIconCache())), Process.myUserHandle (), false)
+                            LauncherAppState.getInstance(mContext).getIconCache())))
                     .newIcon(mContext);
             li.recycle();
 

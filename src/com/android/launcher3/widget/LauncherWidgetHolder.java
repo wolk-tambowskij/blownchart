@@ -17,7 +17,7 @@ package com.android.launcher3.widget;
 
 import static android.app.Activity.RESULT_CANCELED;
 
-import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
+import static com.android.launcher3.BuildConfigs.WIDGETS_ENABLED;
 import static com.android.launcher3.Flags.enableWorkspaceInflation;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.widget.LauncherAppWidgetProviderInfo.fromProviderInfo;

@@ -17,8 +17,8 @@ package com.android.launcher3.model;
 
 import static android.content.pm.LauncherApps.ShortcutQuery.FLAG_GET_KEY_FIELDS_ONLY;
 
-import static com.android.launcher3.BuildConfig.QSB_ON_FIRST_SCREEN;
-import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
+import static com.android.launcher3.BuildConfigs.QSB_ON_FIRST_SCREEN;
+import static com.android.launcher3.BuildConfigs.WIDGETS_ENABLED;
 import static com.android.launcher3.Flags.enableSmartspaceRemovalToggle;
 import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
 import static com.android.launcher3.shortcuts.ShortcutRequest.PINNED;

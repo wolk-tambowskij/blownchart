@@ -97,7 +97,7 @@ public class Snackbar extends AbstractFloatingView {
         snackbar.setElevation(res.getDimension(R.dimen.snackbar_elevation));
         int padding = res.getDimensionPixelSize(R.dimen.snackbar_padding);
         snackbar.setPadding(padding, padding, padding, padding);
-        snackbar.setBackground(DrawableTokens.RoundRectPrimary.resolve(activity));
+        snackbar.setBackground(DrawableTokens.RoundRectPrimary.resolve(((Context)activity).getApplicationContext()));
 
         snackbar.mIsOpen = true;
         BaseDragLayer dragLayer = activity.getDragLayer();
@@ -128,8 +128,8 @@ public class Snackbar extends AbstractFloatingView {
         labelView.setText(labelString);
 
         TextView actionView = snackbar.findViewById(R.id.action);
-        labelView.setTextColor(ColorTokens.TextColorPrimary.resolveColor(activity));
-        actionView.setTextColor(ColorTokens.ColorAccent.resolveColor(activity));
+        labelView.setTextColor(ColorTokens.TextColorPrimary.resolveColor(((Context) activity).getApplicationContext()));
+        actionView.setTextColor(ColorTokens.ColorAccent.resolveColor(((Context) activity).getApplicationContext()));
         float actionWidth;
         if (actionStringResId != NO_ID) {
             String actionText = res.getString(actionStringResId);

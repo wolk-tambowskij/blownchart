@@ -26,23 +26,11 @@ import android.util.AttributeSet;
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
-
-import app.lawnchair.preferences2.PreferenceManager2;
 
 /**
- * A {@link BubbleTextView} that has the shortcut icon on the left and drag
- * handle on the right.
+ * A {@link BubbleTextView} that has the shortcut icon on the left and drag handle on the right.
  */
 public class DeepShortcutTextView extends BubbleTextView {
-
-    private final PreferenceManager2 mPreferenceManager2 = PreferenceManager2.getInstance(getContext());
-
-    private final Rect mDragHandleBounds = new Rect();
-    private int mDragHandleWidth;
-    private boolean mShowInstructionToast = false;
-
-    private Toast mInstructionToast;
 
     private boolean mShowLoadingState;
     private Drawable mLoadingStatePlaceholder;
@@ -59,17 +47,6 @@ public class DeepShortcutTextView extends BubbleTextView {
     public DeepShortcutTextView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         showLoadingState(true);
-    }
-
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-
-        if (PreferenceExtensionsKt.firstBlocking(mPreferenceManager2.getLockHomeScreen())) {
-            setCompoundDrawables(null, null, null, null);
-            mDragHandleWidth = 0;
-            mDragHandleBounds.set(0, 0, 0, 0);
-        }
     }
 
     @Override
@@ -90,7 +67,8 @@ public class DeepShortcutTextView extends BubbleTextView {
         mLoadingStateBounds.offset(
                 Utilities.isRtl(getResources()) ? getPaddingEnd() : getPaddingStart(),
                 (int) ((getMeasuredHeight() - mLoadingStatePlaceholder.getIntrinsicHeight())
-                        / 2.0f));
+                        / 2.0f)
+        );
         mLoadingStatePlaceholder.setBounds(mLoadingStateBounds);
     }
 
@@ -126,10 +104,8 @@ public class DeepShortcutTextView extends BubbleTextView {
 
     @Override
     protected void drawDotIfNecessary(Canvas canvas) {
-        // This view (with the text label to the side of the icon) is not designed for a
-        // dot to be
-        // drawn on top of it, so never draw one even if a notification for this
-        // shortcut exists.
+        // This view (with the text label to the side of the icon) is not designed for a dot to be
+        // drawn on top of it, so never draw one even if a notification for this shortcut exists.
     }
 
     private void showLoadingState(boolean loading) {

@@ -110,6 +110,20 @@ public class RecentTasksList {
                             RecentTasksList.this.onRunningTaskVanished(taskInfo);
                         });
                     }
+
+                    @Override
+                    public void onRunningTaskChanged(ActivityManager.RunningTaskInfo taskInfo){
+                        mMainThreadExecutor.execute(() -> {
+                            RecentTasksList.this.onRunningTaskChanged(taskInfo);
+                        });
+                    }
+
+                    @Override
+                    public void onTaskMovedToFront(ActivityManager.RunningTaskInfo taskInfo){
+                        mMainThreadExecutor.execute(() -> {
+                            RecentTasksList.this.onRunningTaskAppeared(taskInfo);
+                        });
+                    }
                 });
             } else if (LawnchairQuickstepCompat.ATLEAST_Q) {
                 TaskStackChangeListeners.getInstance().registerTaskStackListener(new TaskStackChangeListener() {

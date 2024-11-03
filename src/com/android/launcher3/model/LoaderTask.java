@@ -16,12 +16,9 @@
 
 package com.android.launcher3.model;
 
-import static com.android.launcher3.BuildConfig.WIDGET_ON_FIRST_SCREEN;
 import static com.android.launcher3.Flags.enableLauncherBrMetricsFixed;
-import static com.android.launcher3.Flags.enableSmartspaceAsAWidget;
 import static com.android.launcher3.Flags.enableSmartspaceRemovalToggle;
 import static com.android.launcher3.LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE;
-import static com.android.launcher3.LauncherPrefs.SHOULD_SHOW_SMARTSPACE;
 import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_HAS_SHORTCUT_PERMISSION;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED;
@@ -29,10 +26,6 @@ import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_QUIET_MODE_
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_QUIET_MODE_ENABLED;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_WORK_PROFILE_QUIET_MODE_ENABLED;
 import static com.android.launcher3.model.ModelUtils.filterCurrentWorkspaceItems;
-import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_DISABLED_LOCKED_USER;
-import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_DISABLED_SAFEMODE;
-import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_DISABLED_SUSPENDED;
-import static com.android.launcher3.testing.shared.TestProtocol.testLogD;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.util.PackageManagerHelper.hasShortcutsPermission;
@@ -73,7 +66,6 @@ import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderGridOrganizer;
 import com.android.launcher3.folder.FolderNameInfos;
 import com.android.launcher3.folder.FolderNameProvider;
-import com.android.launcher3.graphics.LauncherPreviewRenderer;
 import com.android.launcher3.icons.ComponentWithLabelAndIcon;
 import com.android.launcher3.icons.ComponentWithLabelAndIcon.ComponentWithIconCachingLogic;
 import com.android.launcher3.icons.IconCache;
@@ -115,7 +107,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 
-import app.lawnchair.LawnchairAppKt;
 import app.lawnchair.preferences.PreferenceManager;
 
 /**
@@ -348,17 +339,17 @@ public class LoaderTask implements Runnable {
             verifyNotStopped();
             LauncherPrefs prefs = LauncherPrefs.get(mApp.getContext());
 
-            if (enableSmartspaceAsAWidget() && prefs.get(SHOULD_SHOW_SMARTSPACE)) {
-                mLauncherBinder.bindSmartspaceWidget();
-                // Turn off pref.
-                prefs.putSync(SHOULD_SHOW_SMARTSPACE.to(false));
-                logASplit("bindSmartspaceWidget");
-                verifyNotStopped();
-            } else if (!enableSmartspaceAsAWidget() && WIDGET_ON_FIRST_SCREEN
-                    && !prefs.get(LauncherPrefs.SHOULD_SHOW_SMARTSPACE)) {
-                // Turn on pref.
-                prefs.putSync(SHOULD_SHOW_SMARTSPACE.to(true));
-            }
+//            if (enableSmartspaceAsAWidget() && prefs.get(SHOULD_SHOW_SMARTSPACE)) {
+//                mLauncherBinder.bindSmartspaceWidget();
+//                // Turn off pref.
+//                prefs.putSync(SHOULD_SHOW_SMARTSPACE.to(false));
+//                logASplit("bindSmartspaceWidget");
+//                verifyNotStopped();
+//            } else if (!enableSmartspaceAsAWidget() && WIDGET_ON_FIRST_SCREEN
+//                    && !prefs.get(LauncherPrefs.SHOULD_SHOW_SMARTSPACE)) {
+//                // Turn on pref.
+//                prefs.putSync(SHOULD_SHOW_SMARTSPACE.to(true));
+//            }
 
             if (FeatureFlags.CHANGE_MODEL_DELEGATE_LOADING_ORDER.get()) {
                 mModelDelegate.loadAndBindOtherItems(mLauncherBinder.mCallbacksList);
@@ -423,7 +414,7 @@ public class LoaderTask implements Runnable {
             mModelDelegate.markActive();
             logASplit("workspaceDelegateItems");
         }
-        mBgDataModel.isFirstPagePinnedItemEnabled = FeatureFlags.QSB_ON_FIRST_SCREEN
+        mBgDataModel.isFirstPagePinnedItemEnabled = com.android.launcher3.config.FeatureFlags.topQsbOnFirstScreenEnabled(mApp.getContext())
                 && (!enableSmartspaceRemovalToggle() || LauncherPrefs.getPrefs(
                         mApp.getContext()).getBoolean(SMARTSPACE_ON_HOME_SCREEN, true));
     }

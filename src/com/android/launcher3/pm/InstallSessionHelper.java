@@ -216,7 +216,7 @@ public class InstallSessionHelper implements SafeCloseable {
     @WorkerThread
     void tryQueuePromiseAppIcon(@Nullable final PackageInstaller.SessionInfo sessionInfo) {
         if (sessionInfo != null
-                && SessionCommitReceiver.isEnabled(mAppContext, getUserHandle(sessionInfo))
+                && SessionCommitReceiver.isEnabled(mAppContext)
                 && verifySessionInfo(sessionInfo)
                 && !promiseIconAddedForId(sessionInfo.getSessionId())) {
             // In case of unarchival, we do not want to add a workspace promise icon if one is

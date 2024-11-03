@@ -650,7 +650,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
         Drawable drawable = new AdaptiveIconDrawable(new ColorDrawable(overflowBackgroundColor),
                 foreground);
 
-        return mIconFactory.createBadgedIconBitmap(drawable, Process.myUserHandle(), true).icon;
+        return mIconFactory.createBadgedIconBitmap(drawable).icon;
     }
 
     private void onBubbleBarBoundsChanged() {

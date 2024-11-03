@@ -262,9 +262,6 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
             ActiveGestureLog.INSTANCE.setIsFullyGesturalNavMode(isFullyGesturalNavMode());
             mNavBarPosition = new NavBarPosition(mMode, info);
 
-            if (mExclusionListener == null)
-                return;
-
             if (mMode == NO_BUTTON) {
                 registerExclusionListener();
             } else {

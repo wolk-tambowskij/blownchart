@@ -104,8 +104,8 @@ class DeviceProfileOverrides(context: Context) : SafeCloseable {
             // apply grid size
             idp.numAllAppsColumns = numAllAppsColumns
             idp.numDatabaseAllAppsColumns = numAllAppsColumns
-            idp.numFolderRows = numFolderRows
-            idp.numFolderColumns = numFolderColumns
+            idp.numFolderRows[INDEX_DEFAULT] = numFolderRows
+            idp.numFolderColumns[INDEX_DEFAULT] = numFolderColumns
 
             // apply icon and text size
             idp.iconSize[INDEX_DEFAULT] *= iconSizeFactor

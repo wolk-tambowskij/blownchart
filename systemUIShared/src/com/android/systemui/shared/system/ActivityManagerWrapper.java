@@ -57,6 +57,8 @@ import com.android.systemui.shared.recents.model.ThumbnailData;
 import java.util.List;
 import java.util.function.Consumer;
 
+import app.lawnchair.compat.LawnchairQuickstepCompat;
+
 public class ActivityManagerWrapper {
 
     private static final String TAG = "ActivityManagerWrapper";
@@ -95,6 +97,14 @@ public class ActivityManagerWrapper {
      */
     public ActivityManager.RunningTaskInfo getRunningTask() {
         return getRunningTask(false /* filterVisibleRecents */);
+    }
+
+    /**
+     * @return a list of the recents tasks.
+     */
+    @NonNull
+    public List<ActivityManager.RecentTaskInfo> getRecentTasks(int numTasks, int userId) {
+        return LawnchairQuickstepCompat.getActivityManagerCompat().getRecentTasks(numTasks, userId);
     }
 
     /**

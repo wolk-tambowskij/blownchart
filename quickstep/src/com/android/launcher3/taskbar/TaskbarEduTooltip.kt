@@ -102,8 +102,8 @@ constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
 
-        content = requireViewById(R.id.content)
-        arrow = requireViewById(R.id.arrow)
+        content = requireViewById<android.widget.FrameLayout>(R.id.content)
+        arrow = requireViewById<View>(R.id.arrow)
         arrow.background =
             RoundedArrowDrawable(
                 arrowWidth,
@@ -151,13 +151,13 @@ constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        findOnBackInvokedDispatcher()
-            ?.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, this)
+//        findOnBackInvokedDispatcher()
+//            ?.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, this)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        findOnBackInvokedDispatcher()?.unregisterOnBackInvokedCallback(this)
+//        findOnBackInvokedDispatcher()?.unregisterOnBackInvokedCallback(this)
         Settings.Secure.putInt(mContext.contentResolver, LAUNCHER_TASKBAR_EDUCATION_SHOWING, 0)
     }
 

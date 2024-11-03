@@ -3,7 +3,7 @@ package com.android.launcher3.model;
 
 import static android.appwidget.AppWidgetProviderInfo.WIDGET_FEATURE_HIDE_FROM_PICKER;
 
-import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
+import static com.android.launcher3.BuildConfigs.WIDGETS_ENABLED;
 import static com.android.launcher3.pm.ShortcutConfigActivityInfo.queryList;
 import static com.android.launcher3.widget.WidgetSections.NO_CATEGORY;
 

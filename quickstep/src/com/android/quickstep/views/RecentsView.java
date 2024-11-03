@@ -2880,7 +2880,7 @@ public abstract class RecentsView<CONTAINER_TYPE extends Context & RecentsViewCo
     }
 
     private boolean hasDesktopTask(Task[] runningTasks) {
-        if (!DesktopModeStatus.canEnterDesktopMode(mContext)) {
+        if (!DesktopModeStatus.canEnterDesktopMode(getContext())) {
             return false;
         }
         for (Task task : runningTasks) {
@@ -6325,7 +6325,7 @@ public abstract class RecentsView<CONTAINER_TYPE extends Context & RecentsViewCo
     public void moveTaskToDesktop(TaskContainer taskContainer,
             DesktopModeTransitionSource transitionSource,
             Runnable successCallback) {
-        if (!DesktopModeStatus.canEnterDesktopMode(mContext)) {
+        if (!DesktopModeStatus.canEnterDesktopMode(getContext())) {
             return;
         }
         switchToScreenshot(() -> finishRecentsAnimation(/* toRecents= */true, /* shouldPip= */false,

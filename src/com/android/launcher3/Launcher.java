@@ -96,7 +96,6 @@ import static com.android.launcher3.model.ItemInstallQueue.FLAG_ACTIVITY_PAUSED;
 import static com.android.launcher3.model.ItemInstallQueue.FLAG_DRAG_AND_DROP;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
 import static com.android.launcher3.popup.SystemShortcut.INSTALL;
-import static com.android.launcher3.popup.SystemShortcut.UNINSTALL;
 import static com.android.launcher3.popup.SystemShortcut.WIDGETS;
 import static com.android.launcher3.states.RotationHelper.REQUEST_LOCK;
 import static com.android.launcher3.states.RotationHelper.REQUEST_NONE;
@@ -108,6 +107,7 @@ import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLIN
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -168,7 +168,7 @@ import androidx.annotation.StringRes;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.os.BuildCompat;
-import androidx.window.embedding.RuleController;
+//import androidx.window.embedding.RuleController;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.DropTarget.DragObject;
@@ -604,11 +604,11 @@ public class Launcher extends StatefulActivity<LauncherState>
         setTitle(R.string.home_screen);
         mStartupLatencyLogger.logEnd(LAUNCHER_LATENCY_STARTUP_ACTIVITY_ON_CREATE);
 
-        if (BuildCompat.isAtLeastV()
-                && com.android.launcher3.Flags.enableTwoPaneLauncherSettings()) {
-            RuleController.getInstance(this).setRules(
-                    RuleController.parseRules(this, R.xml.split_configuration));
-        }
+//        if (BuildCompat.isAtLeastV()
+//                && com.android.launcher3.Flags.enableTwoPaneLauncherSettings()) {
+//            RuleController.getInstance(this).setRules(
+//                    RuleController.parseRules(this, R.xml.split_configuration));
+//        }
     }
 
     protected ModelCallbacks createModelCallbacks() {
@@ -679,7 +679,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         // #4 state handler
         return new OnBackPressedHandler() {
             @Override
-            public void onBackStarted(BackEvent backEvent) {
+            public void onBackStarted() {
                 Launcher.this.onBackStarted();
             }
 
@@ -1146,22 +1146,24 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAppWidgetHolder.setActivityResumed(true);
 
         // Listen for IME changes to keep state up to date.
-        getRootView().setWindowInsetsAnimationCallback(
-                new WindowInsetsAnimation.Callback(DISPATCH_MODE_CONTINUE_ON_SUBTREE) {
-                    @Override
-                    public WindowInsets onProgress(WindowInsets windowInsets,
-                            List<WindowInsetsAnimation> windowInsetsAnimations) {
-                        return windowInsets;
-                    }
+        if (Utilities.ATLEAST_T) {
+            getRootView().setWindowInsetsAnimationCallback(
+                    new WindowInsetsAnimation.Callback(DISPATCH_MODE_CONTINUE_ON_SUBTREE) {
+                        @Override
+                        public WindowInsets onProgress(WindowInsets windowInsets,
+                                                       List<WindowInsetsAnimation> windowInsetsAnimations) {
+                            return windowInsets;
+                        }
 
-                    @Override
-                    public void onEnd(WindowInsetsAnimation animation) {
-                        WindowInsets insets = getRootView().getRootWindowInsets();
-                        boolean isImeVisible = insets != null && insets.isVisible(WindowInsets.Type.ime());
-                        getStatsLogManager().keyboardStateManager().setKeyboardState(
-                                isImeVisible ? SHOW : HIDE);
-                    }
-                });
+                        @Override
+                        public void onEnd(WindowInsetsAnimation animation) {
+                            WindowInsets insets = getRootView().getRootWindowInsets();
+                            boolean isImeVisible = insets != null && insets.isVisible(WindowInsets.Type.ime());
+                            getStatsLogManager().keyboardStateManager().setKeyboardState(
+                                    isImeVisible ? SHOW : HIDE);
+                        }
+                    });
+        }
     }
 
     private void logStopAndResume(boolean isResume) {

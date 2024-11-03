@@ -24,7 +24,6 @@ import static com.android.launcher3.BubbleTextView.DISPLAY_TASKBAR;
 import static com.android.launcher3.BubbleTextView.DISPLAY_WORKSPACE;
 import static com.android.launcher3.DeviceProfile.DEFAULT_SCALE;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
-import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
 import static com.android.launcher3.model.ModelUtils.filterCurrentWorkspaceItems;
 import static com.android.launcher3.model.ModelUtils.getMissingHotseatRanks;
 
@@ -40,9 +39,9 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Process;
 import android.util.AttributeSet;
 import android.util.Size;
 import android.util.SparseArray;
@@ -79,6 +78,7 @@ import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.folder.FolderIcon;
+import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.WidgetItem;
@@ -110,12 +110,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import app.lawnchair.DeviceProfileOverrides;
 import app.lawnchair.data.iconoverride.IconOverrideRepository;
 import app.lawnchair.font.FontCache;
 import app.lawnchair.font.FontManager;
-import app.lawnchair.icons.CustomAdaptiveIconDrawable;
 import app.lawnchair.icons.IconPackProvider;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
@@ -145,10 +145,7 @@ public class LauncherPreviewRenderer extends ContextWrapper
         private final ConcurrentLinkedQueue<LauncherIconsForPreview> mIconPool = new ConcurrentLinkedQueue<>();
 
         public PreviewContext(Context base, InvariantDeviceProfile idp) {
-            super(base, UserCache.INSTANCE, InstallSessionHelper.INSTANCE, LauncherPrefs.INSTANCE,
-                    LauncherAppState.INSTANCE, InvariantDeviceProfile.INSTANCE,
-                    CustomWidgetManager.INSTANCE, PluginManagerWrapper.INSTANCE,
-                    WindowManagerProxy.INSTANCE, DisplayController.INSTANCE);
+            super (base);
             mIdp = idp;
             putBaseInstance(PreferenceManager.INSTANCE);
             putBaseInstance(PreferenceManager2.INSTANCE);
@@ -165,27 +162,13 @@ public class LauncherPreviewRenderer extends ContextWrapper
         }
 
         private void putBaseInstance(MainThreadInitializedObject mainThreadInitializedObject) {
-            mAllowedObjects.add(mainThreadInitializedObject);
             mObjectMap.put(mainThreadInitializedObject, mainThreadInitializedObject.get(getBaseContext()));
-        }
-
-        /**
-         * Creates a new LauncherIcons for the preview, skipping the global pool
-         */
-        public LauncherIcons newLauncherIcons(Context context) {
-            LauncherIconsForPreview launcherIconsForPreview = mIconPool.poll();
-            if (launcherIconsForPreview != null) {
-                return launcherIconsForPreview;
-            }
-            return new LauncherIconsForPreview(context, mIdp.fillResIconDpi, mIdp.iconBitmapSize,
-                    -1 /* poolId */);
         }
 
         private final class LauncherIconsForPreview extends LauncherIcons {
 
-            private LauncherIconsForPreview(Context context, int fillResIconDpi, int iconBitmapSize,
-                    int poolId) {
-                super(context, fillResIconDpi, iconBitmapSize, poolId, true);
+            private LauncherIconsForPreview(Context context , int fillResIconDpi , int iconBitmapSize , ConcurrentLinkedQueue<LauncherIcons> pool) {
+                super (context , fillResIconDpi , iconBitmapSize , pool);
             }
 
             @Override

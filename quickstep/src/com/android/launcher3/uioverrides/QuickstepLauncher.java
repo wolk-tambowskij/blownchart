@@ -111,6 +111,7 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.LauncherState;
+import com.android.launcher3.OnBackPressedHandler;
 import com.android.launcher3.QuickstepAccessibilityDelegate;
 import com.android.launcher3.QuickstepTransitionManager;
 import com.android.launcher3.R;
@@ -309,7 +310,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
 
     @Override
     public void logAppLaunch(StatsLogManager statsLogManager, ItemInfo info,
-            InstanceId instanceId) {
+                             InstanceId instanceId) {
         // If the app launch is from any of the surfaces in AllApps then add the InstanceId from
         // LiveSearchManager to recreate the AllApps session on the server side.
         if (mAllAppsSessionLogId != null && ALL_APPS.equals(
@@ -341,7 +342,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
 
     @Override
     protected void completeAddShortcut(Intent data, int container, int screenId, int cellX,
-            int cellY, PendingRequestArgs args) {
+                                       int cellY, PendingRequestArgs args) {
         if (container == CONTAINER_HOTSEAT) {
             mHotseatPredictionController.onDeferredDrop(cellX, cellY);
         }
@@ -879,7 +880,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
             return false;
         }
 
-        getOnBackAnimationCallback().onBackInvoked();
+//        getOnBackAnimationCallback().onBackInvoked();
         return true;
     }
 
@@ -893,51 +894,50 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
                 OnBackInvokedDispatcher.PRIORITY_DEFAULT,
                 new OnBackAnimationCallback() {
 
-                    @Nullable OnBackAnimationCallback mActiveOnBackAnimationCallback;
+                    @Nullable
+                    OnBackPressedHandler mActiveOnBackPressedHandler;
 
                     @Override
                     public void onBackStarted(@NonNull BackEvent backEvent) {
-                        if (mActiveOnBackAnimationCallback != null) {
-                            mActiveOnBackAnimationCallback.onBackCancelled();
+                        if (mActiveOnBackPressedHandler != null) {
+                            mActiveOnBackPressedHandler.onBackCancelled();
                         }
-                        mActiveOnBackAnimationCallback = getOnBackAnimationCallback();
-                        mActiveOnBackAnimationCallback.onBackStarted(backEvent);
+                        mActiveOnBackPressedHandler = getOnBackPressedHandler();
+                        mActiveOnBackPressedHandler.onBackStarted();
                     }
 
-                    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
                     @Override
                     public void onBackInvoked() {
-                        // Recreate mActiveOnBackAnimationCallback if necessary to avoid NPE
+                        // Recreate mActiveOnBackPressedHandler if necessary to avoid NPE
                         // because:
                         // 1. b/260636433: In 3-button-navigation mode, onBackStarted() is not
                         // called on ACTION_DOWN before onBackInvoked() is called in ACTION_UP.
                         // 2. Launcher#onBackPressed() will call onBackInvoked() without calling
                         // onBackInvoked() beforehand.
-                        if (mActiveOnBackAnimationCallback == null) {
-                            mActiveOnBackAnimationCallback = getOnBackAnimationCallback();
+                        if (mActiveOnBackPressedHandler == null) {
+                            mActiveOnBackPressedHandler = getOnBackPressedHandler();
                         }
-                        mActiveOnBackAnimationCallback.onBackInvoked();
-                        mActiveOnBackAnimationCallback = null;
+                        mActiveOnBackPressedHandler.onBackInvoked();
+                        mActiveOnBackPressedHandler = null;
                         TestLogging.recordEvent(TestProtocol.SEQUENCE_MAIN, "onBackInvoked");
                     }
-
                     @Override
                     public void onBackProgressed(@NonNull BackEvent backEvent) {
                         if (!FeatureFlags.IS_STUDIO_BUILD
-                                && mActiveOnBackAnimationCallback == null) {
+                                && mActiveOnBackPressedHandler == null) {
                             return;
                         }
-                        mActiveOnBackAnimationCallback.onBackProgressed(backEvent);
+                        mActiveOnBackPressedHandler.onBackProgressed(backEvent.getProgress());
                     }
 
                     @Override
                     public void onBackCancelled() {
                         if (!FeatureFlags.IS_STUDIO_BUILD
-                                && mActiveOnBackAnimationCallback == null) {
+                                && mActiveOnBackPressedHandler == null) {
                             return;
                         }
-                        mActiveOnBackAnimationCallback.onBackCancelled();
-                        mActiveOnBackAnimationCallback = null;
+                        mActiveOnBackPressedHandler.onBackCancelled();
+                        mActiveOnBackPressedHandler = null;
                     }
                 });
     }
@@ -954,7 +954,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
 
     @Override
     public void startIntentSenderForResult(IntentSender intent, int requestCode,
-            Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags, Bundle options) {
+                                           Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags, Bundle options) {
         if (requestCode != -1) {
             mPendingActivityRequestCode = requestCode;
             StartActivityParams params = new StartActivityParams(this, requestCode);
@@ -1071,7 +1071,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
     }
 
     private void initUnfoldAnimationController(UnfoldTransitionProgressProvider progressProvider,
-            @UnfoldMain RotationChangeProvider rotationChangeProvider) {
+                                               @UnfoldMain RotationChangeProvider rotationChangeProvider) {
         mLauncherUnfoldAnimationController = new LauncherUnfoldAnimationController(
                 /* launcher= */ this,
                 getWindowManager(),

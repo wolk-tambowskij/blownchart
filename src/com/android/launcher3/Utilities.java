@@ -16,10 +16,9 @@
 
 package com.android.launcher3;
 
-import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_ICON_BADGED;
 import static android.graphics.drawable.AdaptiveIconDrawable.getExtraInsetFraction;
 
-import static com.android.launcher3.BuildConfig.WIDGET_ON_FIRST_SCREEN;
+import static com.android.launcher3.BuildConfigs.WIDGET_ON_FIRST_SCREEN;
 import static com.android.launcher3.Flags.enableSmartspaceAsAWidget;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
@@ -62,6 +61,7 @@ import android.os.DeadObjectException;
 import android.os.Handler;
 import android.os.Message;
 import android.os.TransactionTooLargeException;
+import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -204,6 +204,50 @@ public final class Utilities {
     public static boolean isDevelopersOptionsEnabled(Context context) {
         return Settings.Global.getInt(context.getApplicationContext().getContentResolver(),
                 Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, 0) != 0;
+    }
+
+    public static Drawable loadFullDrawableWithoutTheme(Context context, ItemInfo info,
+                                                        int width, int height, Object[] outObj) {
+        ActivityContext activity = ActivityContext.lookupContext(context);
+        LauncherAppState appState = LauncherAppState.getInstance(context);
+        if (info instanceof PendingAddShortcutInfo) {
+            ShortcutConfigActivityInfo activityInfo = ((PendingAddShortcutInfo) info).getActivityInfo(context);
+            outObj[0] = activityInfo;
+            return activityInfo.getFullResIcon(appState.getIconCache());
+        }
+        if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION) {
+            LauncherActivityInfo activityInfo = context.getSystemService(LauncherApps.class)
+                    .resolveActivity(info.getIntent(), info.user);
+            outObj[0] = activityInfo;
+            return activityInfo == null ? null
+                    : LauncherAppState.getInstance(context)
+                    .getIconProvider().getIcon(
+                            activityInfo, activity.getDeviceProfile().inv.fillResIconDpi);
+        } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT) {
+            List<ShortcutInfo> si = ShortcutKey.fromItemInfo(info)
+                    .buildRequest(context)
+                    .query(ShortcutRequest.ALL);
+            if (si.isEmpty()) {
+                return null;
+            } else {
+                outObj[0] = si.get(0);
+                return ShortcutCachingLogic.getIcon(context, si.get(0),
+                        appState.getInvariantDeviceProfile().fillResIconDpi);
+            }
+        } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER) {
+            FolderAdaptiveIcon icon = FolderAdaptiveIcon.createFolderAdaptiveIcon(
+                    activity, info.id, new Point(width, height));
+            if (icon == null) {
+                return null;
+            }
+            outObj[0] = icon;
+            return icon;
+        } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_SEARCH_ACTION
+                && info instanceof ItemInfoWithIcon) {
+            return ((ItemInfoWithIcon) info).bitmap.newIcon(context);
+        } else {
+            return null;
+        }
     }
 
     private static boolean sIsRunningInTestHarness = ActivityManager.isRunningInTestHarness();

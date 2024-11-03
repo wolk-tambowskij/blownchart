@@ -35,7 +35,7 @@ class LawnchairWindowManagerProxy(context: Context) : WindowManagerProxy(Utiliti
             val result = ArrayMap<CachedDisplayInfo, List<WindowBounds>>()
             val windowManager = displayInfoContext.getSystemService(WindowManager::class.java)
             val possibleMaximumWindowMetrics =
-                windowManager.getPossibleMaximumWindowMetrics(DEFAULT_DISPLAY)
+                windowManager!!.getPossibleMaximumWindowMetrics(DEFAULT_DISPLAY)
             for (windowMetrics in possibleMaximumWindowMetrics) {
                 val info = getDisplayInfo(windowMetrics, Surface.ROTATION_0)
                 val bounds = estimateWindowBounds(displayInfoContext, info)

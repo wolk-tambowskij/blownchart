@@ -57,3 +57,11 @@
 -keep class com.android.quickstep.** {
   *;
 }
+
+-keep interface androidx.dynamicanimation.animation.AnimationHandler.** {
+  *;
+}
+
+-keep class androidx.dynamicanimation.animation.** {
+  *;
+}

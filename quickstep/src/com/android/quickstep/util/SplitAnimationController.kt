@@ -129,7 +129,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
             }
             throw IllegalStateException(
                 "Attempting to init split from existing split pair " +
-                    "without a valid taskIdAttributeContainer"
+                        "without a valid taskIdAttributeContainer"
             )
         } else {
             // Initiating split from overview on fullscreen task TaskView
@@ -502,7 +502,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
             // TODO (b/315490678): Ensure that this works with app pairs flow
             check(apps != null && wallpapers != null && nonApps != null) {
                 "trying to call composeRecentsSplitLaunchAnimatorLegacy, but encountered an " +
-                    "unexpected null"
+                        "unexpected null"
             }
 
             composeRecentsSplitLaunchAnimatorLegacy(
@@ -556,7 +556,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
             // Fallback case: simple fade-in animation
             check(info != null && t != null) {
                 "trying to call composeFadeInSplitLaunchAnimator, but encountered an " +
-                    "unexpected null"
+                        "unexpected null"
             }
 
             composeFadeInSplitLaunchAnimator(initialTaskId, secondTaskId, info, t, finishCallback)
@@ -631,7 +631,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
             val taskInfo: RunningTaskInfo = change.taskInfo ?: continue
             if (
                 TransitionUtil.isOpeningType(change.mode) &&
-                    taskInfo.windowingMode == WINDOWING_MODE_FULLSCREEN
+                taskInfo.windowingMode == WINDOWING_MODE_FULLSCREEN
             ) {
                 val baseIntent = taskInfo.baseIntent.component?.packageName
                 if (baseIntent == intent1) {
@@ -712,12 +712,12 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
             // Find a change that has WINDOWING_MODE_MULTI_WINDOW.
             if (
                 taskInfo.windowingMode == WINDOWING_MODE_MULTI_WINDOW &&
-                    (change.mode == TRANSIT_OPEN || change.mode == TRANSIT_TO_FRONT)
+                (change.mode == TRANSIT_OPEN || change.mode == TRANSIT_TO_FRONT)
             ) {
                 // Check if it is a left/top app.
                 val isLeftTopApp =
                     (dp.isLeftRightSplit && change.endAbsBounds.left == 0) ||
-                        (!dp.isLeftRightSplit && change.endAbsBounds.top == 0)
+                            (!dp.isLeftRightSplit && change.endAbsBounds.top == 0)
                 if (isLeftTopApp) {
                     // Found one!
                     rootCandidate = change
@@ -808,8 +808,8 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
             val baseIntent = taskInfo.baseIntent.component?.packageName
             if (
                 TransitionUtil.isOpeningType(change.mode) &&
-                    taskInfo.windowingMode == WINDOWING_MODE_FULLSCREEN &&
-                    baseIntent == intentToLaunch
+                taskInfo.windowingMode == WINDOWING_MODE_FULLSCREEN &&
+                baseIntent == intentToLaunch
             ) {
                 rootCandidate = change
             }
@@ -967,7 +967,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
             //  startAnimation() and we can know the precise taskIds of launching tasks.
             if (
                 taskInfo.windowingMode == windowingMode &&
-                    (change.mode == TRANSIT_OPEN || change.mode == TRANSIT_TO_FRONT)
+                (change.mode == TRANSIT_OPEN || change.mode == TRANSIT_TO_FRONT)
             ) {
                 // Found one!
                 rootCandidate = change
@@ -994,10 +994,10 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
         val startingScale = 0.34f
         val startX =
             screenBounds.left +
-                ((screenBounds.right - screenBounds.left) * ((1 - startingScale) / 2f))
+                    ((screenBounds.right - screenBounds.left) * ((1 - startingScale) / 2f))
         val startY =
             screenBounds.top +
-                ((screenBounds.bottom - screenBounds.top) * ((1 - startingScale) / 2f))
+                    ((screenBounds.bottom - screenBounds.top) * ((1 - startingScale) / 2f))
         val endX = screenBounds.left
         val endY = screenBounds.top
 

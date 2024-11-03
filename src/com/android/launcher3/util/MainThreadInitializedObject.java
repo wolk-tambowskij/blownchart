@@ -31,7 +31,9 @@ import com.android.launcher3.util.ResourceBasedOverride.Overrides;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
@@ -130,8 +132,8 @@ public class MainThreadInitializedObject<T extends SafeCloseable> {
 
         private static final String TAG = "SandboxContext";
 
-        private final Map<MainThreadInitializedObject, Object> mObjectMap = new HashMap<>();
-        private final ArrayList<SafeCloseable> mOrderedObjects = new ArrayList<>();
+        public final Map<MainThreadInitializedObject, Object> mObjectMap = new HashMap<>();
+        public final ArrayList<SafeCloseable> mOrderedObjects = new ArrayList<>();
 
         private final Object mDestroyLock = new Object();
         private boolean mDestroyed = false;

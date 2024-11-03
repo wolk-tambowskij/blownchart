@@ -62,6 +62,7 @@ import com.android.launcher3.model.data.ItemInfoWithIcon
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.testing.TestLogging
+import com.android.launcher3.testing.shared.TestProtocol
 import com.android.launcher3.util.CancellableTask
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors

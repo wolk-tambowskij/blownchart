@@ -20,7 +20,7 @@ import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.annotation.VisibleForTesting
-import com.android.launcher3.BuildConfig.WIDGET_ON_FIRST_SCREEN
+import com.android.launcher3.BuildConfigs.WIDGET_ON_FIRST_SCREEN
 import com.android.launcher3.LauncherFiles.DEVICE_PREFERENCES_KEY
 import com.android.launcher3.LauncherFiles.SHARED_PREFERENCES_KEY
 import com.android.launcher3.model.DeviceGridState

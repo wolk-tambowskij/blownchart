@@ -24,7 +24,7 @@ import android.provider.DeviceConfig
 import android.provider.DeviceConfig.OnPropertiesChangedListener
 import android.provider.DeviceConfig.Properties
 import androidx.annotation.WorkerThread
-import com.android.launcher3.BuildConfig
+import com.android.launcher3.BuildConfigs
 import com.android.launcher3.util.Executors
 
 /** Utility class to manage a set of device configurations */
@@ -66,7 +66,7 @@ class DeviceConfigHelper<ConfigType>(private val factory: (PropReader) -> Config
             Executors.UI_HELPER_EXECUTOR,
             propertiesListener
         )
-        if (BuildConfig.IS_DEBUG_DEVICE) {
+        if (BuildConfigs.IS_DEBUG_DEVICE) {
             prefs.registerOnSharedPreferenceChangeListener(sharedPrefChangeListener)
         }
     }
@@ -105,7 +105,7 @@ class DeviceConfigHelper<ConfigType>(private val factory: (PropReader) -> Config
 
     fun close() {
         DeviceConfig.removeOnPropertiesChangedListener(propertiesListener)
-        if (BuildConfig.IS_DEBUG_DEVICE) {
+        if (BuildConfigs.IS_DEBUG_DEVICE) {
             prefs.unregisterOnSharedPreferenceChangeListener(sharedPrefChangeListener)
         }
     }
@@ -120,7 +120,7 @@ class DeviceConfigHelper<ConfigType>(private val factory: (PropReader) -> Config
         @JvmOverloads
         fun <T : Any> get(key: String, fallback: T, desc: String? = null): T {
             val v = f.get(key, fallback)
-            if (BuildConfig.IS_DEBUG_DEVICE && desc != null) {
+            if (BuildConfigs.IS_DEBUG_DEVICE && desc != null) {
                 if (v is Int) {
                     allProps[key] = DebugInfo(key, desc, true, fallback)
                     return prefs.getInt(key, v) as T

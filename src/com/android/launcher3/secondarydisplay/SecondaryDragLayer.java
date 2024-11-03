@@ -64,8 +64,8 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
 
     @Override
     public void recreateControllers() {
-        mControllers = new TouchController[] { new CloseAllAppsTouchController(),
-                mActivity.getDragController() };
+        mControllers = new TouchController[]{new CloseAllAppsTouchController(),
+                mActivity.getDragController()};
     }
 
     /**
@@ -119,12 +119,15 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
             if (child == mAppsView) {
                 int horizontalPadding = (2 * grid.desiredWorkspaceHorizontalMarginPx)
                         + grid.cellLayoutPaddingPx.left + grid.cellLayoutPaddingPx.right;
-                int verticalPadding = grid.cellLayoutPaddingPx.top + grid.cellLayoutPaddingPx.bottom;
+                int verticalPadding =
+                        grid.cellLayoutPaddingPx.top + grid.cellLayoutPaddingPx.bottom;
 
-                int maxWidth = grid.allAppsCellWidthPx * grid.numShownAllAppsColumns + horizontalPadding;
+                int maxWidth =
+                        grid.allAppsCellWidthPx * grid.numShownAllAppsColumns + horizontalPadding;
                 int appsWidth = Math.min(width - getPaddingLeft() - getPaddingRight(), maxWidth);
 
-                int maxHeight = grid.allAppsCellHeightPx * grid.numShownAllAppsColumns + verticalPadding;
+                int maxHeight =
+                        grid.allAppsCellHeightPx * grid.numShownAllAppsColumns + verticalPadding;
                 int appsHeight = Math.min(height - getPaddingTop() - getPaddingBottom(), maxHeight);
 
                 mAppsView.measure(
@@ -198,20 +201,10 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         }
         int deepShortcutCount = popupDataProvider.getShortcutCountForItem(item);
         final PopupContainerWithArrow<SecondaryDisplayLauncher> container;
-        if (FeatureFlags.showMaterialUPopup(getContext())) {
-            container = (PopupContainerWithArrow) mActivity.getLayoutInflater().inflate(
-                    R.layout.popup_container_material_u, mActivity.getDragLayer(), false);
-            container.populateAndShowRowsMaterialU((BubbleTextView) v, deepShortcutCount,
-                    systemShortcuts);
-        } else {
-            container = (PopupContainerWithArrow) mActivity.getLayoutInflater().inflate(
-                    R.layout.popup_container, mActivity.getDragLayer(), false);
-            container.populateAndShow(
-                    (BubbleTextView) v,
-                    deepShortcutCount,
-                    Collections.emptyList(),
-                    systemShortcuts);
-        }
+        container = (PopupContainerWithArrow) mActivity.getLayoutInflater().inflate(
+                R.layout.popup_container, mActivity.getDragLayer(), false);
+        container.populateAndShowRows((BubbleTextView) v, deepShortcutCount,
+                systemShortcuts);
         container.requestFocus();
 
         if (!FeatureFlags.SECONDARY_DRAG_N_DROP_TO_PIN.get() || !mActivity.isAppDrawerShown()) {
@@ -235,8 +228,8 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
                 public void onPreDragStart(DropTarget.DragObject dragObject) {
                     mDragView = dragObject.dragView;
                     if (!shouldStartDrag(0)) {
-                        mDragView.setOnScaleAnimEndCallback(
-                                () -> mActivity.beginDragShared(v, mActivity.getAppsView(), options));
+                        mDragView.setOnScaleAnimEndCallback(() ->
+                                mActivity.beginDragShared(v, mActivity.getAppsView(), options));
                     }
                 }
 

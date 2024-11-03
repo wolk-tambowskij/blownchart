@@ -66,6 +66,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import app.lawnchair.AccentColorExtractor;
+
 /** Render preview using surface view. */
 @SuppressWarnings("NewApi")
 public class PreviewSurfaceRenderer {
@@ -216,7 +218,7 @@ public class PreviewSurfaceRenderer {
             return new ContextThemeWrapper(context,
                     Themes.getActivityThemeRes(context));
         }
-        LocalColorExtractor.newInstance(context)
+        AccentColorExtractor.newInstance(context)
                 .applyColorsOverride(context, mWallpaperColors);
         return new ContextThemeWrapper(context,
                 Themes.getActivityThemeRes(context, mWallpaperColors.getColorHints()));

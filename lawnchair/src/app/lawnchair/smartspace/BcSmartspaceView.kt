@@ -16,9 +16,9 @@ import app.lawnchair.smartspace.model.SmartspaceTarget
 import app.lawnchair.smartspace.provider.SmartspaceProvider
 import app.lawnchair.util.repeatOnAttached
 import com.android.launcher3.R
-import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlin.math.roundToInt
 
 class BcSmartspaceView @JvmOverloads constructor(
     context: Context,
@@ -37,9 +37,9 @@ class BcSmartspaceView @JvmOverloads constructor(
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        viewPager = findViewById(R.id.smartspace_card_pager)
+        viewPager = findViewById<ViewPager>(R.id.smartspace_card_pager)!!
         viewPager.isSaveEnabled = false
-        indicator = findViewById(R.id.smartspace_page_indicator)
+        indicator = findViewById<PageIndicator>(R.id.smartspace_page_indicator)!!
 
         viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(

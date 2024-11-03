@@ -4,11 +4,10 @@ plugins {
 }
 
 android {
-    namespace "com.android.launcher3"
+    namespace "com.android.launcher3.flags"
     sourceSets {
         main {
             java.srcDirs = ['src']
-            res.srcDirs = ['res']
         }
     }
 }

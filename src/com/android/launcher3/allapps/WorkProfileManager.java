@@ -26,6 +26,7 @@ import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_HAS_SHORTCU
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_QUIET_MODE_CHANGE_PERMISSION;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_QUIET_MODE_ENABLED;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_WORK_PROFILE_QUIET_MODE_ENABLED;
+import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
 import android.os.UserHandle;
 import android.os.UserManager;
@@ -77,7 +78,7 @@ public class WorkProfileManager extends UserProfileManager
         updateCurrentState(STATE_TRANSITION);
         UI_HELPER_EXECUTOR.post(() -> {
             for (UserHandle userProfile : mUserManager.getUserProfiles()) {
-                if (Process.myUserHandle().equals(userProfile)) {
+                if (android.os.Process.myUserHandle().equals(userProfile)) {
                     continue;
                 }
                 // https://github.com/LawnchairLauncher/lawnchair/issues/3145

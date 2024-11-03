@@ -65,7 +65,7 @@ public class LauncherRootView extends InsettableFrameLayout {
         insets = WindowManagerProxy.INSTANCE.get(getContext())
                 .normalizeWindowInsets(getContext(), insets, mTempRect);
         handleSystemWindowInsets(mTempRect);
-        computeGestureExclusionRect();
+//        computeGestureExclusionRect();
         return insets;
     }
 
@@ -114,7 +114,7 @@ public class LauncherRootView extends InsettableFrameLayout {
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
-        computeGestureExclusionRect();
+//        computeGestureExclusionRect();
         mSysUiScrim.setSize(r - l, b - t);
     }
 
