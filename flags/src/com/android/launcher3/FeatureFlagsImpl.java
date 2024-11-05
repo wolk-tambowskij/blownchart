@@ -33,7 +33,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     private static boolean enableShortcutDontSuggestApp = true;
     private static boolean enableSmartspaceAsAWidget = false;
     private static boolean enableSmartspaceRemovalToggle = false;
-    private static boolean enableSupportForArchiving = true;
+    private static boolean enableSupportForArchiving = false;
     private static boolean enableTabletTwoPanePickerV2 = false;
     private static boolean enableTaskbarCustomization = false;
     private static boolean enableTaskbarNoRecreate = false;
@@ -109,7 +109,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
             enableSmartspaceRemovalToggle =
                     properties.getBoolean(Flags.FLAG_ENABLE_SMARTSPACE_REMOVAL_TOGGLE, false);
             enableSupportForArchiving =
-                    properties.getBoolean(Flags.FLAG_ENABLE_SUPPORT_FOR_ARCHIVING, true);
+                    properties.getBoolean(Flags.FLAG_ENABLE_SUPPORT_FOR_ARCHIVING, false);
             enableTabletTwoPanePickerV2 =
                     properties.getBoolean(Flags.FLAG_ENABLE_TABLET_TWO_PANE_PICKER_V2, false);
             enableTaskbarCustomization =

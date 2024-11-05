@@ -32,7 +32,7 @@ public final class InteractionJankMonitorWrapper {
      * @param cujType the specific {@link Cuj.CujType}.
      */
     public static void begin(View v, @Cuj.CujType int cujType) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        if (true) return;
         InteractionJankMonitor.getInstance().begin(v, cujType);
     }
 
@@ -44,7 +44,7 @@ public final class InteractionJankMonitorWrapper {
      * @param timeout duration to cancel the instrumentation in ms
      */
     public static void begin(View v, @Cuj.CujType int cujType, long timeout) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        if (true) return;
         Configuration.Builder builder =
                 Configuration.Builder.withView(cujType, v)
                         .setTimeout(timeout);
@@ -74,7 +74,7 @@ public final class InteractionJankMonitorWrapper {
      * @param cujType the specific {@link Cuj.CujType}.
      */
     public static void end(@Cuj.CujType int cujType) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        if (true) return;
         InteractionJankMonitor.getInstance().end(cujType);
     }
 
@@ -82,13 +82,13 @@ public final class InteractionJankMonitorWrapper {
      * Cancel the trace session.
      */
     public static void cancel(@Cuj.CujType int cujType) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        if (true) return;
         InteractionJankMonitor.getInstance().cancel(cujType);
     }
 
     /** Return true if currently instrumenting a trace session. */
     public static boolean isInstrumenting(@Cuj.CujType int cujType) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false;
+        if (true) return true;
         return InteractionJankMonitor.getInstance().isInstrumenting(cujType);
     }
 }

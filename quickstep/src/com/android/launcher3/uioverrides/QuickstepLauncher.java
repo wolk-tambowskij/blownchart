@@ -275,9 +275,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
         // TODO(b/337863494): Explore use of the same OverviewComponentObserver across launcher
         OverviewComponentObserver overviewComponentObserver = new OverviewComponentObserver(
                 asContext(), deviceState);
-        if (enableDesktopWindowingMode()) {
+        if (enableDesktopWindowingMode() && LawnchairApp.isRecentsEnabled()) {
             mDesktopRecentsTransitionController = new DesktopRecentsTransitionController(
-                    getStateManager(), systemUiProxy, this.getIApplicationThread(),
+                    getStateManager(), systemUiProxy, LawnchairApp.getInstance().getIApplicationThread(),
                     getDepthController());
         }
         overviewPanel.init(mActionsView, mSplitSelectStateController,

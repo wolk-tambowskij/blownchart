@@ -80,6 +80,8 @@ import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
 import java.io.PrintWriter;
 import java.util.StringJoiner;
 
+import app.lawnchair.LawnchairApp;
+
 /**
  * Class to manage taskbar lifecycle
  */
@@ -103,11 +105,6 @@ public class TaskbarManager {
             | ActivityInfo.CONFIG_SCREEN_LAYOUT
             | ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE;
 
-    private static final Uri USER_SETUP_COMPLETE_URI = Settings.Secure.getUriFor(
-            Settings.Secure.USER_SETUP_COMPLETE);
-
-    private static final Uri NAV_BAR_KIDS_MODE = Settings.Secure.getUriFor(
-            Settings.Secure.NAV_BAR_KIDS_MODE);
 
     private final Context mContext;
     private final @Nullable Context mNavigationBarPanelContext;
@@ -298,10 +295,19 @@ public class TaskbarManager {
             @Override
             public void onLowMemory() { }
         };
-        SettingsCache.INSTANCE.get(mContext)
-                .register(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mContext)
-                .register(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
+
+        if (LawnchairApp.isRecentsEnabled ()) {
+            final Uri USER_SETUP_COMPLETE_URI = Settings.Secure.getUriFor(
+                    Settings.Secure.USER_SETUP_COMPLETE);
+
+            final Uri NAV_BAR_KIDS_MODE = Settings.Secure.getUriFor(
+                    Settings.Secure.NAV_BAR_KIDS_MODE);
+            SettingsCache.INSTANCE.get(mContext)
+                    .register(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
+            SettingsCache.INSTANCE.get(mContext)
+                    .register(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
+        }
+
         Log.d(TASKBAR_NOT_DESTROYED_TAG, "registering component callbacks from constructor.");
         mContext.registerComponentCallbacks(mComponentCallbacks);
         mShutdownReceiver.register(mContext, Intent.ACTION_SHUTDOWN);
@@ -589,10 +595,18 @@ public class TaskbarManager {
         if (mUserUnlocked) {
             DisplayController.INSTANCE.get(mContext).removeChangeListener(mRecreationListener);
         }
-        SettingsCache.INSTANCE.get(mContext)
-                .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
-        SettingsCache.INSTANCE.get(mContext)
-                .unregister(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
+        if (LawnchairApp.isRecentsEnabled()) {
+            final Uri USER_SETUP_COMPLETE_URI = Settings.Secure.getUriFor(
+                    Settings.Secure.USER_SETUP_COMPLETE);
+            final Uri NAV_BAR_KIDS_MODE = Settings.Secure.getUriFor(
+                    Settings.Secure.NAV_BAR_KIDS_MODE);
+
+            SettingsCache.INSTANCE.get(mContext)
+                    .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
+            SettingsCache.INSTANCE.get(mContext)
+                    .unregister(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
+        }
+
         Log.d(TASKBAR_NOT_DESTROYED_TAG, "unregistering component callbacks from destroy().");
         mContext.unregisterComponentCallbacks(mComponentCallbacks);
         mContext.unregisterReceiver(mShutdownReceiver);

@@ -436,8 +436,10 @@ public class ItemInfo {
     @NonNull
     protected LauncherAtom.ItemInfo.Builder getDefaultItemInfoBuilder() {
         LauncherAtom.ItemInfo.Builder itemBuilder = LauncherAtom.ItemInfo.newBuilder();
-        SettingsCache.INSTANCE
-                .executeIfCreated(cache -> itemBuilder.setIsKidsMode(cache.getValue(NAV_BAR_KIDS_MODE, 0)));
+        if (LawnchairApp.isRecentsEnabled()) {
+            SettingsCache.INSTANCE
+                    .executeIfCreated(cache -> itemBuilder.setIsKidsMode(cache.getValue(NAV_BAR_KIDS_MODE, 0)));
+        }
         UserCache.INSTANCE.executeIfCreated(cache -> itemBuilder.setUserType(getUserType(cache.getUserInfo(user))));
         itemBuilder.setRank(rank);
         return itemBuilder;
