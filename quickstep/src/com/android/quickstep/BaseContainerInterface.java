@@ -283,7 +283,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
             );
             insets = outRect;
         }
-        potentialTaskRect.inset(insets);
+//        potentialTaskRect.inset(insets);
 
         outRect.set(
                 minimumHorizontalPadding,
@@ -292,7 +292,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
                 claimedSpaceBelow);
         // Rotate the paddings to portrait perspective,
         orientationHandler.rotateInsets(outRect, outRect);
-        potentialTaskRect.inset(outRect);
+//        potentialTaskRect.inset(outRect);
 
         calculateTaskSizeInternal(context, dp, potentialTaskRect, maxScale, gravity, outRect);
     }

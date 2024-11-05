@@ -780,8 +780,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             options.setSplashScreenStyle(splashScreenStyle);
         }
         Utilities.allowBGLaunch(options);
-        options.setPendingIntentBackgroundActivityStartMode(
-                ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
         IRemoteCallback endCallback = completeRunnableListCallback(callbacks);
         options.setOnAnimationAbortListener(endCallback);
         options.setOnAnimationFinishedListener(endCallback);

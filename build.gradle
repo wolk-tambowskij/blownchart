@@ -126,7 +126,7 @@ final def ciRef = System.getenv("GITHUB_REF") ?: ""
 final def ciRunNumber = System.getenv("GITHUB_RUN_NUMBER") ?: ""
 final def isReleaseBuild = ciBuild && ciRef.contains("beta")
 final def devReleaseName = ciBuild ? "Dev.(#${ciRunNumber})" : "Dev.(${buildCommit})"
-final def version = "14"
+final def version = "15"
 final def releaseName = "Beta 3"
 final def versionDisplayName = "${version}.${isReleaseBuild ? releaseName : devReleaseName}"
 final def majorVersion = versionDisplayName.split("\\.")[0]
@@ -139,7 +139,7 @@ android {
     defaultConfig {
         // Lawnchair Launcher 14.0 Beta 3
         // See CONTRIBUTING.md#versioning-scheme
-        versionCode 14_00_02_03
+        versionCode 15_00_00_00
         versionName "${versionDisplayName}"
         buildConfigField "String", "VERSION_DISPLAY_NAME", "\"${versionDisplayName}\""
         buildConfigField "String", "MAJOR_VERSION", "\"${majorVersion}\""

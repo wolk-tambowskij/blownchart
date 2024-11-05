@@ -1,7 +1,8 @@
 package com.android.systemui.shared;
 // TODO(b/303773055): Remove the annotation after access issue is resolved.
-import android.provider.DeviceConfig;
-import android.provider.DeviceConfig.Properties;
+
+import com.android.quickstep.util.DeviceConfigHelper;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 /** @hide */
@@ -46,7 +47,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     private void load_overrides_biometrics_framework() {
         try {
-            Properties properties = DeviceConfig.getProperties("biometrics_framework");
+            var properties = DeviceConfigHelper.Companion.getPrefs();
             sidefpsControllerRefactor =
                     properties.getBoolean(Flags.FLAG_SIDEFPS_CONTROLLER_REFACTOR, true);
         } catch (NullPointerException e) {
@@ -64,7 +65,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     private void load_overrides_systemui() {
         try {
-            Properties properties = DeviceConfig.getProperties("systemui");
+            var properties = DeviceConfigHelper.Companion.getPrefs();
             bouncerAreaExclusion =
                     properties.getBoolean(Flags.FLAG_BOUNCER_AREA_EXCLUSION, true);
             enableHomeDelay =

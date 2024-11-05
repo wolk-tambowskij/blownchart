@@ -199,6 +199,7 @@ import com.android.systemui.unfold.dagger.UnfoldMain;
 import com.android.systemui.unfold.progress.RemoteUnfoldTransitionReceiver;
 import com.android.systemui.unfold.updates.RotationChangeProvider;
 
+import app.lawnchair.LawnchairApp;
 import kotlin.Unit;
 
 import java.io.FileDescriptor;
@@ -276,7 +277,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
                 asContext(), deviceState);
         if (enableDesktopWindowingMode()) {
             mDesktopRecentsTransitionController = new DesktopRecentsTransitionController(
-                    getStateManager(), systemUiProxy, getIApplicationThread(),
+                    getStateManager(), systemUiProxy, this.getIApplicationThread(),
                     getDepthController());
         }
         overviewPanel.init(mActionsView, mSplitSelectStateController,
@@ -288,9 +289,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
         mActionsView.updateDimension(getDeviceProfile(), overviewPanel.getLastComputedTaskSize());
         mActionsView.updateVerticalMargin(DisplayController.getNavigationMode(this));
 
-        mAppTransitionManager = buildAppTransitionManager();
-        mAppTransitionManager.registerRemoteAnimations();
-        mAppTransitionManager.registerRemoteTransitions();
+        if (LawnchairApp.isRecentsEnabled()) {
+            mAppTransitionManager = buildAppTransitionManager();
+            mAppTransitionManager.registerRemoteAnimations();
+            mAppTransitionManager.registerRemoteTransitions();
+        }
 
         mTISBindHelper = new TISBindHelper(this, this::onTISConnected);
         mDepthController = new DepthController(this);
@@ -302,7 +305,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
         }
         mHotseatPredictionController = new HotseatPredictionController(this);
 
-        mEnableWidgetDepth = SystemProperties.getBoolean("ro.launcher.depth.widget", true);
+        mEnableWidgetDepth = LawnchairApp.isRecentsEnabled() ? SystemProperties.getBoolean("ro.launcher.depth.widget", true) : false;
         getWorkspace().addOverlayCallback(progress ->
                 onTaskbarInAppDisplayProgressUpdate(progress, MINUS_ONE_PAGE_PROGRESS_INDEX));
         addBackAnimationCallback(mSplitSelectStateController.getSplitBackHandler());
@@ -675,17 +678,18 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
         if (FeatureFlags.CONTINUOUS_VIEW_TREE_CAPTURE.get()) {
             mViewCapture = ViewCaptureFactory.getInstance(this).startCapture(getWindow());
         }
-        getWindow().addPrivateFlags(PRIVATE_FLAG_OPTIMIZE_MEASURE);
+//        getWindow().addPrivateFlags(PRIVATE_FLAG_OPTIMIZE_MEASURE);
         QuickstepOnboardingPrefs.setup(this);
-        View.setTraceLayoutSteps(TRACE_LAYOUTS);
-        View.setTracedRequestLayoutClassClass(TRACE_RELAYOUT_CLASS);
+//        View.setTraceLayoutSteps(TRACE_LAYOUTS);
+//        View.setTracedRequestLayoutClassClass(TRACE_RELAYOUT_CLASS);
     }
 
     @Override
     protected boolean initDeviceProfile(InvariantDeviceProfile idp) {
         final boolean ret = super.initDeviceProfile(idp);
-        mDeviceProfile.isPredictiveBackSwipe =
-                getApplicationInfo().isOnBackInvokedCallbackEnabled();
+//        mDeviceProfile.isPredictiveBackSwipe =
+//                getApplicationInfo().isOnBackInvokedCallbackEnabled();
+        mDeviceProfile.isPredictiveBackSwipe = false;
         return ret;
     }
 
@@ -1180,8 +1184,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
         activityOptions.options.setLaunchDisplayId(
                 (v != null && v.getDisplay() != null) ? v.getDisplay().getDisplayId()
                         : Display.DEFAULT_DISPLAY);
-        activityOptions.options.setPendingIntentBackgroundActivityStartMode(
-                ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+        Utilities.allowBGLaunch(activityOptions.options);
         addLaunchCookie(item, activityOptions.options);
         return activityOptions;
     }
@@ -1191,9 +1194,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
         RunnableList callbacks = new RunnableList();
         ActivityOptions options = ActivityOptions.makeCustomAnimation(this, 0, 0);
         options.setSplashScreenStyle(splashScreenStyle);
-        options.setPendingIntentBackgroundActivityStartMode(
-                ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
-
+        Utilities.allowBGLaunch(options);
         IRemoteCallback endCallback = completeRunnableListCallback(callbacks);
         options.setOnAnimationAbortListener(endCallback);
         options.setOnAnimationFinishedListener(endCallback);

@@ -64,6 +64,7 @@ import androidx.annotation.WorkerThread;
 import com.android.internal.logging.InstanceId;
 import com.android.internal.util.ScreenshotRequest;
 import com.android.internal.view.AppearanceRegion;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.SafeCloseable;
@@ -191,9 +192,8 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
         mContext = context;
         mAsyncHandler = new Handler(UI_HELPER_EXECUTOR.getLooper(), this::handleMessageAsync);
         final Intent baseIntent = new Intent().setPackage(mContext.getPackageName());
-        final ActivityOptions options = ActivityOptions.makeBasic()
-                .setPendingIntentCreatorBackgroundActivityStartMode(
-                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+        final ActivityOptions options = ActivityOptions.makeBasic();
+        Utilities.allowBGLaunch(options);
         mRecentsPendingIntent = PendingIntent.getActivity(mContext, 0, baseIntent,
                 PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT
                         | Intent.FILL_IN_COMPONENT, options.toBundle());
@@ -1204,7 +1204,7 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
      */
     public void shareTransactionQueue() {
         if (mOriginalTransactionToken == null) {
-            mOriginalTransactionToken = SurfaceControl.Transaction.getDefaultApplyToken();
+//            mOriginalTransactionToken = SurfaceControl.Transaction.getDefaultApplyToken();
         }
         setupTransactionQueue();
     }
@@ -1216,7 +1216,7 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
         if (mOriginalTransactionToken == null) {
             return;
         }
-        SurfaceControl.Transaction.setDefaultApplyToken(mOriginalTransactionToken);
+//        SurfaceControl.Transaction.setDefaultApplyToken(mOriginalTransactionToken);
         mOriginalTransactionToken = null;
     }
 
@@ -1225,7 +1225,7 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
             return;
         }
         if (mShellTransitions == null) {
-            SurfaceControl.Transaction.setDefaultApplyToken(mOriginalTransactionToken);
+//            SurfaceControl.Transaction.setDefaultApplyToken(mOriginalTransactionToken);
             return;
         }
         final IBinder shellApplyToken;
@@ -1239,7 +1239,7 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
             Log.e(TAG, "Didn't receive apply token from Shell");
             return;
         }
-        SurfaceControl.Transaction.setDefaultApplyToken(shellApplyToken);
+//        SurfaceControl.Transaction.setDefaultApplyToken(shellApplyToken);
     }
 
     //

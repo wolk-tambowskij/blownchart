@@ -1377,9 +1377,9 @@ class DesktopTasksController(
                 launchWindowingMode = WINDOWING_MODE_FREEFORM
                 pendingIntentLaunchFlags =
                     Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-                setPendingIntentBackgroundActivityStartMode(
-                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_DENIED
-                )
+//                setPendingIntentBackgroundActivityStartMode(
+//                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_DENIED
+//                )
                 isPendingIntentBackgroundActivityLaunchAllowedByPermission = true
             }
         val wct = WindowContainerTransaction()

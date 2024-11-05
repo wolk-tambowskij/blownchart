@@ -1,7 +1,8 @@
 package com.android.wm.shell;
 // TODO(b/303773055): Remove the annotation after access issue is resolved.
-import android.provider.DeviceConfig;
-import android.provider.DeviceConfig.Properties;
+
+import com.android.quickstep.util.DeviceConfigHelper;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 /** @hide */
@@ -82,7 +83,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     private void load_overrides_multitasking() {
         try {
-            Properties properties = DeviceConfig.getProperties("multitasking");
+            var properties = DeviceConfigHelper.Companion.getPrefs();
             animateBubbleSizeChange =
                     properties.getBoolean(Flags.FLAG_ANIMATE_BUBBLE_SIZE_CHANGE, false);
             enableAppPairs =

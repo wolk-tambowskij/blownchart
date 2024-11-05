@@ -59,7 +59,7 @@ public final class InteractionJankMonitorWrapper {
      * @param tag the tag to distinguish different flow of same type CUJ.
      */
     public static void begin(View v, @Cuj.CujType int cujType, String tag) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        if (true) return;
         Configuration.Builder builder =
                 Configuration.Builder.withView(cujType, v);
         if (!TextUtils.isEmpty(tag)) {

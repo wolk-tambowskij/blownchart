@@ -1,7 +1,7 @@
 package com.android.launcher3;
 // TODO(b/303773055): Remove the annotation after access issue is resolved.
-import android.provider.DeviceConfig;
-import android.provider.DeviceConfig.Properties;
+import com.android.quickstep.util.DeviceConfigHelper;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 /** @hide */
@@ -63,7 +63,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     private void load_overrides_launcher() {
         try {
-            Properties properties = DeviceConfig.getProperties("launcher");
+            var properties = DeviceConfigHelper.Companion.getPrefs();
             enableAddAppWidgetViaConfigActivityV2 =
                     properties.getBoolean(Flags.FLAG_ENABLE_ADD_APP_WIDGET_VIA_CONFIG_ACTIVITY_V2, true);
             enableAdditionalHomeAnimations =
@@ -155,7 +155,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     private void load_overrides_launcher_search() {
         try {
-            Properties properties = DeviceConfig.getProperties("launcher_search");
+            var properties = DeviceConfigHelper.Companion.getPrefs();
             enablePrivateSpace =
                     properties.getBoolean(Flags.FLAG_ENABLE_PRIVATE_SPACE, true);
             privateSpaceAddFloatingMaskView =

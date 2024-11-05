@@ -17,13 +17,10 @@
 package com.android.quickstep.util
 
 import android.graphics.Region
-import android.os.RemoteException
 import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
-import android.view.ISystemGestureExclusionListener
 import android.view.IWindowManager
 import android.view.WindowManagerGlobal
-import androidx.annotation.BinderThread
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.util.Executors
 
@@ -36,26 +33,26 @@ class GestureExclusionManager(private val windowManager: IWindowManager) {
     private var lastUnrestrictedOrNull: Region? = null
 
     @VisibleForTesting
-    val exclusionListener =
-        object : ISystemGestureExclusionListener.Stub() {
-            @BinderThread
-            override fun onSystemGestureExclusionChanged(
-                displayId: Int,
-                exclusionRegion: Region?,
-                unrestrictedOrNull: Region?
-            ) {
-                if (displayId != DEFAULT_DISPLAY) {
-                    return
-                }
-                Executors.MAIN_EXECUTOR.execute {
-                    lastExclusionRegion = exclusionRegion
-                    lastUnrestrictedOrNull = unrestrictedOrNull
-                    listeners.forEach {
-                        it.onGestureExclusionChanged(exclusionRegion, unrestrictedOrNull)
-                    }
-                }
-            }
-        }
+    val exclusionListener = null
+//        object : ISystemGestureExclusionListener.Stub() {
+//            @BinderThread
+//            override fun onSystemGestureExclusionChanged(
+//                displayId: Int,
+//                exclusionRegion: Region?,
+//                unrestrictedOrNull: Region?
+//            ) {
+//                if (displayId != DEFAULT_DISPLAY) {
+//                    return
+//                }
+//                Executors.MAIN_EXECUTOR.execute {
+//                    lastExclusionRegion = exclusionRegion
+//                    lastUnrestrictedOrNull = unrestrictedOrNull
+//                    listeners.forEach {
+//                        it.onGestureExclusionChanged(exclusionRegion, unrestrictedOrNull)
+//                    }
+//                }
+//            }
+//        }
 
     /** Adds a listener for receiving gesture exclusion regions */
     fun addListener(listener: ExclusionListener) {
@@ -68,7 +65,7 @@ class GestureExclusionManager(private val windowManager: IWindowManager) {
                         exclusionListener,
                         DEFAULT_DISPLAY
                     )
-                } catch (e: RemoteException) {
+                } catch (e: Throwable) {
                     Log.e(TAG, "Failed to register gesture exclusion listener", e)
                 }
             }
@@ -88,7 +85,7 @@ class GestureExclusionManager(private val windowManager: IWindowManager) {
                         exclusionListener,
                         DEFAULT_DISPLAY
                     )
-                } catch (e: RemoteException) {
+                } catch (e: Throwable) {
                     Log.e(TAG, "Failed to unregister gesture exclusion listener", e)
                 }
             }

@@ -153,7 +153,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
 
         if (enableDesktopWindowingMode()) {
             mDesktopRecentsTransitionController = new DesktopRecentsTransitionController(
-                    getStateManager(), systemUiProxy, getIApplicationThread(),
+                    getStateManager(), systemUiProxy, this.getIApplicationThread(),
                     null /* depthController */
             );
         }
@@ -304,7 +304,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
                         RECENTS_LAUNCH_DURATION - STATUS_BAR_TRANSITION_DURATION
                                 - STATUS_BAR_TRANSITION_PRE_DELAY),
                 LawnchairQuickstepCompat.getRemoteTransitionCompat().getRemoteTransition(wrapper.toRemoteTransition(),
-                        getIApplicationThread(),
+                        this.getIApplicationThread(),
                         "LaunchFromRecents"),
                 "Lawnchair");
         final ActivityOptionsWrapper activityOptions = new ActivityOptionsWrapper(options,
@@ -460,7 +460,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
         ActivityOptions options = LawnchairQuickstepCompat.getActivityOptionsCompat().makeRemoteAnimation(
                 new RemoteAnimationAdapter(runner, HOME_APPEAR_DURATION, 0),
                 LawnchairQuickstepCompat.getRemoteTransitionCompat().getRemoteTransition(runner.toRemoteTransition(),
-                        getIApplicationThread(),
+                        this.getIApplicationThread(),
                         "StartHomeFromRecents"),
                 "Lawnchair");
         startHomeIntentSafely(this, options.toBundle(), TAG);

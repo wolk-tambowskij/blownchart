@@ -115,7 +115,7 @@ public class LauncherBackAnimationController {
     private boolean mBackInProgress = false;
     private OnBackInvokedCallbackStub mBackCallback;
     private IRemoteAnimationFinishedCallback mAnimationFinishedCallback;
-    private final BackProgressAnimator mProgressAnimator = new BackProgressAnimator();
+    private BackProgressAnimator mProgressAnimator ;
     private SurfaceControl mScrimLayer;
     private ValueAnimator mScrimAlphaAnimator;
     private float mScrimAlpha;
@@ -139,6 +139,12 @@ public class LauncherBackAnimationController {
         loadResources();
         mWindowScaleMarginX = mLauncher.getResources().getDimensionPixelSize(
                 R.dimen.swipe_back_window_scale_x_margin);
+
+        try {
+            mProgressAnimator = new BackProgressAnimator();
+        } catch (Throwable t) {
+            // Ignore
+        }
     }
 
     /**
@@ -543,7 +549,8 @@ public class LauncherBackAnimationController {
                 R.dimen.swipe_back_window_corner_radius)
                 : 0;
         mWindowScaleStartCornerRadius = QuickStepContract.getWindowCornerRadius(mLauncher);
-        mStatusBarHeight = SystemBarUtils.getStatusBarHeight(mLauncher);
+//        mStatusBarHeight = SystemBarUtils.getStatusBarHeight(mLauncher);
+        mStatusBarHeight = 24;
     }
 
     /**

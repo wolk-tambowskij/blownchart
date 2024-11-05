@@ -264,9 +264,9 @@ public class DragAndDropPolicy {
         final ActivityOptions baseActivityOpts = ActivityOptions.makeBasic();
         baseActivityOpts.setDisallowEnterPictureInPictureWhileLaunching(true);
         // Put BAL flags to avoid activity start aborted.
-        baseActivityOpts.setPendingIntentBackgroundActivityStartMode(
-                MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
-        baseActivityOpts.setPendingIntentBackgroundActivityLaunchAllowedByPermission(true);
+//        baseActivityOpts.setPendingIntentBackgroundActivityStartMode(
+//                MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+//        baseActivityOpts.setPendingIntentBackgroundActivityLaunchAllowedByPermission(true);
         final Bundle opts = baseActivityOpts.toBundle();
         if (session.appData.hasExtra(EXTRA_ACTIVITY_OPTIONS)) {
             opts.putAll(session.appData.getBundleExtra(EXTRA_ACTIVITY_OPTIONS));
@@ -300,13 +300,13 @@ public class DragAndDropPolicy {
         ProtoLog.v(ShellProtoLogGroup.WM_SHELL_DRAG_AND_DROP, "Launching intent at position=%d",
                 position);
         final ActivityOptions baseActivityOpts = ActivityOptions.makeBasic();
-        baseActivityOpts.setDisallowEnterPictureInPictureWhileLaunching(true);
-        baseActivityOpts.setPendingIntentBackgroundActivityStartMode(
-                MODE_BACKGROUND_ACTIVITY_START_DENIED);
+//        baseActivityOpts.setDisallowEnterPictureInPictureWhileLaunching(true);
+//        baseActivityOpts.setPendingIntentBackgroundActivityStartMode(
+//                MODE_BACKGROUND_ACTIVITY_START_DENIED);
         // TODO(b/255649902): Rework this so that SplitScreenController can always use the options
         // instead of a fillInIntent since it's assuming that the PendingIntent is mutable
-        baseActivityOpts.setPendingIntentLaunchFlags(FLAG_ACTIVITY_NEW_TASK
-                | FLAG_ACTIVITY_MULTIPLE_TASK);
+//        baseActivityOpts.setPendingIntentLaunchFlags(FLAG_ACTIVITY_NEW_TASK
+//                | FLAG_ACTIVITY_MULTIPLE_TASK);
 
         final Bundle opts = baseActivityOpts.toBundle();
         mStarter.startIntent(session.launchableIntent,

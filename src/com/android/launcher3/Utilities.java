@@ -177,7 +177,7 @@ public final class Utilities {
     public static final int TRANSLATE_LEFT = 2;
     public static final int TRANSLATE_RIGHT = 3;
 
-    public static final boolean SHOULD_SHOW_FIRST_PAGE_WIDGET = enableSmartspaceAsAWidget() && WIDGET_ON_FIRST_SCREEN;
+    public static final boolean SHOULD_SHOW_FIRST_PAGE_WIDGET = WIDGET_ON_FIRST_SCREEN;
 
     @IntDef({ TRANSLATE_UP, TRANSLATE_DOWN, TRANSLATE_LEFT, TRANSLATE_RIGHT })
     public @interface AdjustmentDirection {
@@ -698,7 +698,7 @@ public final class Utilities {
      * options
      */
     public static ActivityOptions allowBGLaunch(ActivityOptions options) {
-        if (ATLEAST_U) {
+        if (ATLEAST_V) {
             options.setPendingIntentBackgroundActivityStartMode(
                     ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
         }

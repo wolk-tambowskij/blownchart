@@ -75,7 +75,7 @@ public class SurfaceTransactionApplier extends ReleaseCheck {
 
     private void initialize(View view) {
         mTargetViewRootImpl = view.getViewRootImpl();
-        mBarrierSurfaceControl = mTargetViewRootImpl.getSurfaceControl();
+//        mBarrierSurfaceControl = mTargetViewRootImpl.getSurfaceControl();
         mInitialized = true;
     }
 
@@ -108,7 +108,7 @@ public class SurfaceTransactionApplier extends ReleaseCheck {
         final int toApplySeqNo = mLastSequenceNumber;
         setCanRelease(false);
         mTargetViewRootImpl.registerRtFrameCallback(frame -> {
-            if (mBarrierSurfaceControl == null || !mBarrierSurfaceControl.isValid()) {
+            if (mBarrierSurfaceControl == null && !mBarrierSurfaceControl.isValid()) {
                 Message.obtain(mApplyHandler, MSG_UPDATE_SEQUENCE_NUMBER, toApplySeqNo, 0)
                         .sendToTarget();
                 return;

@@ -139,7 +139,7 @@ public class QuickStepContract {
             SYSUI_STATE_WAKEFULNESS_TRANSITION | SYSUI_STATE_AWAKE;
 
     // Whether the back gesture is allowed (or ignored) by the Shade
-    public static final boolean ALLOW_BACK_GESTURE_IN_SHADE = shadeAllowBackGesture();
+    public static final boolean ALLOW_BACK_GESTURE_IN_SHADE = false;
 
     @Retention(RetentionPolicy.SOURCE)
     @LongDef({SYSUI_STATE_SCREEN_PINNING,
@@ -410,6 +410,11 @@ public class QuickStepContract {
      * If live rounded corners are supported on windows.
      */
     public static boolean supportsRoundedCornersOnWindows(Resources resources) {
-        return ScreenDecorationsUtils.supportsRoundedCornersOnWindows(resources);
+        try {
+            return ScreenDecorationsUtils.supportsRoundedCornersOnWindows(resources);
+
+        } catch (Throwable t) {
+            return false;
+        }
     }
 }

@@ -1,7 +1,8 @@
 package com.android.systemui;
 // TODO(b/303773055): Remove the annotation after access issue is resolved.
-import android.provider.DeviceConfig;
-import android.provider.DeviceConfig.Properties;
+
+import com.android.quickstep.util.DeviceConfigHelper;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 /** @hide */
@@ -373,7 +374,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     private void load_overrides_accessibility() {
         try {
-            Properties properties = DeviceConfig.getProperties("accessibility");
+            var properties = DeviceConfigHelper.Companion.getPrefs();
             createWindowlessWindowMagnifier =
                     properties.getBoolean(Flags.FLAG_CREATE_WINDOWLESS_WINDOW_MAGNIFIER, true);
             delayShowMagnificationButton =
@@ -411,7 +412,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     private void load_overrides_biometrics_framework() {
         try {
-            Properties properties = DeviceConfig.getProperties("biometrics_framework");
+            var properties = DeviceConfigHelper.Companion.getPrefs();
             bpTalkback =
                     properties.getBoolean(Flags.FLAG_BP_TALKBACK, true);
             constraintBp =
@@ -431,7 +432,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     private void load_overrides_communal() {
         try {
-            Properties properties = DeviceConfig.getProperties("communal");
+            var properties = DeviceConfigHelper.Companion.getPrefs();
             communalHub =
                     properties.getBoolean(Flags.FLAG_COMMUNAL_HUB, true);
             enableWidgetPickerSizeFilter =
@@ -451,7 +452,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     private void load_overrides_systemui() {
         try {
-            Properties properties = DeviceConfig.getProperties("systemui");
+            var properties = DeviceConfigHelper.Companion.getPrefs();
             activityTransitionUseLargestWindow =
                     properties.getBoolean(Flags.FLAG_ACTIVITY_TRANSITION_USE_LARGEST_WINDOW, true);
             ambientTouchMonitorListenToDisplayChanges =
