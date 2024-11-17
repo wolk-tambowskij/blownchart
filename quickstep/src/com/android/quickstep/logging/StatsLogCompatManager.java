@@ -147,7 +147,7 @@ public class StatsLogCompatManager extends StatsLogManager {
         if (IS_VERBOSE) {
             Log.d(TAG, String.format("\nwriteSnapshot(%d):\n%s", instanceId.getId(), info));
         }
-        if (Utilities.isRunningInTestHarness()) {
+        if (Utilities.isRunningInTestHarness() || !Utilities.ATLEAST_R) {
             return;
         }
         SysUiStatsLog.write(SysUiStatsLog.LAUNCHER_SNAPSHOT,
@@ -482,7 +482,7 @@ public class StatsLogCompatManager extends StatsLogManager {
             }
 
             // TODO: remove this when b/231648228 is fixed.
-            if (Utilities.isRunningInTestHarness()) {
+            if (Utilities.isRunningInTestHarness() || !Utilities.ATLEAST_R) {
                 return;
             }
             int cardinality = mCardinality.orElseGet(() -> getCardinality(atomInfo));

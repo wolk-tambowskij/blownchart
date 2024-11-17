@@ -19,6 +19,7 @@ package com.android.launcher3.model
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
 import com.android.launcher3.LauncherModel.CallbackTask
+import com.android.launcher3.Utilities
 import com.android.launcher3.celllayout.CellPosMapper
 import com.android.launcher3.model.BgDataModel.FixedContainerItems
 import com.android.launcher3.model.data.ItemInfo
@@ -27,6 +28,7 @@ import com.android.launcher3.util.PackageUserKey
 import java.util.Objects
 import java.util.concurrent.Executor
 import java.util.function.Predicate
+import java.util.stream.Collectors
 
 /** Class with utility methods and properties for running a LauncherModel Task */
 class ModelTaskController(
@@ -52,8 +54,12 @@ class ModelTaskController(
 
     fun bindUpdatedWorkspaceItems(allUpdates: List<WorkspaceItemInfo>) {
         // Bind workspace items
-        val workspaceUpdates =
-            allUpdates.stream().filter { info -> info.id != ItemInfo.NO_ID }.toList()
+        val workspaceUpdates: MutableList<WorkspaceItemInfo>
+        if (Utilities.ATLEAST_U) {
+            workspaceUpdates = allUpdates.stream().filter { info -> info.id != ItemInfo.NO_ID }.toList()
+        } else {
+            workspaceUpdates = allUpdates.stream().filter { info -> info.id != ItemInfo.NO_ID }.collect(Collectors.toList())
+        }
         if (workspaceUpdates.isNotEmpty()) {
             scheduleCallbackTask { it.bindWorkspaceItemsChanged(workspaceUpdates) }
         }

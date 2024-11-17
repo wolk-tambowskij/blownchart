@@ -27,7 +27,9 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
+import app.lawnchair.theme.color.tokens.ColorTokens
 import com.android.launcher3.R
+import com.android.launcher3.Utilities
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
@@ -73,10 +75,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     ShapeDrawable(RoundRectShape(FloatArray(8) { taskCornerRadius }, null, null))
                         .apply {
                             setTint(
-                                resources.getColor(
-                                    android.R.color.system_neutral2_300,
-                                    context.theme
-                                )
+                                ColorTokens.Neutral2_300.resolveColor(context)
                             )
                         }
             }
@@ -102,7 +101,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         val thumbnailTopMarginPx = container.deviceProfile.overviewTaskThumbnailTopMarginPx
         containerHeight -= thumbnailTopMarginPx
 
-        BaseContainerInterface.getTaskDimension(mContext, container.deviceProfile, tempPointF)
+        BaseContainerInterface.getTaskDimension(context, container.deviceProfile, tempPointF)
         val windowWidth = tempPointF.x.toInt()
         val windowHeight = tempPointF.y.toInt()
         val scaleWidth = containerWidth / windowWidth.toFloat()
@@ -212,9 +211,13 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             }
         }
         repeat(taskContainers.size - tasks.size) {
-            with(taskContainers.removeLast()) {
-                removeView(thumbnailViewDeprecated)
-                taskThumbnailViewPool.recycle(thumbnailViewDeprecated)
+            if (Utilities.ATLEAST_T) {
+                with(taskContainers.removeLast()) {
+                    removeView(thumbnailViewDeprecated)
+                    taskThumbnailViewPool.recycle(thumbnailViewDeprecated)
+                }
+            }  else {
+                taskContainers.removeAt(taskContainers.lastIndex)
             }
         }
 

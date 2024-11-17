@@ -27,6 +27,7 @@ import android.graphics.Canvas
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
 import android.util.AttributeSet
 import android.util.FloatProperty
@@ -42,6 +43,7 @@ import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.annotation.IntDef
+import androidx.annotation.RequiresApi
 import androidx.annotation.VisibleForTesting
 import androidx.core.view.updateLayoutParams
 import com.android.app.animation.Interpolators
@@ -463,7 +465,9 @@ constructor(
             (ENABLE_KEYBOARD_QUICK_SWITCH.get() || enableFocusOutline())
         val cursorHoverStatesEnabled = enableCursorHoverStates()
         setWillNotDraw(!keyboardFocusHighlightEnabled && !cursorHoverStatesEnabled)
-        context.obtainStyledAttributes(attrs, R.styleable.TaskView, defStyleAttr, defStyleRes).use {
+        val attrs =
+            context.obtainStyledAttributes(attrs, R.styleable.TaskView, defStyleAttr, defStyleRes)
+        try {
             this.focusBorderAnimator =
                 focusBorderAnimator
                     ?: if (keyboardFocusHighlightEnabled)
@@ -474,7 +478,7 @@ constructor(
                             ),
                             { bounds: Rect -> getThumbnailBounds(bounds) },
                             this,
-                            it.getColor(
+                            attrs.getColor(
                                 R.styleable.TaskView_focusBorderColor,
                                 BorderAnimator.DEFAULT_BORDER_COLOR
                             )
@@ -490,14 +494,17 @@ constructor(
                             ),
                             { bounds: Rect -> getThumbnailBounds(bounds) },
                             this,
-                            it.getColor(
+                            attrs.getColor(
                                 R.styleable.TaskView_hoverBorderColor,
                                 BorderAnimator.DEFAULT_BORDER_COLOR
                             )
                         )
                     else null
+        } finally {
+            attrs.recycle()
         }
     }
+
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     public override fun onFocusChanged(
@@ -555,6 +562,7 @@ constructor(
         super.draw(canvas)
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         val thumbnailTopMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
@@ -1076,7 +1084,7 @@ constructor(
         Executors.UI_HELPER_EXECUTOR.execute {
             if (
                 !ActivityManagerWrapper.getInstance()
-                    .startActivityFromRecents(firstContainer.task.key, opts)
+                    .startActivityFromRecents(firstContainer.task.key, if (Utilities.ATLEAST_Q) opts else null)
             ) {
                 // If the call to start activity failed, then post the result immediately,
                 // otherwise, wait for the animation start callback from the activity options

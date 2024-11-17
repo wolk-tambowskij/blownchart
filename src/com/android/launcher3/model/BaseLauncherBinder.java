@@ -36,6 +36,7 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel.CallbackTask;
 import com.android.launcher3.LauncherSettings;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.config.FeatureFlags;
@@ -416,9 +417,16 @@ public class BaseLauncherBinder {
 
             ModelWriter writer = mApp.getModel()
                     .getWriter(false /* verifyChanges */, CellPosMapper.DEFAULT, null);
-            List<Pair<ItemInfo, View>> bindItems = items.stream().map(i ->
-                    Pair.create(i, inflater.inflateItem(i, writer, null))).toList();
-            executeCallbacksTask(c -> c.bindInflatedItems(bindItems), executor);
+            List<Pair<ItemInfo, View>> bindItems = null;
+            if (Utilities.ATLEAST_U) {
+                bindItems = items.stream().map(i ->
+                        Pair.create(i, inflater.inflateItem(i, writer, null))).toList();
+            } else {
+                bindItems = items.stream().map(i ->
+                    Pair.create(i, inflater.inflateItem(i, writer, null))).collect(Collectors.toList());
+            }
+            List<Pair<ItemInfo, View>> finalBindItems = bindItems;
+            executeCallbacksTask(c -> c.bindInflatedItems(finalBindItems), executor);
         }
 
         private void bindItemsInChunks(

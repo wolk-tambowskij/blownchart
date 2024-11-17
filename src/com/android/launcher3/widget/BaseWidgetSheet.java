@@ -44,6 +44,7 @@ import com.android.launcher3.Insettable;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.PendingAddItemInfo;
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.testing.TestLogging;
@@ -319,7 +320,7 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
         if (mDisableNavBarScrim) {
             return 0;
         } else {
-            return insets.getTappableElementInsets().bottom;
+            return Utilities.ATLEAST_Q ? insets.getTappableElementInsets().bottom : insets.getStableInsetBottom();
         }
     }
 

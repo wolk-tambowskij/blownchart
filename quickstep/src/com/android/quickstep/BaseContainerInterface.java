@@ -38,6 +38,7 @@ import androidx.annotation.Nullable;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.taskbar.TaskbarUIController;
@@ -344,8 +345,17 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         int sideMargin = dp.overviewGridSideMargin;
 
         outRect.set(0, 0, dp.widthPx, dp.heightPx);
-        outRect.inset(Math.max(insets.left, sideMargin), insets.top + topMargin,
+        if (Utilities.ATLEAST_S) {
+            outRect.inset(Math.max(insets.left, sideMargin), insets.top + topMargin,
                 Math.max(insets.right, sideMargin), Math.max(insets.bottom, bottomMargin));
+        } else {
+            outRect.set(
+                Math.max(insets.left, sideMargin),
+                insets.top + topMargin,
+                outRect.width() - Math.max(insets.right, sideMargin),
+                outRect.height() - Math.max(insets.bottom, bottomMargin)
+            );
+        }
     }
 
     /**

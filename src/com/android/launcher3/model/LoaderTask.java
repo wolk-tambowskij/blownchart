@@ -106,6 +106,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.stream.Collectors;
 
 import app.lawnchair.preferences.PreferenceManager;
 
@@ -442,9 +443,10 @@ public class LoaderTask implements Runnable {
                 mInstallingPkgsCached = installingPkgs;
             }
             installingPkgs.forEach(mApp.getIconCache()::updateSessionCache);
-            FileLog.d(TAG, "loadWorkspace: Packages with active install sessions: "
+            if (Utilities.ATLEAST_U) { 
+                FileLog.d(TAG, "loadWorkspace: Packages with active install sessions: "
                     + installingPkgs.keySet().stream().map(info -> info.mPackageName).toList());
-
+            }
             mFirstScreenBroadcast = new FirstScreenBroadcast(installingPkgs);
 
             mShortcutKeyToPinnedShortcuts = new HashMap<>();
@@ -574,8 +576,15 @@ public class LoaderTask implements Runnable {
     private void processFolderItems() {
         // Sort the folder items, update ranks, and make sure all preview items are high
         // res.
-        List<FolderGridOrganizer> verifiers = mApp.getInvariantDeviceProfile().supportedProfiles
+        List<FolderGridOrganizer> verifiers;
+        
+        if (Utilities.ATLEAST_U) {
+            verifiers = mApp.getInvariantDeviceProfile().supportedProfiles
                 .stream().map(FolderGridOrganizer::new).toList();
+        } else {
+            verifiers = mApp.getInvariantDeviceProfile().supportedProfiles
+                .stream().map(FolderGridOrganizer::new).collect(Collectors.toList());
+        }
         for (CollectionInfo collection : mBgDataModel.collections) {
             if (!(collection instanceof FolderInfo folder)) {
                 continue;

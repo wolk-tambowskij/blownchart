@@ -93,6 +93,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -803,7 +804,8 @@ public abstract class RecentsView<CONTAINER_TYPE extends Context & RecentsViewCo
         mContainer = RecentsViewContainer.containerFromContext(context);
         mOrientationState = new RecentsOrientedState(
                 context, mSizeStrategy, this::animateRecentsRotationInPlace);
-        final int rotation = mContainer.getDisplay().getRotation();
+        final int rotation;
+        rotation = Utilities.ATLEAST_R ? mContainer.getDisplay().getRotation() : WindowConfiguration.ROTATION_UNDEFINED;
         mOrientationState.setRecentsRotation(rotation);
 
         mScrollHapticMinGapMillis = getResources()
@@ -6060,7 +6062,11 @@ public abstract class RecentsView<CONTAINER_TYPE extends Context & RecentsViewCo
             if (tintAmount == 0f) {
                 scrimBg.setTintList(null);
             } else {
-                scrimBg.setTintBlendMode(BlendMode.SRC_OVER);
+                if (Utilities.ATLEAST_Q) {
+                    scrimBg.setTintBlendMode(BlendMode.SRC_OVER);
+                } else {
+                    scrimBg.setTintMode(PorterDuff.Mode.SRC_OVER);
+                }
                 scrimBg.setTint(
                         ColorUtils.setAlphaComponent(mTintingColor, (int) (255 * tintAmount)));
             }
@@ -6314,6 +6320,7 @@ public abstract class RecentsView<CONTAINER_TYPE extends Context & RecentsViewCo
             locusId += "|DISABLED";
         }
 
+        if (!Utilities.ATLEAST_R) return;
         final LocusId id = new LocusId(locusId);
         // Set locus context is a binder call, don't want it to happen during a transition
         UI_HELPER_EXECUTOR.post(() -> mContainer.setLocusContext(id, Bundle.EMPTY));

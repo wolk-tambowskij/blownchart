@@ -139,7 +139,7 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
      * overrides like taskbar
      */
     public WindowInsets normalizeWindowInsets(Context context, WindowInsets oldInsets,
-            Rect outInsets) {
+                                              Rect outInsets) {
         if (!Utilities.ATLEAST_R || !mTaskbarDrawnInProcess) {
             outInsets.set(oldInsets.getSystemWindowInsetLeft(), oldInsets.getSystemWindowInsetTop(),
                     oldInsets.getSystemWindowInsetRight(), oldInsets.getSystemWindowInsetBottom());
@@ -159,10 +159,10 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
         int bottomNav = isLargeScreen
                 ? 0
                 : (isPortrait
-                        ? getDimenByName(systemRes, NAVBAR_HEIGHT)
-                        : (isGesture
-                                ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE)
-                                : 0));
+                ? getDimenByName(systemRes, NAVBAR_HEIGHT)
+                : (isGesture
+                ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE)
+                : 0));
         int leftNav = navInsets.left;
         int rightNav = navInsets.right;
         if (!isLargeScreen && !isGesture && !isPortrait) {
@@ -218,7 +218,7 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
      * display cutout's bottom inset to 0, because launcher allows drawing content
      * over that area.
      */
-    private static void applyDisplayCutoutBottomInsetOverrideOnLargeScreen(
+    public void applyDisplayCutoutBottomInsetOverrideOnLargeScreen(
             @NonNull Context context,
             boolean isLargeScreen,
             int screenWidthPx,
@@ -299,7 +299,7 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
      * surface rotations
      */
     protected List<WindowBounds> estimateWindowBounds(Context context,
-            final CachedDisplayInfo displayInfo) {
+                                                      final CachedDisplayInfo displayInfo) {
         int densityDpi = context.getResources().getConfiguration().densityDpi;
         final int rotation = displayInfo.rotation;
 
@@ -331,17 +331,17 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
 
         navBarHeightPortrait = isTablet
                 ? (mTaskbarDrawnInProcess
-                        ? 0
-                        : context.getResources().getDimensionPixelSize(R.dimen.taskbar_size))
+                ? 0
+                : context.getResources().getDimensionPixelSize(R.dimen.taskbar_size))
                 : getDimenByName(systemRes, NAVBAR_HEIGHT);
 
         navBarHeightLandscape = isTablet
                 ? (mTaskbarDrawnInProcess
-                        ? 0
-                        : context.getResources().getDimensionPixelSize(R.dimen.taskbar_size))
+                ? 0
+                : context.getResources().getDimensionPixelSize(R.dimen.taskbar_size))
                 : (isTabletOrGesture
-                        ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE)
-                        : 0);
+                ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE)
+                : 0);
         navbarWidthLandscape = isTabletOrGesture
                 ? 0
                 : getDimenByName(systemRes, NAVBAR_LANDSCAPE_LEFT_RIGHT_SIZE);
@@ -480,7 +480,7 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
      * Returns a DisplayCutout which represents a rotated version of the original
      */
     protected DisplayCutout rotateCutout(DisplayCutout original, int startWidth, int startHeight,
-            int fromRotation, int toRotation) {
+                                         int fromRotation, int toRotation) {
         Rect safeCutout = getSafeInsets(original);
         rotateRect(safeCutout, deltaRotation(fromRotation, toRotation));
         return new DisplayCutout(Insets.of(safeCutout), null, null, null, null);
@@ -513,7 +513,10 @@ public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable 
      * @see DisplayCutout#getSafeInsets
      */
     public static Rect getSafeInsets(DisplayCutout cutout) {
-        return new Rect(cutout.getSafeInsetLeft(), cutout.getSafeInsetTop(),
-                cutout.getSafeInsetRight(), cutout.getSafeInsetBottom());
+        if (Utilities.ATLEAST_Q) {
+            return new Rect(cutout.getSafeInsetLeft(), cutout.getSafeInsetTop(),
+                    cutout.getSafeInsetRight(), cutout.getSafeInsetBottom());
+        }
+        return new Rect();
     }
 }

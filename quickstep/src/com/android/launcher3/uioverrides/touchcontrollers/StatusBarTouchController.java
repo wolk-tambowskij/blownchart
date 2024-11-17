@@ -38,6 +38,7 @@ import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.util.VibratorWrapper;
 import com.android.quickstep.SystemUiProxy;
@@ -143,6 +144,9 @@ public class StatusBarTouchController implements TouchController {
             mDownEvents.put(pid, new PointF(ev.getX(idx), ev.getY(idx)));
         }
         if (!mCanIntercept) {
+            return false;
+        }
+        if (!Utilities.ATLEAST_R) {
             return false;
         }
         if (action == ACTION_MOVE && mDownEvents.contains(pid)) {

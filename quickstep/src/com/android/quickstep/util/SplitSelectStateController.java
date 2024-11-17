@@ -41,6 +41,7 @@ import static com.android.wm.shell.common.split.SplitScreenConstants.SNAP_TO_50_
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.NonNull;
+import android.annotation.RequiresApi;
 import android.annotation.UiThread;
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
@@ -52,6 +53,7 @@ import android.content.pm.ShortcutInfo;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -167,24 +169,6 @@ public class SplitSelectStateController {
      * gets passed over to shell when attempting to invoke split.
      */
     private Pair<InstanceId, com.android.launcher3.logging.InstanceId> mSessionInstanceIds;
-
-    private final BackPressHandler mSplitBackHandler = new BackPressHandler() {
-        @Override
-        public boolean canHandleBack() {
-            return FeatureFlags.enableSplitContextually() && isSplitSelectActive();
-        }
-
-        @Override
-        public void onBackInvoked() {
-            // When exiting from split selection, leave current context to go to
-            // homescreen as well
-            getSplitAnimationController().playPlaceholderDismissAnim(mContainer,
-                    LAUNCHER_SPLIT_SELECTION_EXIT_HOME);
-            if (mActivityBackCallback != null) {
-                mActivityBackCallback.run();
-            }
-        }
-    };
 
     public SplitSelectStateController(RecentsViewContainer container, Handler handler,
             StateManager stateManager, DepthController depthController,
@@ -939,8 +923,25 @@ public class SplitSelectStateController {
         mLaunchingIconView = launchingIconView;
     }
 
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     public BackPressHandler getSplitBackHandler() {
-        return mSplitBackHandler;
+        return new BackPressHandler() {
+            @Override
+            public boolean canHandleBack() {
+                return FeatureFlags.enableSplitContextually() && isSplitSelectActive();
+            }
+
+            @Override
+            public void onBackInvoked() {
+                // When exiting from split selection, leave current context to go to
+                // homescreen as well
+                getSplitAnimationController().playPlaceholderDismissAnim(mContainer,
+                    LAUNCHER_SPLIT_SELECTION_EXIT_HOME);
+                if (mActivityBackCallback != null) {
+                    mActivityBackCallback.run();
+                }
+            }
+        };
     }
 
     public void dump(String prefix, PrintWriter writer) {

@@ -16,6 +16,7 @@
 package com.android.launcher3.util;
 
 import static android.os.VibrationEffect.Composition.PRIMITIVE_LOW_TICK;
+import static android.os.VibrationEffect.createOneShot;
 import static android.os.VibrationEffect.createPredefined;
 import static android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED;
 
@@ -48,7 +49,7 @@ public class VibratorWrapper implements SafeCloseable {
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build();
 
-    public static final VibrationEffect EFFECT_CLICK = createPredefined(VibrationEffect.EFFECT_CLICK);
+    public static final VibrationEffect EFFECT_CLICK = Utilities.ATLEAST_Q ? createPredefined(VibrationEffect.EFFECT_CLICK) : createOneShot(1000L, VibrationEffect.DEFAULT_AMPLITUDE);
     private static final Uri HAPTIC_FEEDBACK_URI = Settings.System.getUriFor(HAPTIC_FEEDBACK_ENABLED);
 
     private static final float LOW_TICK_SCALE = 0.9f;

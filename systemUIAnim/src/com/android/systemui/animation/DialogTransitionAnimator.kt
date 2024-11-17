@@ -22,6 +22,7 @@ import android.animation.ValueAnimator
 import android.app.Dialog
 import android.graphics.Color
 import android.graphics.Rect
+import android.os.Build
 import android.os.Looper
 import android.util.Log
 import android.util.MathUtils
@@ -32,6 +33,7 @@ import android.view.ViewRootImpl
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+import androidx.annotation.RequiresApi
 import com.android.app.animation.Interpolators
 import com.android.internal.jank.Cuj.CujType
 import com.android.internal.jank.InteractionJankMonitor
@@ -582,6 +584,7 @@ private class AnimatedDialog(
 
     private var hasInstrumentedJank = false
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun start() {
         val cuj = controller.cuj
         if (cuj != null) {
@@ -717,7 +720,7 @@ private class AnimatedDialog(
         // the dialog.
         dialog.setDismissOverride(this::onDialogDismissed)
 
-        if (featureFlags.isPredictiveBackQsDialogAnim) {
+        if (featureFlags.isPredictiveBackQsDialogAnim && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             dialog.registerAnimationOnBackInvoked(targetView = dialogContentWithBackground)
         }
 

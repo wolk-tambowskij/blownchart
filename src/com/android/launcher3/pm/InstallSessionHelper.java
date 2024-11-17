@@ -32,6 +32,7 @@ import androidx.annotation.WorkerThread;
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.SessionCommitReceiver;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.ItemInstallQueue;
 import com.android.launcher3.util.IntArray;
@@ -181,6 +182,9 @@ public class InstallSessionHelper implements SafeCloseable {
 
     @NonNull
     public List<SessionInfo> getAllVerifiedSessions() {
+        if (!Utilities.ATLEAST_Q) {
+              return new ArrayList<>();
+        }
         List<SessionInfo> list = new ArrayList<>(
                 Objects.requireNonNull(mLauncherApps).getAllPackageInstallerSessions());
         Iterator<SessionInfo> it = list.iterator();

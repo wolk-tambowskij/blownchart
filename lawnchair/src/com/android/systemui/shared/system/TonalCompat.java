@@ -20,28 +20,32 @@ import android.content.Context;
 
 import com.android.internal.colorextraction.ColorExtractor.GradientColors;
 import com.android.internal.colorextraction.types.Tonal;
+import com.android.launcher3.Utilities;
 
 public class TonalCompat {
 
     private final Tonal mTonal;
 
     public TonalCompat(Context context) {
-        mTonal = new Tonal(context);
+        mTonal = Utilities.ATLEAST_S ? new Tonal(context) : null;
     }
 
     public ExtractionInfo extractDarkColors(WallpaperColors colors) {
-        GradientColors darkColors = new GradientColors();
-        mTonal.extractInto(colors, new GradientColors(), darkColors, new GradientColors());
+        if (mTonal != null) {
+            GradientColors darkColors = new GradientColors();
+            mTonal.extractInto(colors, new GradientColors(), darkColors, new GradientColors());
 
-        ExtractionInfo result = new ExtractionInfo();
-        result.mainColor = darkColors.getMainColor();
-        result.secondaryColor = darkColors.getSecondaryColor();
-        result.supportsDarkText = darkColors.supportsDarkText();
-        if (colors != null) {
-            result.supportsDarkTheme =
+            ExtractionInfo result = new ExtractionInfo();
+            result.mainColor = darkColors.getMainColor();
+            result.secondaryColor = darkColors.getSecondaryColor();
+            result.supportsDarkText = darkColors.supportsDarkText();
+            if (colors != null && Utilities.ATLEAST_S) {
+                result.supportsDarkTheme =
                     (colors.getColorHints() & WallpaperColors.HINT_SUPPORTS_DARK_THEME) != 0;
+            }
+            return result;
         }
-        return result;
+        return new ExtractionInfo();
     }
 
     public static class ExtractionInfo {

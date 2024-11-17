@@ -32,6 +32,7 @@ import com.android.app.animation.Interpolators;
 import com.android.launcher3.DragSource;
 import com.android.launcher3.DropTarget;
 import com.android.launcher3.Flags;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -408,13 +409,17 @@ public abstract class DragController<T extends ActivityContext>
         }
 
         Point dragLayerPos = getClampedDragLayerPos(getX(ev), getY(ev));
-        mLastTouch.set(dragLayerPos.x,  dragLayerPos.y);
+        mLastTouch.set(dragLayerPos.x, dragLayerPos.y);
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
             // Remember location of down touch
-            mMotionDown.set(dragLayerPos.x,  dragLayerPos.y);
+            mMotionDown.set(dragLayerPos.x, dragLayerPos.y);
         }
 
-        mLastTouchClassification = ev.getClassification();
+        if (Utilities.ATLEAST_Q) {
+            mLastTouchClassification = ev.getClassification();
+        } else {
+            mLastTouchClassification = 0; // equals to MotionEvent.CLASSIFICATION_NONE;
+        }
         return mDragDriver != null && mDragDriver.onInterceptTouchEvent(ev);
     }
 
