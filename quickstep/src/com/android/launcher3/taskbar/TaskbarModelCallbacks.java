@@ -15,8 +15,8 @@
  */
 package com.android.launcher3.taskbar;
 
-import static com.android.window.flags.Flags.enableDesktopWindowingMode;
-import static com.android.window.flags.Flags.enableDesktopWindowingTaskbarRunningApps;
+import static com.android.window.flags2.Flags.enableDesktopWindowingMode;
+import static com.android.window.flags2.Flags.enableDesktopWindowingTaskbarRunningApps;
 
 import android.util.SparseArray;
 import android.view.View;

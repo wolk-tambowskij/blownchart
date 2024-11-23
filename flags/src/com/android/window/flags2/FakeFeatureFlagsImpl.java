@@ -1,4 +1,4 @@
-package com.android.window.flags;
+package com.android.window.flags2;
 
 import java.util.HashMap;
 import java.util.Map;

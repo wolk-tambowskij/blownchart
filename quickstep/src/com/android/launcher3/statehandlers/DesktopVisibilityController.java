@@ -19,10 +19,9 @@ import static android.view.View.VISIBLE;
 
 import static com.android.launcher3.LauncherState.BACKGROUND_APP;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
-import static com.android.window.flags.Flags.enableDesktopWindowingWallpaperActivity;
+import static com.android.window.flags2.Flags.enableDesktopWindowingWallpaperActivity;
 
 import android.os.Debug;
-import android.os.SystemProperties;
 import android.util.Log;
 import android.view.View;
 

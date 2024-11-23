@@ -25,8 +25,8 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
 import com.android.quickstep.RecentsModel
-import com.android.window.flags.Flags.enableDesktopWindowingMode
-import com.android.window.flags.Flags.enableDesktopWindowingTaskbarRunningApps
+import com.android.window.flags2.Flags.enableDesktopWindowingMode
+import com.android.window.flags2.Flags.enableDesktopWindowingTaskbarRunningApps
 import java.io.PrintWriter
 
 /**

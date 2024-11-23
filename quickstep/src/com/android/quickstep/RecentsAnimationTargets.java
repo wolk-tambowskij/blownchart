@@ -18,7 +18,7 @@ package com.android.quickstep;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
 import static android.view.RemoteAnimationTarget.MODE_CLOSING;
 
-import static com.android.window.flags.Flags.enableDesktopWindowingMode;
+import static com.android.window.flags2.Flags.enableDesktopWindowingMode;
 
 import android.app.WindowConfiguration;
 import android.graphics.Rect;
