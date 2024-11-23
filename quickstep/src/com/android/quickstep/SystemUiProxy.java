@@ -192,11 +192,9 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
         mContext = context;
         mAsyncHandler = new Handler(UI_HELPER_EXECUTOR.getLooper(), this::handleMessageAsync);
         final Intent baseIntent = new Intent().setPackage(mContext.getPackageName());
-        final ActivityOptions options = ActivityOptions.makeBasic();
-        Utilities.allowBGLaunch(options);
         mRecentsPendingIntent = PendingIntent.getActivity(mContext, 0, baseIntent,
                 PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT
-                        | Intent.FILL_IN_COMPONENT, options.toBundle());
+                        | Intent.FILL_IN_COMPONENT);
 
         mUnfoldTransitionProvider =
                 (enableUnfoldStateAnimation() && new ResourceUnfoldTransitionConfig().isEnabled())
