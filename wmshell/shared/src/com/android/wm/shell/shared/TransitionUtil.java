@@ -41,6 +41,7 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.WindowConfiguration;
 import android.graphics.Rect;
+import android.os.Build;
 import android.util.ArrayMap;
 import android.util.SparseBooleanArray;
 import android.view.RemoteAnimationTarget;
@@ -327,7 +328,7 @@ public class TransitionUtil {
                 null,
                 new Rect(change.getStartAbsBounds()),
                 taskInfo,
-                change.isAllowEnterPip(),
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && change.isAllowEnterPip(),
                 INVALID_WINDOW_TYPE
         );
         target.setWillShowImeOnTarget(
