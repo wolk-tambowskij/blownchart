@@ -132,7 +132,7 @@ final def versionDisplayName = "${version}.${isReleaseBuild ? releaseName : devR
 final def majorVersion = versionDisplayName.split("\\.")[0]
 
 final def quickstepMinSdk = "29"
-final def quickstepMaxSdk = "34"
+final def quickstepMaxSdk = "35"
 
 android {
     namespace "com.android.launcher3"
