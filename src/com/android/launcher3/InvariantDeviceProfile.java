@@ -255,10 +255,7 @@ public class InvariantDeviceProfile implements SafeCloseable {
          * This constructor should NOT have any monitors by design.
          */
         public InvariantDeviceProfile(Context context, String gridName) {
-                String newName = initGrid(context, gridName);
-                if (newName == null || !newName.equals(gridName)) {
-                        throw new IllegalArgumentException("Unknown grid name: " + gridName);
-                }
+                this(context, DeviceProfileOverrides.INSTANCE.get(context).getGridInfo(gridName));
         }
 
         public InvariantDeviceProfile(Context context, DeviceProfileOverrides.DBGridInfo dbGridInfo) {
@@ -364,7 +361,7 @@ public class InvariantDeviceProfile implements SafeCloseable {
         }
 
         public static String getCurrentGridName(Context context) {
-                return LauncherPrefs.get(context).get(GRID_NAME);
+                return DeviceProfileOverrides.INSTANCE.get(context).getCurrentGridName();
         }
 
         private String initGrid(Context context, String gridName) {
@@ -400,10 +397,10 @@ public class InvariantDeviceProfile implements SafeCloseable {
                         .getOverrides(displayOption.grid);
                 DisplayMetrics metrics = context.getResources().getDisplayMetrics();
                 closestProfile = displayOption.grid;
-                numRows = closestProfile.numRows;
-                numColumns = closestProfile.numColumns;
+                numRows = dbGridInfo.getNumRows();
+                numColumns = dbGridInfo.getNumColumns();
                 numSearchContainerColumns = closestProfile.numSearchContainerColumns;
-                dbFile = closestProfile.dbFile;
+                dbFile = dbGridInfo.getDbFile();
                 defaultLayoutId = closestProfile.defaultLayoutId;
                 demoModeLayoutId = closestProfile.demoModeLayoutId;
 
@@ -434,11 +431,16 @@ public class InvariantDeviceProfile implements SafeCloseable {
                 inlineNavButtonsEndSpacing = closestProfile.inlineNavButtonsEndSpacing;
 
                 iconSize = displayOption.iconSizes;
+                allAppsIconSize = displayOption.allAppsIconSizes;
                 float maxIconSize = iconSize[0];
                 for (int i = 1; i < iconSize.length; i++) {
                         maxIconSize = Math.max(maxIconSize, iconSize[i]);
                 }
-                iconBitmapSize = ResourceUtils.pxFromDp(maxIconSize, metrics);
+                float maxAllAppsIconSize = allAppsIconSize[0];
+                for (int i = 1; i < allAppsIconSize.length; i++) {
+                    maxAllAppsIconSize = Math.max(maxAllAppsIconSize, allAppsIconSize[i]);
+                }
+                iconBitmapSize = ResourceUtils.pxFromDp(Math.max(maxIconSize, maxAllAppsIconSize), metrics);
                 fillResIconDpi = getLauncherIconDensity(iconBitmapSize);
 
                 iconTextSize = displayOption.textSizes;
@@ -449,9 +451,10 @@ public class InvariantDeviceProfile implements SafeCloseable {
 
                 horizontalMargin = displayOption.horizontalMargin;
 
-                numShownHotseatIcons = closestProfile.numHotseatIcons;
+                numShownHotseatIcons = deviceType == TYPE_MULTI_DISPLAY 
+                        ? closestProfile.numHotseatIcons : dbGridInfo.getNumHotseatColumns();
                 numDatabaseHotseatIcons = deviceType == TYPE_MULTI_DISPLAY
-                        ? closestProfile.numDatabaseHotseatIcons : closestProfile.numHotseatIcons;
+                        ? closestProfile.numDatabaseHotseatIcons : numShownHotseatIcons;
                 hotseatBarBottomSpace = displayOption.hotseatBarBottomSpace;
                 hotseatQsbSpace = displayOption.hotseatQsbSpace;
 
