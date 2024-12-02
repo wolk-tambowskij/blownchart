@@ -2203,8 +2203,12 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     private static class LaunchDepthController extends DepthController {
         LaunchDepthController(QuickstepLauncher launcher) {
             super(launcher);
-            setCrossWindowBlursEnabled(
-                    CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled());
+            try {
+                setCrossWindowBlursEnabled(
+                        CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled());
+            } catch (Throwable t) {
+                // ignore
+            }
             // Make sure that the starting value matches the current depth set by the main
             // controller.
             stateDepth.setValue(launcher.getDepthController().stateDepth.getValue());

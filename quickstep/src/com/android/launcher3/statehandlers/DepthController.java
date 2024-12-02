@@ -90,9 +90,11 @@ public class DepthController extends BaseDepthController implements StateHandler
             mOnAttachListener = new View.OnAttachStateChangeListener() {
                 @Override
                 public void onViewAttachedToWindow(View view) {
-                    if (LawnchairQuickstepCompat.ATLEAST_S) {
+                    try {
                         CrossWindowBlurListeners.getInstance().addListener(mLauncher.getMainExecutor(),
                                 mCrossWindowBlurListener);
+                    } catch (Throwable t) {
+                        // Ignore
                     }
 
                     mLauncher.getScrimView().addOpaquenessListener(mOpaquenessListener);
@@ -127,8 +129,12 @@ public class DepthController extends BaseDepthController implements StateHandler
     }
 
     private void removeSecondaryListeners() {
-        if (mCrossWindowBlurListener != null && LawnchairQuickstepCompat.ATLEAST_S) {
-            CrossWindowBlurListeners.getInstance().removeListener(mCrossWindowBlurListener);
+        if (mCrossWindowBlurListener != null) {
+            try {
+                CrossWindowBlurListeners.getInstance().removeListener(mCrossWindowBlurListener);
+            } catch (Throwable t) {
+                // Ignore
+            }
         }
         if (mOpaquenessListener != null) {
             mLauncher.getScrimView().removeOpaquenessListener(mOpaquenessListener);
