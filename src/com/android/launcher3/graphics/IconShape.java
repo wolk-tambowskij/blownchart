@@ -95,7 +95,7 @@ public final class IconShape implements SafeCloseable {
 
         Region full = new Region(0, 0, size, size);
         Region iconR = new Region();
-        AdaptiveIconDrawable drawable = new AdaptiveIconDrawable(
+        AdaptiveIconDrawable drawable = new CustomAdaptiveIconDrawable(
                 new ColorDrawable(Color.BLACK), new ColorDrawable(Color.BLACK));
         drawable.setBounds(0, 0, size, size);
         iconR.setPath(drawable.getIconMask(), full);
