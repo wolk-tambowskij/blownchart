@@ -106,6 +106,7 @@ import java.util.stream.Stream;
 
 import app.lawnchair.allapps.LawnchairAlphabeticalAppsList;
 import app.lawnchair.font.FontManager;
+import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.theme.color.tokens.ColorTokens;
 import app.lawnchair.ui.StretchRecyclerViewContainer;
@@ -206,6 +207,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     private int mTabsProtectionAlpha;
 
     private final PreferenceManager2 pref2;
+    private final PreferenceManager pref;
 
     @Nullable
     private AllAppsTransitionController mAllAppsTransitionController;
@@ -223,6 +225,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         mActivityContext = ActivityContext.lookupContext(context);
         mAllAppsStore = new AllAppsStore<>(mActivityContext);
         pref2 = PreferenceManager2.getInstance(mActivityContext);
+        pref = PreferenceManager.getInstance(mActivityContext);
         mScrimColor = ColorTokens.AllAppsScrimColor.resolveColor(context);
         mHeaderThreshold = getResources().getDimensionPixelSize(
                 R.dimen.dynamic_grid_cell_border_spacing);
@@ -828,9 +831,10 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     protected int getHeaderColor(float blendRatio) {
+        var opacity = pref.getDrawerOpacity().get();
         return ColorUtils.setAlphaComponent(
                 ColorUtils.blendARGB(mScrimColor, mHeaderProtectionColor, blendRatio),
-                (int) (mSearchContainer.getAlpha() * 255));
+                Math.round(opacity * 255));
     }
 
     /**
