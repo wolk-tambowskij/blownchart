@@ -780,10 +780,13 @@ public final class Utilities {
         }
 
         // Inject monochrome icon drawable
-        if (ATLEAST_T && useTheme) {
+        if (useTheme) {
             result.mutate();
             int[] colors = ThemedIconDrawable.getColors(context);
-            Drawable mono = result.getMonochrome();
+            Drawable mono = null;
+            if (ATLEAST_T) {
+                mono = result.getMonochrome();
+            }
 
             if (mono != null) {
                 mono.setTint(colors[1]);
@@ -794,7 +797,9 @@ public final class Utilities {
                     // Use BitmapDrawable instead of FastBitmapDrawable so that the colorState is
                     // preserved in constantState
                     mono = new BitmapDrawable(monoBitmap);
-                    mono.setColorFilter(new BlendModeColorFilter(colors[1], BlendMode.SRC_IN));
+                    if (ATLEAST_Q) {
+                        mono.setColorFilter(new BlendModeColorFilter(colors[1], BlendMode.SRC_IN));
+                    }
                     // Inset the drawable according to the AdaptiveIconDrawable layers
                     mono = new InsetDrawable(mono, getExtraInsetFraction() / 2);
                 }
