@@ -130,7 +130,7 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
             setOnClickListener {
                 copyToClipboard(
                     context = context,
-                    text = target.extras.getString("result"),
+                    text = target.extras.getString("result").toString(),
                     toastMessage = context.getString(R.string.calculator_search_result_copied_toast),
                 )
             }
