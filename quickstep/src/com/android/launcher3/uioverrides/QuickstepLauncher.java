@@ -79,8 +79,10 @@ import android.hardware.display.DisplayManager;
 import android.media.permission.SafeCloseable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.IRemoteCallback;
+import android.os.Looper;
 import android.os.SystemProperties;
 import android.util.AttributeSet;
 import android.view.Display;
@@ -182,7 +184,6 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.TaskView;
 import com.android.systemui.shared.recents.model.Task;
-import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.unfold.RemoteUnfoldSharedComponent;
 import com.android.systemui.unfold.UnfoldTransitionFactory;
 import com.android.systemui.unfold.UnfoldTransitionProgressProvider;
@@ -1053,12 +1054,20 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
 
     /** Receives animation progress from sysui process. */
     private void initRemotelyCalculatedUnfoldAnimation(UnfoldTransitionConfig config) {
+
+        Handler handler;
+        try {
+            handler = getMainThreadHandler();
+        } catch (Throwable t) {
+            handler = new Handler(Looper.getMainLooper());
+        }
+
         RemoteUnfoldSharedComponent unfoldComponent =
                 UnfoldTransitionFactory.createRemoteUnfoldSharedComponent(
                         /* context= */ this,
                         config,
                         getMainExecutor(),
-                        getMainThreadHandler(),
+                        handler,
                         /* backgroundExecutor= */ UI_HELPER_EXECUTOR,
                         /* bgHandler= */ UI_HELPER_EXECUTOR.getHandler(),
                         /* tracingTagPrefix= */ "launcher",
