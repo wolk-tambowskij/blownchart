@@ -193,6 +193,7 @@ import com.android.systemui.unfold.progress.RemoteUnfoldTransitionReceiver;
 import com.android.systemui.unfold.updates.RotationChangeProvider;
 
 import app.lawnchair.LawnchairApp;
+import app.lawnchair.compat.LawnchairQuickstepCompat;
 import kotlin.Unit;
 
 import java.io.FileDescriptor;
@@ -849,7 +850,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
     public void onUiChangedWhileSleeping() {
         // Remove the snapshot because the content view may have obvious changes.
         UI_HELPER_EXECUTOR.execute(
-                () -> ActivityManagerWrapper.getInstance().invalidateHomeTaskSnapshot(this));
+                () -> LawnchairQuickstepCompat.getActivityManagerCompat().invalidateHomeTaskSnapshot(this));
     }
 
     @Override
