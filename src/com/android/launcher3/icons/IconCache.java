@@ -264,7 +264,7 @@ public class IconCache extends BaseIconCache {
         try {
              isAppArchived = Flags.enableSupportForArchiving() && activityInfo != null
                 && activityInfo.getActivityInfo().isArchived;
-        } catch (NoSuchMethodError e) {
+        } catch (Throwable e) {
             isAppArchived = false;
         }
         // If we already have activity info, no need to use package icon

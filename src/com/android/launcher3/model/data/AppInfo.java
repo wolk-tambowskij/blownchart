@@ -208,7 +208,7 @@ public class AppInfo extends ItemInfoWithIcon implements WorkspaceItemFactory {
                 } else {
                     info.runtimeStatusFlags &= ~FLAG_ARCHIVED;
                 }
-            } catch (NoSuchMethodError e) {
+            } catch (Throwable t) {
                 // Ignore
             }
         }
