@@ -10,6 +10,7 @@ import android.graphics.drawable.InsetDrawable
 import android.os.Build
 import android.os.Process
 import android.os.UserHandle
+import app.lawnchair.util.getThemedIconPacksInstalled
 import com.android.launcher3.icons.ClockDrawableWrapper
 import com.android.launcher3.icons.ThemedIconDrawable
 import com.android.launcher3.util.MainThreadInitializedObject
@@ -47,14 +48,16 @@ class IconPackProvider(private val context: Context) : SafeCloseable {
         iconPack.loadBlocking()
         val packageManager = context.packageManager
         val drawable = iconPack.getIcon(iconEntry, iconDpi) ?: return null
-        val shouldTintBackgrounds = context.shouldTintIconPackBackgrounds()
+        val themedIconPacks = packageManager.getThemedIconPacksInstalled(context)
+        val isThemedIconsEnabled =
+            context.isThemedIconsEnabled() && (iconEntry.packPackageName in themedIconPacks)
         val clockMetadata =
             if (user == Process.myUserHandle()) iconPack.getClock(iconEntry) else null
         try {
             if (clockMetadata != null) {
                 val clockDrawable: ClockDrawableWrapper =
                     ClockDrawableWrapper.forMeta(Build.VERSION.SDK_INT, clockMetadata) {
-                        if (shouldTintBackgrounds) {
+                        if (isThemedIconsEnabled) {
                             wrapThemedData(
                                 packageManager,
                                 iconEntry,
@@ -64,20 +67,22 @@ class IconPackProvider(private val context: Context) : SafeCloseable {
                             drawable
                         }
                     }
-                return if (shouldTintBackgrounds && context.shouldTransparentBGIcons()) {
-                    clockDrawable.foreground
-                } else {
-                    CustomAdaptiveIconDrawable(
-                        clockDrawable.background,
-                        clockDrawable.foreground,
-                    )
+                if (clockDrawable != null) {
+                    return if (isThemedIconsEnabled && context.shouldTransparentBGIcons()) {
+                        clockDrawable.foreground
+                    } else {
+                        CustomAdaptiveIconDrawable(
+                            clockDrawable.background,
+                            clockDrawable.foreground,
+                        )
+                    }
                 }
             }
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
             // Ignore
         }
 
-        if (shouldTintBackgrounds) {
+        if (isThemedIconsEnabled) {
             return wrapThemedData(packageManager, iconEntry, drawable)
         }
         return drawable
@@ -89,27 +94,22 @@ class IconPackProvider(private val context: Context) : SafeCloseable {
         drawable: Drawable,
     ): Drawable? {
         val themedColors: IntArray = ThemedIconDrawable.getThemedColors(context)
-        try {
-            val res = packageManager.getResourcesForApplication(iconEntry.packPackageName)
+        val res = packageManager.getResourcesForApplication(iconEntry.packPackageName)
 
-            @SuppressLint("DiscouragedApi")
-            val resId = res.getIdentifier(iconEntry.name, "drawable", iconEntry.packPackageName)
-            val bg: Drawable = ColorDrawable(themedColors[0])
-            val td = ThemedIconDrawable.ThemeData(res, iconEntry.packPackageName, resId)
-
-            return if (drawable is AdaptiveIconDrawable) {
-                if (context.shouldTransparentBGIcons() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && drawable.monochrome != null) {
-                    drawable.monochrome?.apply { setTint(themedColors[1]) }
-                } else {
-                    val foregroundDr = drawable.foreground.apply { setTint(themedColors[1]) }
-                    CustomAdaptiveIconDrawable(bg, foregroundDr)
-                }
+        @SuppressLint("DiscouragedApi")
+        val resId = res.getIdentifier(iconEntry.name, "drawable", iconEntry.packPackageName)
+        val bg: Drawable = ColorDrawable(themedColors[0])
+        val td = ThemedIconDrawable.ThemeData(res, iconEntry.packPackageName, resId)
+        return if (drawable is AdaptiveIconDrawable) {
+            if (context.shouldTransparentBGIcons() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && drawable.monochrome != null) {
+                drawable.monochrome?.apply { setTint(themedColors[1]) }
             } else {
-                val iconFromPack = InsetDrawable(drawable, .3f).apply { setTint(themedColors[1]) }
-                td.wrapDrawable(CustomAdaptiveIconDrawable(bg, iconFromPack), 0)
+                val foregroundDr = drawable.foreground.apply { setTint(themedColors[1]) }
+                CustomAdaptiveIconDrawable(bg, foregroundDr)
             }
-        } catch (_: Exception) {
-            return drawable
+        } else {
+            val iconFromPack = InsetDrawable(drawable, .3f).apply { setTint(themedColors[1]) }
+            td.wrapDrawable(CustomAdaptiveIconDrawable(bg, iconFromPack), 0)
         }
     }
 
