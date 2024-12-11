@@ -19,6 +19,7 @@ package android.window;
 import android.view.SurfaceControl;
 import android.window.IRemoteTransitionFinishedCallback;
 import android.window.TransitionInfo;
+import android.window.WindowAnimationState;
 
 /**
  * Interface allowing remote processes to play transition animations.
@@ -36,7 +37,6 @@ import android.window.TransitionInfo;
  *
  * {@hide}
  */
-
 oneway interface IRemoteTransition {
     /**
      * Starts a transition animation. Once complete, the implementation should call
@@ -46,6 +46,7 @@ oneway interface IRemoteTransition {
      */
     void startAnimation(in IBinder token, in TransitionInfo info, in SurfaceControl.Transaction t,
             in IRemoteTransitionFinishedCallback finishCallback);
+
     /**
      * Attempts to merge a transition animation into the animation that is currently
      * being played by this remote. If merge is not possible/supported, this should be a no-op.
@@ -59,4 +60,25 @@ oneway interface IRemoteTransition {
     void mergeAnimation(in IBinder transition, in TransitionInfo info,
             in SurfaceControl.Transaction t, in IBinder mergeTarget,
             in IRemoteTransitionFinishedCallback finishCallback);
+
+    /**
+     * Takes over the animation of the windows from an existing transition. Once complete, the
+     * implementation should call `finishCallback`.
+     *
+     * @param transition An identifier for the transition to be taken over.
+     * @param states The animation states of the windows involved in the transition. These must be
+     *               sorted in the same way as the Changes inside `info`, and each state may be
+     *               null.
+     */
+    void takeOverAnimation(in IBinder transition, in TransitionInfo info,
+            in SurfaceControl.Transaction t, in IRemoteTransitionFinishedCallback finishCallback,
+            in WindowAnimationState[] states);
+
+    /**
+     * Called when a different handler has consumed the transition
+     *
+     * @param transition An identifier for the transition that was consumed.
+     * @param aborted Whether the transition is aborted or not.
+     */
+    void onTransitionConsumed(in IBinder transition, in boolean aborted);
 }

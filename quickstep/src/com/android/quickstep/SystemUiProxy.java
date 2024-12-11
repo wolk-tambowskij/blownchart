@@ -64,6 +64,7 @@ import androidx.annotation.WorkerThread;
 import com.android.internal.logging.InstanceId;
 import com.android.internal.util.ScreenshotRequest;
 import com.android.internal.view.AppearanceRegion;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.SafeCloseable;
@@ -108,6 +109,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import app.lawnchair.compat.LawnchairQuickstepCompat;
 
 /**
  * Holds the reference to SystemUI.
@@ -191,9 +194,17 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
         mContext = context;
         mAsyncHandler = new Handler(UI_HELPER_EXECUTOR.getLooper(), this::handleMessageAsync);
         final Intent baseIntent = new Intent().setPackage(mContext.getPackageName());
-        mRecentsPendingIntent = PendingIntent.getActivity(mContext, 0, baseIntent,
+        final ActivityOptions options = ActivityOptions.makeBasic();
+        if (Utilities.ATLEAST_U) {
+            options.setPendingIntentCreatorBackgroundActivityStartMode(
+                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+        }
+
+        mRecentsPendingIntent = LawnchairQuickstepCompat.ATLEAST_V ? PendingIntent.getActivity(mContext, 0, baseIntent,
                 PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT
-                        | Intent.FILL_IN_COMPONENT);
+                        | Intent.FILL_IN_COMPONENT) :  PendingIntent.getActivity(mContext, 0, baseIntent,
+                PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT
+                        | Intent.FILL_IN_COMPONENT, options.toBundle()) ;
 
         mUnfoldTransitionProvider =
                 (enableUnfoldStateAnimation() && new ResourceUnfoldTransitionConfig().isEnabled())
@@ -1200,8 +1211,9 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
      * if Launcher and SystemUI need to coordinate transactions (eg. for shell transitions).
      */
     public void shareTransactionQueue() {
+        if (!LawnchairQuickstepCompat.ATLEAST_V) return;
         if (mOriginalTransactionToken == null) {
-//            mOriginalTransactionToken = SurfaceControl.Transaction.getDefaultApplyToken();
+            mOriginalTransactionToken = SurfaceControl.Transaction.getDefaultApplyToken();
         }
         setupTransactionQueue();
     }
@@ -1210,19 +1222,21 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
      * Switch back to using Launcher's independent transaction queue.
      */
     public void unshareTransactionQueue() {
+        if (!LawnchairQuickstepCompat.ATLEAST_V) return;
         if (mOriginalTransactionToken == null) {
             return;
         }
-//        SurfaceControl.Transaction.setDefaultApplyToken(mOriginalTransactionToken);
+        SurfaceControl.Transaction.setDefaultApplyToken(mOriginalTransactionToken);
         mOriginalTransactionToken = null;
     }
 
     private void setupTransactionQueue() {
+        if (!LawnchairQuickstepCompat.ATLEAST_V) return;
         if (mOriginalTransactionToken == null) {
             return;
         }
         if (mShellTransitions == null) {
-//            SurfaceControl.Transaction.setDefaultApplyToken(mOriginalTransactionToken);
+            SurfaceControl.Transaction.setDefaultApplyToken(mOriginalTransactionToken);
             return;
         }
         final IBinder shellApplyToken;
@@ -1236,7 +1250,7 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
             Log.e(TAG, "Didn't receive apply token from Shell");
             return;
         }
-//        SurfaceControl.Transaction.setDefaultApplyToken(shellApplyToken);
+        SurfaceControl.Transaction.setDefaultApplyToken(shellApplyToken);
     }
 
     //

@@ -36,6 +36,8 @@ import com.android.systemui.shared.recents.model.ThumbnailData;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.lawnchair.compat.LawnchairQuickstepCompat;
+
 /**
  * Tracks all the task stack listeners
  */
@@ -167,7 +169,8 @@ public class TaskStackChangeListeners {
             if (!mRegistered) {
                 // Register mTaskStackListener to IActivityManager only once if needed.
                 try {
-//                    ActivityTaskManager.getService().registerTaskStackListener(this);
+                    if (!LawnchairQuickstepCompat.ATLEAST_V) return;
+                    ActivityTaskManager.getService().registerTaskStackListener(this);
                     mRegistered = true;
                 } catch (Exception e) {
                     Log.w(TAG, "Failed to call registerTaskStackListener", e);
@@ -184,7 +187,8 @@ public class TaskStackChangeListeners {
             if (isEmpty && mRegistered) {
                 // Unregister mTaskStackListener once we have no more listeners
                 try {
-//                    ActivityTaskManager.getService().unregisterTaskStackListener(this);
+                    if (!LawnchairQuickstepCompat.ATLEAST_V) return;
+                    ActivityTaskManager.getService().unregisterTaskStackListener(this);
                     mRegistered = false;
                 } catch (Exception e) {
                     Log.w(TAG, "Failed to call unregisterTaskStackListener", e);

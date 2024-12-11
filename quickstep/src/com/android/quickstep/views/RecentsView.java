@@ -1103,6 +1103,7 @@ public abstract class RecentsView<CONTAINER_TYPE extends Context & RecentsViewCo
         mActionsView.updateFor3pLauncher(!supportsAppPairs());
         mSplitSelectStateController = splitController;
         mDesktopRecentsTransitionController = desktopRecentsTransitionController;
+        mActionsView.setClearAllClickListener(this::dismissAllTasks);
     }
 
     public SplitSelectStateController getSplitSelectController() {

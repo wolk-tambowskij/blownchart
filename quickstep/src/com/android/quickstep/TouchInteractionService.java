@@ -162,7 +162,7 @@ public class TouchInteractionService extends Service {
     private static final String TAG = "TouchInteractionService";
 
     private static final ConstantItem<Boolean> HAS_ENABLED_QUICKSTEP_ONCE = backedUpItem(
-            "launcher.has_enabled_quickstep_once", false, EncryptionType.ENCRYPTED);
+            "launcher.has_enabled_quickstep_once", true, EncryptionType.ENCRYPTED);
 
     private final TISBinder mTISBinder = new TISBinder(this);
 

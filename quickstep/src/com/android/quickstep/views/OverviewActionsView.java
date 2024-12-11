@@ -438,4 +438,8 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         mSaveAppPairButton.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 appPairIconRes, 0, 0, 0);
     }
+
+    protected void setClearAllClickListener(OnClickListener listener) {
+        // No-op
+    }
 }

@@ -59,8 +59,7 @@ import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.recents.utilities.PreviewPositionHelper;
 
 /**
- * A utility class which emulates the layout behavior of TaskView and
- * RecentsView
+ * A utility class which emulates the layout behavior of TaskView and RecentsView
  */
 public class TaskViewSimulator implements TransformParams.BuilderProxy {
 
@@ -100,7 +99,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     private final FullscreenDrawParams mCurrentFullscreenParams;
     public final AnimatedFloat taskPrimaryTranslation = new AnimatedFloat();
     public final AnimatedFloat taskSecondaryTranslation = new AnimatedFloat();
-    public final AnimatedFloat scrollScale = new AnimatedFloat();
 
     // Carousel properties
     public final AnimatedFloat carouselScale = new AnimatedFloat();
@@ -130,8 +128,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         mSizeStrategy = sizeStrategy;
 
         mOrientationState = TraceHelper.allowIpcs("TaskViewSimulator.init",
-                () -> new RecentsOrientedState(context, sizeStrategy, i -> {
-                }));
+                () -> new RecentsOrientedState(context, sizeStrategy, i -> { }));
         mOrientationState.setGestureActive(true);
         mCurrentFullscreenParams = new FullscreenDrawParams(context);
         mOrientationStateId = mOrientationState.getStateId();
@@ -170,8 +167,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
 
         if (mSplitBounds != null) {
             // The task rect changes according to the staged split task sizes, but recents
-            // fullscreen scale and pivot remains the same since the task fits into the
-            // existing
+            // fullscreen scale and pivot remains the same since the task fits into the existing
             // sized task space bounds
             mTaskRect.set(mFullTaskSize);
             mOrientationState.getOrientationHandler()
@@ -179,10 +175,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             mTaskRect.offset(mTaskRectTranslationX, mTaskRectTranslationY);
         } else if (mIsDesktopTask) {
             // For desktop, tasks can take up only part of the screen size.
-            // Full task size represents the whole screen size, but scaled down to fit in
-            // recents.
-            // Task rect will represent the scaled down thumbnail position and is placed
-            // inside
+            // Full task size represents the whole screen size, but scaled down to fit in recents.
+            // Task rect will represent the scaled down thumbnail position and is placed inside
             // full task size as it is on the home screen.
             PointF fullscreenTaskDimension = new PointF();
             BaseActivityInterface.getTaskDimension(mContext, mDp, fullscreenTaskDimension);
@@ -213,8 +207,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         if (mDp == null) {
             return 1;
         }
-        // Copy mFullTaskSize instead of updating it directly so it could be reused next
-        // time
+        // Copy mFullTaskSize instead of updating it directly so it could be reused next time
         // without recalculating
         Rect scaleRect = new Rect();
         if (mScaleToCarouselTaskSize) {
@@ -242,8 +235,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Sets the targets which the simulator will control specifically for targets to
-     * animate when
+     * Sets the targets which the simulator will control specifically for targets to animate when
      * in split screen
      *
      * @param splitInfo set to {@code null} when not in staged split mode
@@ -255,8 +247,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             mStagePosition = STAGE_POSITION_UNDEFINED;
         } else {
             mStagePosition = runningTarget.taskId == splitInfo.leftTopTaskId
-                    ? STAGE_POSITION_TOP_OR_LEFT
-                    : STAGE_POSITION_BOTTOM_OR_RIGHT;
+                    ? STAGE_POSITION_TOP_OR_LEFT : STAGE_POSITION_BOTTOM_OR_RIGHT;
             mPositionHelper.setSplitBounds(convertLauncherSplitBoundsToShell(mSplitBounds),
                     mStagePosition);
         }
@@ -311,17 +302,14 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Adds animation for all the components corresponding to transition from an app
-     * to overview.
+     * Adds animation for all the components corresponding to transition from an app to overview.
      */
     public void addAppToOverviewAnim(PendingAnimation pa, Interpolator interpolator) {
         pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE, 1, 0, interpolator);
         float fullScreenScale;
         if (enableGridOnlyOverview() && mDp.isTablet && mDp.isGestureMode) {
-            // Move pivot to top right edge of the screen, to avoid task scaling down in
-            // opposite
-            // direction of app window movement, otherwise the animation will wiggle left
-            // and right.
+            // Move pivot to top right edge of the screen, to avoid task scaling down in opposite
+            // direction of app window movement, otherwise the animation will wiggle left and right.
             // Also translate the app window to top right edge of the screen to simplify
             // calculations.
             taskPrimaryTranslation.value = mIsRecentsRtl
@@ -330,8 +318,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             taskSecondaryTranslation.value = -mFullTaskSize.top;
             mPivotOverride = new PointF(mIsRecentsRtl ? mDp.widthPx : 0, 0);
 
-            // Scale down to the carousel and use the carousel Rect to calculate
-            // fullScreenScale.
+            // Scale down to the carousel and use the carousel Rect to calculate fullScreenScale.
             mScaleToCarouselTaskSize = true;
             carouselScale.value = mCarouselTaskSize.width() / (float) mFullTaskSize.width();
             fullScreenScale = getFullScreenScale();
@@ -344,18 +331,15 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             // Expected carousel position's center is in the middle, and invariant of
             // recentsViewScale.
             float exceptedCarouselCenterX = mCarouselTaskSize.centerX();
-            // Animating carousel translations linearly will result in a curved path,
-            // therefore
-            // we'll need to calculate the expected translation at each recentsView scale.
-            // Luckily
-            // primary and secondary follow the same translation, and primary is used here
-            // due to
+            // Animating carousel translations linearly will result in a curved path, therefore
+            // we'll need to calculate the expected translation at each recentsView scale. Luckily
+            // primary and secondary follow the same translation, and primary is used here due to
             // it being simpler.
             Interpolator carouselTranslationInterpolator = t -> {
-                // recentsViewScale is calculated rather than using recentsViewScale.value, so
-                // that
+                // recentsViewScale is calculated rather than using recentsViewScale.value, so that
                 // this interpolator works independently even if recentsViewScale don't animate.
-                float recentsViewScale = Utilities.mapToRange(t, 0, 1, fullScreenScale, 1, Interpolators.LINEAR);
+                float recentsViewScale =
+                        Utilities.mapToRange(t, 0, 1, fullScreenScale, 1, Interpolators.LINEAR);
                 // Without the translation, the app window will animate from fullscreen into top
                 // right corner.
                 float expectedTaskCenterX = mIsRecentsRtl
@@ -363,7 +347,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
                         : mCarouselTaskSize.width() * recentsViewScale / 2f;
                 // Calculate the expected translation, then work back the animatedFraction that
                 // results in this value.
-                float carouselPrimaryTranslation = (exceptedCarouselCenterX - expectedTaskCenterX) / recentsViewScale;
+                float carouselPrimaryTranslation =
+                        (exceptedCarouselCenterX - expectedTaskCenterX) / recentsViewScale;
                 return carouselPrimaryTranslation / carouselPrimaryTranslationTarget;
             };
 
@@ -380,8 +365,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Adds animation for all the components corresponding to transition from
-     * overview to the app.
+     * Adds animation for all the components corresponding to transition from overview to the app.
      */
     public void addOverviewToAppAnim(PendingAnimation pa, TimeInterpolator interpolator) {
         pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE, 0, 1, interpolator);
@@ -389,8 +373,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Returns the current clipped/visible window bounds in the window coordinate
-     * space
+     * Returns the current clipped/visible window bounds in the window coordinate space
      */
     public RectF getCurrentCropRect() {
         // Crop rect is the inverse of thumbnail matrix
@@ -423,15 +406,14 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Applies the rotation on the matrix to so that it maps from launcher
-     * coordinate space to
+     * Applies the rotation on the matrix to so that it maps from launcher coordinate space to
      * window coordinate space.
      */
     public void applyWindowToHomeRotation(Matrix matrix) {
         matrix.postTranslate(mDp.windowX, mDp.windowY);
         postDisplayRotation(deltaRotation(
-                mOrientationState.getRecentsActivityRotation(),
-                mOrientationState.getDisplayRotation()),
+                        mOrientationState.getRecentsActivityRotation(),
+                        mOrientationState.getDisplayRotation()),
                 mDp.widthPx, mDp.heightPx, matrix);
     }
 
@@ -443,8 +425,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Applies the target to the previously set parameters, optionally with an
-     * overridden
+     * Applies the target to the previously set parameters, optionally with an overridden
      * surface transaction
      */
     public void apply(TransformParams params, @Nullable SurfaceTransaction surfaceTransaction) {
@@ -457,8 +438,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
 
             getFullScreenScale();
             if (TaskAnimationManager.SHELL_TRANSITIONS_ROTATION) {
-                // With shell transitions, the display is rotated early so we need to actually
-                // use
+                // With shell transitions, the display is rotated early so we need to actually use
                 // the rotation when the gesture starts
                 mThumbnailData.rotation = mOrientationState.getTouchRotation();
             } else {
@@ -477,7 +457,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         }
 
         float fullScreenProgress = Utilities.boundToRange(this.fullScreenProgress.value, 0, 1);
-        float scrollScale = this.scrollScale.value * (1f - fullScreenProgress) + fullScreenProgress;
         mCurrentFullscreenParams.setProgress(fullScreenProgress, recentsViewScale.value,
                 carouselScale.value);
 
@@ -489,8 +468,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
 
         // Apply TaskView matrix: taskRect, translate
         mMatrix.postTranslate(mTaskRect.left, mTaskRect.top);
-        mMatrix.postScale(scrollScale, scrollScale, mTaskRect.left + (mTaskRect.width() / 2),
-                mTaskRect.top + (mTaskRect.height() / 2));
         mOrientationState.getOrientationHandler().setPrimary(mMatrix, MATRIX_POST_TRANSLATE,
                 taskPrimaryTranslation.value);
         mOrientationState.getOrientationHandler().setSecondary(mMatrix, MATRIX_POST_TRANSLATE,
@@ -520,8 +497,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
 
         params.setProgress(1f - fullScreenProgress);
         params.applySurfaceParams(surfaceTransaction == null
-                ? params.createSurfaceParams(this)
-                : surfaceTransaction);
+                ? params.createSurfaceParams(this) : surfaceTransaction);
 
         if (!DEBUG) {
             return;
@@ -540,9 +516,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
                 + " recentsPrimaryT: " + recentsViewPrimaryTranslation.value
                 + " recentsSecondaryT: " + recentsViewSecondaryTranslation.value
                 + " recentsScroll: " + recentsViewScroll.value
-                + " scrollScale: " + scrollScale
-                + " this.scrollScale.value: " + this.scrollScale.value
-                + " pivot: " + mPivot);
+                + " pivot: " + mPivot
+        );
     }
 
     @Override
@@ -555,12 +530,9 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         // If mDrawsBelowRecents is unset, no reordering will be enforced.
         if (mDrawsBelowRecents != null) {
             // In legacy transitions, the animation leashes remain in same hierarchy in the
-            // TaskDisplayArea, so we don't want to bump the layer too high otherwise it
-            // will
-            // conflict with layers that WM core positions (ie. the input consumers). For
-            // shell
-            // transitions, the animation leashes are reparented to an animation container
-            // so we
+            // TaskDisplayArea, so we don't want to bump the layer too high otherwise it will
+            // conflict with layers that WM core positions (ie. the input consumers).  For shell
+            // transitions, the animation leashes are reparented to an animation container so we
             // can bump layers as needed.
             if (ENABLE_SHELL_TRANSITIONS) {
                 builder.setLayer(mDrawsBelowRecents
@@ -576,8 +548,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Returns the corner radius that should be applied to the target so that it
-     * matches the
+     * Returns the corner radius that should be applied to the target so that it matches the
      * TaskView
      */
     public float getCurrentCornerRadius() {
@@ -586,8 +557,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         mTempPoint[1] = 0;
         mInversePositionMatrix.mapVectors(mTempPoint);
 
-        // Ideally we should use square-root. This is an optimization as one of the
-        // dimension is 0.
+        // Ideally we should use square-root. This is an optimization as one of the dimension is 0.
         return Math.max(Math.abs(mTempPoint[0]), Math.abs(mTempPoint[1]));
     }
 }

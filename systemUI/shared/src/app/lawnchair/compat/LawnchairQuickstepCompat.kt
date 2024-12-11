@@ -34,8 +34,13 @@ object LawnchairQuickstepCompat {
     @JvmField
     val ATLEAST_U: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.VANILLA_ICE_CREAM)
+    @JvmField
+    val ATLEAST_V: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM
+
     @JvmStatic
     val factory: QuickstepCompatFactory = when {
+        ATLEAST_V -> QuickstepCompatFactoryVU()
         ATLEAST_U -> QuickstepCompatFactoryVU()
         ATLEAST_T -> QuickstepCompatFactoryVT()
         ATLEAST_S -> QuickstepCompatFactoryVS()

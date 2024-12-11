@@ -14,6 +14,23 @@
  * limitations under the License.
  */
 
-package com.android.wm.shell.common.bubbles;
+package android.window;
 
-parcelable BubbleBarLocation;
+import android.graphics.PointF;
+import android.graphics.RectF;
+
+/**
+ * Properties of a window animation at a given point in time.
+ *
+ * {@hide}
+ */
+parcelable WindowAnimationState {
+    long timestamp;
+    RectF bounds;
+    float scale;
+    float topLeftRadius;
+    float topRightRadius;
+    float bottomRightRadius;
+    float bottomLeftRadius;
+    PointF velocityPxPerMs;
+}

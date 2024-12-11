@@ -58,7 +58,7 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 
 public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAnimationListener {
-    public static final boolean ENABLE_SHELL_TRANSITIONS = false;
+    public static final boolean ENABLE_SHELL_TRANSITIONS = true;
     public static final boolean SHELL_TRANSITIONS_ROTATION = ENABLE_SHELL_TRANSITIONS
             && SystemProperties.getBoolean("persist.wm.debug.shell_transit_rotate", false);
 
@@ -100,11 +100,6 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     TaskAnimationManager(Context ctx) {
         mCtx = ctx;
     }
-
-    SystemUiProxy getSystemUiProxy() {
-        return SystemUiProxy.INSTANCE.get(mCtx);
-    }
-
     /**
      * Preloads the recents animation.
      */
@@ -158,7 +153,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         final BaseContainerInterface containerInterface = gestureState.getContainerInterface();
         mLastGestureState = gestureState;
         RecentsAnimationCallbacks newCallbacks = new RecentsAnimationCallbacks(
-                getSystemUiProxy(), containerInterface.allowMinimizeSplitScreen());
+                SystemUiProxy.INSTANCE.get(mCtx), containerInterface.allowMinimizeSplitScreen());
         mCallbacks = newCallbacks;
         mCallbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
             @Override
@@ -265,7 +260,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 }
 
                 RemoteAnimationTarget[] nonAppTargets = ENABLE_SHELL_TRANSITIONS
-                        ? null : getSystemUiProxy().onStartingSplitLegacy(
+                        ? null : SystemUiProxy.INSTANCE.get(mCtx).onStartingSplitLegacy(
                         appearedTaskTargets);
                 if (nonAppTargets == null) {
                     nonAppTargets = new RemoteAnimationTarget[0];
@@ -332,13 +327,12 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
 
         if (ENABLE_SHELL_TRANSITIONS) {
             final ActivityOptions options = ActivityOptions.makeBasic();
-            options.setPendingIntentBackgroundActivityLaunchAllowedByPermission(true);
             // Use regular (non-transient) launch for all apps page to control IME.
             if (!containerInterface.allowAllAppsFromOverview()) {
                 options.setTransientLaunch();
             }
             options.setSourceInfo(ActivityOptions.SourceInfo.TYPE_RECENTS_ANIMATION, eventTime);
-            mRecentsAnimationStartPending = getSystemUiProxy()
+            mRecentsAnimationStartPending = SystemUiProxy.INSTANCE.get(mCtx)
                     .startRecentsActivity(intent, options, mCallbacks);
             if (enableHandleDelayedGestureCallbacks()) {
                 ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(

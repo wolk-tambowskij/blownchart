@@ -16,46 +16,40 @@
 package com.android.quickstep.util;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
-import static android.app.WindowConfiguration.ACTIVITY_TYPE_RECENTS;
-import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
 
 import android.util.FloatProperty;
 import android.view.RemoteAnimationTarget;
-import android.view.SurfaceControl;
 
-import com.android.app.animation.Interpolators;
-import com.android.launcher3.Utilities;
 import com.android.quickstep.RemoteAnimationTargets;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
-import com.android.systemui.shared.system.ActivityManagerWrapper;
-
-import app.lawnchair.compat.LawnchairQuickstepCompat;
 
 public class TransformParams {
 
-    public static FloatProperty<TransformParams> PROGRESS = new FloatProperty<TransformParams>("progress") {
-        @Override
-        public void setValue(TransformParams params, float v) {
-            params.setProgress(v);
-        }
+    public static FloatProperty<TransformParams> PROGRESS =
+            new FloatProperty<TransformParams>("progress") {
+                @Override
+                public void setValue(TransformParams params, float v) {
+                    params.setProgress(v);
+                }
 
-        @Override
-        public Float get(TransformParams params) {
-            return params.getProgress();
-        }
-    };
+                @Override
+                public Float get(TransformParams params) {
+                    return params.getProgress();
+                }
+            };
 
-    public static FloatProperty<TransformParams> TARGET_ALPHA = new FloatProperty<TransformParams>("targetAlpha") {
-        @Override
-        public void setValue(TransformParams params, float v) {
-            params.setTargetAlpha(v);
-        }
+    public static FloatProperty<TransformParams> TARGET_ALPHA =
+            new FloatProperty<TransformParams>("targetAlpha") {
+                @Override
+                public void setValue(TransformParams params, float v) {
+                    params.setTargetAlpha(v);
+                }
 
-        @Override
-        public Float get(TransformParams params) {
-            return params.getTargetAlpha();
-        }
-    };
+                @Override
+                public Float get(TransformParams params) {
+                    return params.getTargetAlpha();
+                }
+            };
 
     /** Progress from 0 to 1 where 0 is in-app and 1 is Overview */
     private float mProgress;
@@ -74,12 +68,9 @@ public class TransformParams {
     }
 
     /**
-     * Sets the progress of the transformation, where 0 is the source and 1 is the
-     * target. We
-     * automatically adjust properties such as currentRect and cornerRadius based on
-     * this
-     * progress, unless they are manually overridden by setting them on this
-     * TransformParams.
+     * Sets the progress of the transformation, where 0 is the source and 1 is the target. We
+     * automatically adjust properties such as currentRect and cornerRadius based on this
+     * progress, unless they are manually overridden by setting them on this TransformParams.
      */
     public TransformParams setProgress(float progress) {
         mProgress = progress;
@@ -87,10 +78,8 @@ public class TransformParams {
     }
 
     /**
-     * Sets the corner radius of the transformed window, in pixels. If unspecified
-     * (-1), we
-     * simply interpolate between the window's corner radius to the task view's
-     * corner radius,
+     * Sets the corner radius of the transformed window, in pixels. If unspecified (-1), we
+     * simply interpolate between the window's corner radius to the task view's corner radius,
      * based on {@link #mProgress}.
      */
     public TransformParams setCornerRadius(float cornerRadius) {
@@ -107,12 +96,9 @@ public class TransformParams {
     }
 
     /**
-     * Specifies the set of RemoteAnimationTargetCompats that are included in the
-     * transformation
-     * that these TransformParams help compute. These TransformParams generally only
-     * apply to
-     * the targetSet.apps which match the targetSet.targetMode (e.g. the
-     * MODE_CLOSING app when
+     * Specifies the set of RemoteAnimationTargetCompats that are included in the transformation
+     * that these TransformParams help compute. These TransformParams generally only apply to
+     * the targetSet.apps which match the targetSet.targetMode (e.g. the MODE_CLOSING app when
      * swiping to home).
      */
     public TransformParams setTargetSet(RemoteAnimationTargets targetSet) {
@@ -121,8 +107,7 @@ public class TransformParams {
     }
 
     /**
-     * Sets the SyncRtSurfaceTransactionApplierCompat that will apply the
-     * SurfaceParams that
+     * Sets the SyncRtSurfaceTransactionApplierCompat that will apply the SurfaceParams that
      * are computed based on these TransformParams.
      */
     public TransformParams setSyncTransactionApplier(SurfaceTransactionApplier applier) {
@@ -131,8 +116,7 @@ public class TransformParams {
     }
 
     /**
-     * Sets an alternate function to control transform for non-target apps. The
-     * default
+     * Sets an alternate function to control transform for non-target apps. The default
      * implementation keeps the targets visible with alpha=1
      */
     public TransformParams setBaseBuilderProxy(BuilderProxy proxy) {
@@ -165,19 +149,7 @@ public class TransformParams {
                 if (activityType == ACTIVITY_TYPE_HOME) {
                     mHomeBuilderProxy.onBuildTargetParams(builder, app, this);
                 } else {
-                    // Fade out translucent overlay.
-                    // TODO(b/303351074): use app.isNotInRecents directly once it is fixed.
-                    boolean isNotInRecents = LawnchairQuickstepCompat.ATLEAST_S && app.taskInfo != null
-                            && (app.taskInfo.baseIntent.getFlags()
-                                    & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) != 0;
-                    if (app.isTranslucent && isNotInRecents) {
-                        float progress = Utilities.boundToRange(getProgress(), 0, 1);
-                        builder.setAlpha(1 - Interpolators.DECELERATE_QUINT
-                                .getInterpolation(progress));
-                    } else {
-                        builder.setAlpha(getTargetAlpha());
-                    }
-
+                    builder.setAlpha(getTargetAlpha());
                     proxy.onBuildTargetParams(builder, app, this);
                 }
             } else {
@@ -223,11 +195,10 @@ public class TransformParams {
     @FunctionalInterface
     public interface BuilderProxy {
 
-        BuilderProxy NO_OP = (builder, app, params) -> {
-        };
+        BuilderProxy NO_OP = (builder, app, params) -> { };
         BuilderProxy ALWAYS_VISIBLE = (builder, app, params) -> builder.setAlpha(1);
 
         void onBuildTargetParams(SurfaceProperties builder,
-                RemoteAnimationTarget app, TransformParams params);
+                                 RemoteAnimationTarget app, TransformParams params);
     }
 }

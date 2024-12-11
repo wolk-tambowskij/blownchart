@@ -59,7 +59,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import app.lawnchair.LawnchairApp;
-import app.lawnchair.icons.LawnchairIconProvider;
+import app.lawnchair.compat.LawnchairQuickstepCompat;
 
 /**
  * Singleton class to load and manage recents model.
@@ -68,10 +68,9 @@ import app.lawnchair.icons.LawnchairIconProvider;
 public class RecentsModel implements RecentTasksDataSource, IconChangeListener,
         TaskStackChangeListener, TaskVisualsChangeListener, SafeCloseable {
 
-    // We do not need any synchronization for this variable as its only written on
-    // UI thread.
-    public static final MainThreadInitializedObject<RecentsModel> INSTANCE = new MainThreadInitializedObject<>(
-            RecentsModel::new);
+    // We do not need any synchronization for this variable as its only written on UI thread.
+    public static final MainThreadInitializedObject<RecentsModel> INSTANCE =
+            new MainThreadInitializedObject<>(RecentsModel::new);
 
     private static final Executor RECENTS_MODEL_EXECUTOR = Executors.newSingleThreadExecutor(
             new SimpleThreadFactory("TaskThumbnailIconCache-", THREAD_PRIORITY_BACKGROUND));
@@ -104,12 +103,11 @@ public class RecentsModel implements RecentTasksDataSource, IconChangeListener,
 
     @VisibleForTesting
     RecentsModel(Context context, RecentTasksList taskList, TaskIconCache iconCache,
-            TaskThumbnailCache thumbnailCache, IconProvider iconProvider,
-            TaskStackChangeListeners taskStackChangeListeners) {
+                 TaskThumbnailCache thumbnailCache, IconProvider iconProvider,
+                 TaskStackChangeListeners taskStackChangeListeners) {
         mContext = context;
         mTaskList = taskList;
-        iconProvider = new LawnchairIconProvider(context);
-        mIconCache = new TaskIconCache(context, RECENTS_MODEL_EXECUTOR, iconProvider);
+        mIconCache = iconCache;
         mIconCache.registerTaskVisualsChangeListener(this);
         mThumbnailCache = thumbnailCache;
         if (enableGridOnlyOverview()) {
@@ -144,13 +142,11 @@ public class RecentsModel implements RecentTasksDataSource, IconChangeListener,
     }
 
     /**
-     * Fetches the list of recent tasks. Tasks are ordered by recency, with the
-     * latest active tasks
+     * Fetches the list of recent tasks. Tasks are ordered by recency, with the latest active tasks
      * at the end of the list.
      *
-     * @param callback The callback to receive the task plan once its complete or
-     *                 null. This is
-     *                 always called on the UI thread.
+     * @param callback The callback to receive the task plan once its complete or null. This is
+     *                always called on the UI thread.
      * @return the request id associated with this call.
      */
     @Override
@@ -162,12 +158,10 @@ public class RecentsModel implements RecentTasksDataSource, IconChangeListener,
     /**
      * Fetches the list of recent tasks, based on a filter
      *
-     * @param callback The callback to receive the task plan once its complete or
-     *                 null. This is
-     *                 always called on the UI thread.
-     * @param filter   Returns true if a GroupTask should be included into the list
-     *                 passed into
-     *                 callback.
+     * @param callback The callback to receive the task plan once its complete or null. This is
+     *                always called on the UI thread.
+     * @param filter  Returns true if a GroupTask should be included into the list passed into
+     *                callback.
      * @return the request id associated with this call.
      */
     public int getTasks(@Nullable Consumer<List<GroupTask>> callback, Predicate<GroupTask> filter) {
@@ -175,8 +169,7 @@ public class RecentsModel implements RecentTasksDataSource, IconChangeListener,
     }
 
     /**
-     * @return Whether the provided {@param changeId} is the latest recent tasks
-     *         list id.
+     * @return Whether the provided {@param changeId} is the latest recent tasks list id.
      */
     public boolean isTaskListValid(int changeId) {
         return mTaskList.isTaskListValid(changeId);
@@ -194,12 +187,10 @@ public class RecentsModel implements RecentTasksDataSource, IconChangeListener,
      * Checks if a task has been removed or not.
      *
      * @param callback Receives true if task is removed, false otherwise
-     * @param filter   Returns true if GroupTask should be in the list of
-     *                 considerations
+     * @param filter Returns true if GroupTask should be in the list of considerations
      */
     public void isTaskRemoved(int taskId, Consumer<Boolean> callback, Predicate<GroupTask> filter) {
-        // Invalidate the existing list before checking to ensure this reflects the
-        // current state in
+        // Invalidate the existing list before checking to ensure this reflects the current state in
         // the system
         mTaskList.onRecentTasksChanged();
         mTaskList.getTasks(true /* loadKeysOnly */, (taskGroups) -> {
@@ -227,7 +218,8 @@ public class RecentsModel implements RecentTasksDataSource, IconChangeListener,
         }
 
         // Keep the cache up to date with the latest thumbnails
-        ActivityManager.RunningTaskInfo runningTask = ActivityManagerWrapper.getInstance().getRunningTask();
+        ActivityManager.RunningTaskInfo runningTask =
+                LawnchairQuickstepCompat.getActivityManagerCompat().getRunningTask(true);
         int runningTaskId = runningTask != null ? runningTask.id : -1;
         mTaskList.getTaskKeys(mThumbnailCache.getCacheSize(), taskGroups -> {
             for (GroupTask group : taskGroups) {
