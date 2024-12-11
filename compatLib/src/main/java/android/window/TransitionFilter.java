@@ -32,8 +32,7 @@ import android.view.WindowManager;
 
 /**
  * A parcelable filter that can be used for rerouting transitions to a remote. This is a local
- * representation so that the transition system doesn't need to make blocking queries over
- * binder.
+ * representation so that the transition system doesn't need to make blocking queries over binder.
  *
  * @hide
  */
@@ -41,14 +40,17 @@ public final class TransitionFilter implements Parcelable {
 
     /** The associated requirement doesn't care about the z-order. */
     public static final int CONTAINER_ORDER_ANY = 0;
+
     /** The associated requirement only matches the top-most (z-order) container. */
     public static final int CONTAINER_ORDER_TOP = 1;
 
     /** @hide */
-    @IntDef(prefix = { "CONTAINER_ORDER_" }, value = {
-            CONTAINER_ORDER_ANY,
-            CONTAINER_ORDER_TOP,
-    })
+    @IntDef(
+            prefix = {"CONTAINER_ORDER_"},
+            value = {
+                CONTAINER_ORDER_ANY,
+                CONTAINER_ORDER_TOP,
+            })
     public @interface ContainerOrder {}
 
     /**
@@ -63,13 +65,10 @@ public final class TransitionFilter implements Parcelable {
     /** All flags must NOT be set on a transition. */
     public @WindowManager.TransitionFlags int mNotFlags = 0;
 
-    /**
-     * A list of required changes. To pass, a transition must meet all requirements.
-     */
+    /** A list of required changes. To pass, a transition must meet all requirements. */
     @Nullable public Requirement[] mRequirements = null;
 
-    public TransitionFilter() {
-    }
+    public TransitionFilter() {}
 
     private TransitionFilter(Parcel in) {
         mTypeSet = in.createIntArray();
@@ -78,7 +77,9 @@ public final class TransitionFilter implements Parcelable {
         mRequirements = in.createTypedArray(Requirement.CREATOR);
     }
 
-    /** @return true if `info` meets all the requirements to pass this filter. */
+    /**
+     * @return true if `info` meets all the requirements to pass this filter.
+     */
     public boolean matches(@NonNull TransitionInfo info) {
         if (mTypeSet != null) {
             // non-null typeset, so make sure info is one of the types.
@@ -183,8 +184,7 @@ public final class TransitionFilter implements Parcelable {
         public ComponentName mTopActivity;
         public IBinder mLaunchCookie;
 
-        public Requirement() {
-        }
+        public Requirement() {}
 
         private Requirement(Parcel in) {
             mActivityType = in.readInt();
@@ -242,8 +242,9 @@ public final class TransitionFilter implements Parcelable {
             return false;
         }
 
-        private boolean matchesTopActivity(ActivityManager.RunningTaskInfo taskInfo,
-                                           @Nullable ComponentName activityComponent) {
+        private boolean matchesTopActivity(
+                ActivityManager.RunningTaskInfo taskInfo,
+                @Nullable ComponentName activityComponent) {
             if (mTopActivity == null) return true;
             if (activityComponent != null) {
                 return mTopActivity.equals(activityComponent);
@@ -334,8 +335,10 @@ public final class TransitionFilter implements Parcelable {
 
     private static String containerOrderToString(int order) {
         switch (order) {
-            case CONTAINER_ORDER_ANY: return "ANY";
-            case CONTAINER_ORDER_TOP: return "TOP";
+            case CONTAINER_ORDER_ANY:
+                return "ANY";
+            case CONTAINER_ORDER_TOP:
+                return "TOP";
         }
         return "UNKNOWN(" + order + ")";
     }

@@ -26,62 +26,50 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.view.InsetsSource.Flags;
 import android.view.WindowInsets.Type.InsetsType;
-
 import java.util.Arrays;
 import java.util.Objects;
 
 /**
  * Insets provided by a window.
  *
- * The insets frame will by default as the window frame size. If the providers are set, the
+ * <p>The insets frame will by default as the window frame size. If the providers are set, the
  * calculation result based on the source size will be used as the insets frame.
  *
- * The InsetsFrameProvider should be self-contained. Nothing describing the window itself, such as
- * contentInsets, visibleInsets, etc. won't affect the insets providing to other windows when this
- * is set.
+ * <p>The InsetsFrameProvider should be self-contained. Nothing describing the window itself, such
+ * as contentInsets, visibleInsets, etc. won't affect the insets providing to other windows when
+ * this is set.
+ *
  * @hide
  */
 public class InsetsFrameProvider implements Parcelable {
 
-    /**
-     * Uses the display frame as the source.
-     */
+    /** Uses the display frame as the source. */
     public static final int SOURCE_DISPLAY = 0;
 
-    /**
-     * Uses the window bounds as the source.
-     */
+    /** Uses the window bounds as the source. */
     public static final int SOURCE_CONTAINER_BOUNDS = 1;
 
-    /**
-     * Uses the window frame as the source.
-     */
+    /** Uses the window frame as the source. */
     public static final int SOURCE_FRAME = 2;
 
-    /**
-     * Uses {@link #mArbitraryRectangle} as the source.
-     */
+    /** Uses {@link #mArbitraryRectangle} as the source. */
     public static final int SOURCE_ARBITRARY_RECTANGLE = 3;
 
     private final int mId;
 
-    /**
-     * The selection of the starting rectangle to be converted into source frame.
-     */
+    /** The selection of the starting rectangle to be converted into source frame. */
     private int mSource = SOURCE_FRAME;
 
-    /**
-     * This is used as the source frame only if SOURCE_ARBITRARY_RECTANGLE is applied.
-     */
+    /** This is used as the source frame only if SOURCE_ARBITRARY_RECTANGLE is applied. */
     private Rect mArbitraryRectangle;
 
     /**
      * Modifies the starting rectangle selected by {@link #mSource}.
      *
-     * For example, when the given source frame is (0, 0) - (100, 200), and the insetsSize is null,
-     * the source frame will be directly used as the final insets frame. If the insetsSize is set to
-     * (0, 0, 0, 50) instead, the insets frame will be a frame starting from the bottom side of the
-     * source frame with height of 50, i.e., (0, 150) - (100, 200).
+     * <p>For example, when the given source frame is (0, 0) - (100, 200), and the insetsSize is
+     * null, the source frame will be directly used as the final insets frame. If the insetsSize is
+     * set to (0, 0, 0, 50) instead, the insets frame will be a frame starting from the bottom side
+     * of the source frame with height of 50, i.e., (0, 150) - (100, 200).
      */
     private Insets mInsetsSize = null;
 
@@ -106,7 +94,8 @@ public class InsetsFrameProvider implements Parcelable {
      * the layout of the window, but only change the insets frame. This can be applied to insets
      * calculated based on all three source frames.
      *
-     * Be cautious, this will not be in effect for the window types whose insets size is overridden.
+     * <p>Be cautious, this will not be in effect for the window types whose insets size is
+     * overridden.
      */
     private Insets mMinimalInsetsSizeInDisplayCutoutSafe = null;
 
@@ -120,28 +109,23 @@ public class InsetsFrameProvider implements Parcelable {
      * Creates an InsetsFrameProvider which describes what frame an insets source should have.
      *
      * @param owner the owner of this provider. We might have multiple sources with the same type on
-     *              a display, this is used to identify them.
+     *     a display, this is used to identify them.
      * @param index the index of this provider. An owner might provide multiple sources with the
-     *              same type, this is used to identify them.
-     *              The value must be in a range of [0, 2047].
+     *     same type, this is used to identify them. The value must be in a range of [0, 2047].
      * @param type the {@link InsetsType}.
      * @see InsetsSource#createId(Object, int, int)
      */
-    public InsetsFrameProvider(Object owner, @IntRange(from = 0, to = 2047) int index,
-                               @InsetsType int type) {
+    public InsetsFrameProvider(
+            Object owner, @IntRange(from = 0, to = 2047) int index, @InsetsType int type) {
         mId = InsetsSource.createId(owner, index, type);
     }
 
-    /**
-     * Returns an unique integer which identifies the insets source.
-     */
+    /** Returns an unique integer which identifies the insets source. */
     public int getId() {
         return mId;
     }
 
-    /**
-     * Returns the index specified in {@link #InsetsFrameProvider(IBinder, int, int)}.
-     */
+    /** Returns the index specified in {@link #InsetsFrameProvider(IBinder, int, int)}. */
     public int getIndex() {
         return InsetsSource.getIndex(mId);
     }
@@ -212,17 +196,13 @@ public class InsetsFrameProvider implements Parcelable {
         return mMinimalInsetsSizeInDisplayCutoutSafe;
     }
 
-    /**
-     * Sets the bounding rectangles within and relative to the source frame.
-     */
+    /** Sets the bounding rectangles within and relative to the source frame. */
     public InsetsFrameProvider setBoundingRects(@Nullable Rect[] boundingRects) {
         mBoundingRects = boundingRects == null ? null : boundingRects.clone();
         return this;
     }
 
-    /**
-     * Returns the arbitrary bounding rects, or null if none were set.
-     */
+    /** Returns the arbitrary bounding rects, or null if none were set. */
     @Nullable
     public Rect[] getBoundingRects() {
         return mBoundingRects;
@@ -311,20 +291,29 @@ public class InsetsFrameProvider implements Parcelable {
             return false;
         }
         final InsetsFrameProvider other = (InsetsFrameProvider) o;
-        return mId == other.mId && mSource == other.mSource && mFlags == other.mFlags
+        return mId == other.mId
+                && mSource == other.mSource
+                && mFlags == other.mFlags
                 && Objects.equals(mInsetsSize, other.mInsetsSize)
                 && Arrays.equals(mInsetsSizeOverrides, other.mInsetsSizeOverrides)
                 && Objects.equals(mArbitraryRectangle, other.mArbitraryRectangle)
-                && Objects.equals(mMinimalInsetsSizeInDisplayCutoutSafe,
-                other.mMinimalInsetsSizeInDisplayCutoutSafe)
+                && Objects.equals(
+                        mMinimalInsetsSizeInDisplayCutoutSafe,
+                        other.mMinimalInsetsSizeInDisplayCutoutSafe)
                 && Arrays.equals(mBoundingRects, other.mBoundingRects);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mId, mSource, mFlags, mInsetsSize,
-                Arrays.hashCode(mInsetsSizeOverrides), mArbitraryRectangle,
-                mMinimalInsetsSizeInDisplayCutoutSafe, Arrays.hashCode(mBoundingRects));
+        return Objects.hash(
+                mId,
+                mSource,
+                mFlags,
+                mInsetsSize,
+                Arrays.hashCode(mInsetsSizeOverrides),
+                mArbitraryRectangle,
+                mMinimalInsetsSizeInDisplayCutoutSafe,
+                Arrays.hashCode(mBoundingRects));
     }
 
     public static final @NonNull Parcelable.Creator<InsetsFrameProvider> CREATOR =
@@ -344,8 +333,8 @@ public class InsetsFrameProvider implements Parcelable {
      * Class to describe the insets size to be provided to window with specific window type. If not
      * used, same insets size will be sent as instructed in the insetsSize and source.
      *
-     * If the insetsSize of given type is set to {@code null}, the insets source frame will be used
-     * directly for that window type.
+     * <p>If the insetsSize of given type is set to {@code null}, the insets source frame will be
+     * used directly for that window type.
      */
     public static class InsetsSizeOverride implements Parcelable {
 
@@ -361,6 +350,7 @@ public class InsetsFrameProvider implements Parcelable {
             mWindowType = windowType;
             mInsetsSize = insetsSize;
         }
+
         public int getWindowType() {
             return mWindowType;
         }
@@ -369,17 +359,18 @@ public class InsetsFrameProvider implements Parcelable {
             return mInsetsSize;
         }
 
-        public static final Creator<InsetsSizeOverride> CREATOR = new Creator<>() {
-            @Override
-            public InsetsSizeOverride createFromParcel(Parcel in) {
-                return new InsetsSizeOverride(in);
-            }
+        public static final Creator<InsetsSizeOverride> CREATOR =
+                new Creator<>() {
+                    @Override
+                    public InsetsSizeOverride createFromParcel(Parcel in) {
+                        return new InsetsSizeOverride(in);
+                    }
 
-            @Override
-            public InsetsSizeOverride[] newArray(int size) {
-                return new InsetsSizeOverride[size];
-            }
-        };
+                    @Override
+                    public InsetsSizeOverride[] newArray(int size) {
+                        return new InsetsSizeOverride[size];
+                    }
+                };
 
         @Override
         public int describeContents() {
@@ -396,8 +387,10 @@ public class InsetsFrameProvider implements Parcelable {
         public String toString() {
             StringBuilder sb = new StringBuilder(32);
             sb.append("TypedInsetsSize: {");
-            sb.append("windowType=").append(ViewDebug.intToString(
-                    WindowManager.LayoutParams.class, "type", mWindowType));
+            sb.append("windowType=")
+                    .append(
+                            ViewDebug.intToString(
+                                    WindowManager.LayoutParams.class, "type", mWindowType));
             sb.append(", insetsSize=").append(mInsetsSize);
             sb.append("}");
             return sb.toString();
