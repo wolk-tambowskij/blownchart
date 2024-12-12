@@ -43,6 +43,7 @@
 -keep class app.lawnchair.LawnchairApp { *; }
 -keep class app.lawnchair.LawnchairLauncher { *; }
 -keep class app.lawnchair.compatlib.** { *; }
+-keep class android.view.** { *; }
 
 -keep class com.google.protobuf.Timestamp { *; }
 
