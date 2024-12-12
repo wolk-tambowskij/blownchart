@@ -228,7 +228,7 @@ public class InstallSessionHelper implements SafeCloseable {
                 && !promiseIconAddedForId(sessionInfo.getSessionId())) {
             // In case of unarchival, we do not want to add a workspace promise icon if one is
             // not already present. For general app installations however, we do support it.
-            if (!Flags.enableSupportForArchiving() || !sessionInfo.isUnarchival()) {
+            if (ATLEAST_V && (!Flags.enableSupportForArchiving() || !sessionInfo.isUnarchival())) {
                 FileLog.d(LOG, "Adding package name to install queue: "
                         + sessionInfo.getAppPackageName());
 

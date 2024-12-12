@@ -32,13 +32,18 @@ import android.view.ViewTreeObserver;
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.quickstep.util.BaseDepthController;
+import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import java.io.PrintWriter;
 import java.util.function.Consumer;
+
+import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.preferences2.PreferenceManager2;
 
 /**
  * Controls blur and wallpaper zoom, for the Launcher surface only.
@@ -57,14 +62,24 @@ public class DepthController extends BaseDepthController implements StateHandler
 
     private View.OnAttachStateChangeListener mOnAttachListener;
 
+    private final boolean mEnableDepth;
+
     public DepthController(Launcher l) {
         super(l);
+        var pref = PreferenceManager2.getInstance(l).getWallpaperDepthEffect();
+        mEnableDepth = PreferenceExtensionsKt.firstBlocking(pref);
     }
 
     private void onLauncherDraw() {
         View view = mLauncher.getDragLayer();
         ViewRootImpl viewRootImpl = view.getViewRootImpl();
-        setSurface(viewRootImpl != null ? viewRootImpl.getSurfaceControl() : null);
+        try {
+            if (Utilities.ATLEAST_Q) {
+                setSurface(viewRootImpl != null ? viewRootImpl.getSurfaceControl() : null);
+            }
+        } catch (Throwable t) {
+            // Ignore any exceptions
+        }
         view.post(() -> view.getViewTreeObserver().removeOnDrawListener(mOnDrawListener));
     }
 
@@ -74,8 +89,12 @@ public class DepthController extends BaseDepthController implements StateHandler
             mOnAttachListener = new View.OnAttachStateChangeListener() {
                 @Override
                 public void onViewAttachedToWindow(View view) {
-                    CrossWindowBlurListeners.getInstance().addListener(mLauncher.getMainExecutor(),
-                            mCrossWindowBlurListener);
+                    try {
+                        CrossWindowBlurListeners.getInstance().addListener(mLauncher.getMainExecutor(),
+                                mCrossWindowBlurListener);
+                    } catch (Throwable t) {
+                        // Ignore
+                    }
                     mLauncher.getScrimView().addOpaquenessListener(mOpaquenessListener);
 
                     // To handle the case where window token is invalid during last setDepth call.
@@ -108,7 +127,11 @@ public class DepthController extends BaseDepthController implements StateHandler
 
     private void removeSecondaryListeners() {
         if (mCrossWindowBlurListener != null) {
-            CrossWindowBlurListeners.getInstance().removeListener(mCrossWindowBlurListener);
+            try {
+                CrossWindowBlurListeners.getInstance().removeListener(mCrossWindowBlurListener);
+            } catch (Throwable t) {
+                // Ignore
+            }
         }
         if (mOpaquenessListener != null) {
             mLauncher.getScrimView().removeOpaquenessListener(mOpaquenessListener);
@@ -154,8 +177,14 @@ public class DepthController extends BaseDepthController implements StateHandler
 
     @Override
     protected void applyDepthAndBlur() {
-        ensureDependencies();
-        super.applyDepthAndBlur();
+        try {
+            if (LawnchairQuickstepCompat.ATLEAST_R && mEnableDepth) {
+                ensureDependencies();
+                super.applyDepthAndBlur();
+            }
+        } catch (Throwable t) {
+            // Ignore
+        }
     }
 
     @Override
