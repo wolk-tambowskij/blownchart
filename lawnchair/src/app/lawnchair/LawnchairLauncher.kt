@@ -61,6 +61,7 @@ import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StateManager.StateHandler
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.uioverrides.states.AllAppsState
+import com.android.launcher3.uioverrides.states.BackgroundAppState
 import com.android.launcher3.uioverrides.states.OverviewState
 import com.android.launcher3.util.ActivityOptionsWrapper
 import com.android.launcher3.util.Executors
@@ -109,6 +110,23 @@ class LawnchairLauncher : QuickstepLauncher() {
         }
         override fun onStateTransitionComplete(finalState: LauncherState) {}
     }
+    private val statusBarClockListener = object : StateManager.StateListener<LauncherState> {
+        override fun onStateTransitionStart(toState: LauncherState) {
+            when (toState) {
+                is BackgroundAppState,
+                is OverviewState,
+                is AllAppsState,
+                -> {
+                    LawnchairApp.instance.restoreClockInStatusBar()
+                }
+                else -> {
+                    workspace.updateStatusbarClock()
+                }
+            }
+        }
+        override fun onStateTransitionComplete(finalState: LauncherState) {}
+    }
+
     private lateinit var colorScheme: ColorScheme
     private var hasBackGesture = false
 
@@ -157,6 +175,8 @@ class LawnchairLauncher : QuickstepLauncher() {
                 }
             }
         }.launchIn(scope = lifecycleScope)
+
+        launcher.stateManager.addStateListener(statusBarClockListener)
 
         preferenceManager2.rememberPosition.get().onEach {
             with(launcher.stateManager) {

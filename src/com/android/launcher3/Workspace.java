@@ -31,7 +31,6 @@ import static com.android.launcher3.LauncherState.HINT_STATE;
 import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.LauncherState.SPRING_LOADED;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
-import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
 import static com.android.launcher3.anim.AnimatorListeners.forSuccessCallback;
 import static com.android.launcher3.config.FeatureFlags.FOLDABLE_SINGLE_PAGE;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_HOME;
@@ -55,7 +54,6 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
@@ -75,9 +73,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import androidx.core.graphics.drawable.DrawableKt;
 
-import com.android.launcher3.Utilities;
 import com.android.app.animation.Interpolators;
 import com.android.launcher3.accessibility.AccessibleDragListenerAdapter;
 import com.android.launcher3.accessibility.WorkspaceAccessibilityHelper;
@@ -135,8 +131,6 @@ import com.android.launcher3.widget.PendingAddWidgetInfo;
 import com.android.launcher3.widget.PendingAppWidgetHostView;
 import com.android.launcher3.widget.WidgetManagerHelper;
 import com.android.launcher3.widget.util.WidgetSizes;
-import com.android.systemui.plugins.shared.LauncherOverlayManager.LauncherOverlay;
-import com.google.android.renderscript.Toolkit;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import com.android.systemui.plugins.shared.LauncherOverlayManager.LauncherOverlayCallbacks;
 import com.android.systemui.plugins.shared.LauncherOverlayManager.LauncherOverlayTouchProxy;
@@ -148,6 +142,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import app.lawnchair.LawnchairApp;
+import app.lawnchair.LawnchairAppKt;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.smartspace.SmartspaceAppWidgetProvider;
@@ -615,6 +611,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     }
                     stateManager.removeStateListener(this);
                 }
+                updateStatusbarClock();
             }
         });
 
@@ -633,6 +630,14 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
         // Set the wallpaper dimensions when Launcher starts up
         setWallpaperDimension();
+    }
+
+    public void updateStatusbarClock() {
+        if (mCurrentPage == 0) {
+            LawnchairAppKt.getLawnchairApp(mLauncher).hideClockInStatusBar();
+        } else {
+            LawnchairAppKt.getLawnchairApp(mLauncher).restoreClockInStatusBar();
+        }
     }
 
     private void setupLayoutTransition() {
@@ -1511,6 +1516,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                                             .setPageIndex(prevPage))
                             .build())
                     .log(event);
+            updateStatusbarClock();
         }
     }
 

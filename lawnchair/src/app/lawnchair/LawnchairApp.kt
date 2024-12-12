@@ -66,6 +66,31 @@ class LawnchairApp : Application() {
         QuickStepContract.sRecentsDisabled = !recentsEnabled
     }
 
+    fun hideClockInStatusBar() {
+        if (!isRecentsEnabled) return
+        try {
+            val currentBlacklist = Settings.Secure.getString(contentResolver, "icon_blacklist") ?: ""
+            val newBlacklist = if (currentBlacklist.contains("clock")) {
+                currentBlacklist
+            } else {
+                "$currentBlacklist,clock"
+            }
+            Settings.Secure.putString(contentResolver, "icon_blacklist", newBlacklist)
+        } catch (_: Exception) {
+            // ignore
+        }
+    }
+
+    fun restoreClockInStatusBar() {
+        if (!isRecentsEnabled) return
+        try {
+            val currentBlacklist = Settings.Secure.getString(contentResolver, "icon_blacklist") ?: ""
+            val newBlacklist = currentBlacklist.split(",").filter { it != "clock" }.joinToString(",")
+            Settings.Secure.putString(contentResolver, "icon_blacklist", newBlacklist)
+        } catch (_: Exception) {
+        }
+    }
+
     fun onLauncherAppStateCreated() {
         registerActivityLifecycleCallbacks(activityHandler)
     }
