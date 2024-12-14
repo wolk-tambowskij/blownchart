@@ -176,8 +176,11 @@ class LawnchairLauncher : QuickstepLauncher() {
             }
         }.launchIn(scope = lifecycleScope)
 
-        launcher.stateManager.addStateListener(statusBarClockListener)
-
+        if (LawnchairApp.isRecentsEnabled) {
+            launcher.stateManager.addStateListener(statusBarClockListener)
+        } else {
+            launcher.stateManager.removeStateListener(statusBarClockListener)
+        }
         preferenceManager2.rememberPosition.get().onEach {
             with(launcher.stateManager) {
                 if (it) {

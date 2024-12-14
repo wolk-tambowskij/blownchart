@@ -611,7 +611,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     }
                     stateManager.removeStateListener(this);
                 }
-                updateStatusbarClock();
             }
         });
 
