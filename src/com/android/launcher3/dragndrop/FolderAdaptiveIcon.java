@@ -139,7 +139,7 @@ public class FolderAdaptiveIcon extends CustomAdaptiveIconDrawable {
 
                     Path bgPath = new Path();
                     int radius = bg.getRadius();
-                    IconShape.getShape().addToPath(
+                    IconShape.INSTANCE.get (icon.getContext()).getShape().addToPath(
                             bgPath,
                             dragViewSize.x / 2f - radius,
                             dragViewSize.y / 2f - radius,
