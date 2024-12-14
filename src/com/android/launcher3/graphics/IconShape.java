@@ -74,7 +74,7 @@ public final class IconShape implements SafeCloseable {
         pickBestShape(context);
     }
 
-    public static ShapeDelegate getShape() {
+    public ShapeDelegate getShape() {
         return mDelegate;
     }
 

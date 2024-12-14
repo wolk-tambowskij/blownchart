@@ -113,6 +113,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import app.lawnchair.icons.ExtendedBitmapDrawable;
 import app.lawnchair.preferences.PreferenceManager;
 
 /**
@@ -767,6 +768,8 @@ public final class Utilities {
             return null;
         }
         AdaptiveIconDrawable result;
+
+        if(ExtendedBitmapDrawable.isFromIconPack(mainIcon)) return null;
         if (mainIcon instanceof AdaptiveIconDrawable aid) {
             result = aid;
         } else {
