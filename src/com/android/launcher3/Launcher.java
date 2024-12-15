@@ -72,6 +72,7 @@ import static com.android.launcher3.LauncherState.SPRING_LOADED;
 import static com.android.launcher3.Utilities.postAsyncCallback;
 import static com.android.launcher3.config.FeatureFlags.FOLDABLE_SINGLE_PAGE;
 import static com.android.launcher3.config.FeatureFlags.MULTI_SELECT_EDIT_MODE;
+import static com.android.launcher3.folder.FolderGridOrganizer.createFolderGridOrganizer;
 import static com.android.launcher3.logging.KeyboardStateManager.KeyboardState.HIDE;
 import static com.android.launcher3.logging.KeyboardStateManager.KeyboardState.SHOW;
 import static com.android.launcher3.logging.StatsLogManager.EventEnum;
@@ -242,6 +243,7 @@ import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.ScreenOnTracker;
 import com.android.launcher3.util.ScreenOnTracker.ScreenOnListener;
 import com.android.launcher3.util.SettingsCache;
+import com.android.launcher3.util.StableViewInfo;
 import com.android.launcher3.util.SystemUiController;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.Thunk;
@@ -827,7 +829,7 @@ public class Launcher extends StatefulActivity<LauncherState>
             View collectionIcon = getWorkspace().getHomescreenIconByItemId(info.container);
             if (collectionIcon instanceof FolderIcon folderIcon
                     && collectionIcon.getTag() instanceof FolderInfo) {
-                if (new FolderGridOrganizer(getDeviceProfile())
+                if (createFolderGridOrganizer(getDeviceProfile())
                         .setFolderInfo((FolderInfo) folderIcon.getTag())
                         .isItemInPreview(info.rank)) {
                     folderIcon.invalidate();
@@ -2494,28 +2496,25 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     /**
-     * Similar to {@link #getFirstMatch} but optimized to finding a suitable view
-     * for the app close
+     * Similar to {@link #getFirstMatch} but optimized to finding a suitable view for the app close
      * animation.
      *
-     * @param preferredItemId      The id of the preferred item to match to if it
-     *                             exists,
-     *                             or ItemInfo#NO_MATCHING_ID if you want to not
-     *                             match by item id
-     * @param packageName          The package name of the app to match.
-     * @param user                 The user of the app to match.
-     * @param supportsAllAppsState If true and we are in All Apps state, looks for
-     *                             view in All Apps.
+     * @param svi The StableViewInfo of the preferred item to match to if it exists or null
+     * @param packageName The package name of the app to match.
+     * @param user The user of the app to match.
+     * @param supportsAllAppsState If true and we are in All Apps state, looks for view in All Apps.
      *                             Else we only looks on the workspace.
      */
-    public @Nullable View getFirstMatchForAppClose(int preferredItemId, String packageName,
+    public @Nullable View getFirstMatchForAppClose(
+            @Nullable StableViewInfo svi, String packageName,
             UserHandle user, boolean supportsAllAppsState) {
-        final Predicate<ItemInfo> preferredItem = info -> info != null && info.id == preferredItemId;
-        final Predicate<ItemInfo> packageAndUserAndApp = info -> info != null
-                && info.itemType == ITEM_TYPE_APPLICATION
-                && info.user.equals(user)
-                && info.getTargetComponent() != null
-                && TextUtils.equals(info.getTargetComponent().getPackageName(),
+        final Predicate<ItemInfo> preferredItem = svi == null ? i -> false : svi::matches;
+        final Predicate<ItemInfo> packageAndUserAndApp = info ->
+                info != null
+                        && info.itemType == ITEM_TYPE_APPLICATION
+                        && info.user.equals(user)
+                        && info.getTargetComponent() != null
+                        && TextUtils.equals(info.getTargetComponent().getPackageName(),
                         packageName);
 
         if (supportsAllAppsState && isInState(LauncherState.ALL_APPS)) {
@@ -2540,7 +2539,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         Folder folder = Folder.getOpen(this);
         if (folder != null) {
             View v = getFirstMatch(Collections.singletonList(
-                    folder.getContent().getCurrentCellLayout().getShortcutsAndWidgets()),
+                            folder.getContent().getCurrentCellLayout().getShortcutsAndWidgets()),
                     preferredItem,
                     packageAndUserAndApp);
             if (v == null) {
@@ -2552,7 +2551,8 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         List<ViewGroup> containers = new ArrayList<>(mWorkspace.getPanelCount() + 1);
         containers.add(mWorkspace.getHotseat().getShortcutsAndWidgets());
-        mWorkspace.forEachVisiblePage(page -> containers.add(((CellLayout) page).getShortcutsAndWidgets()));
+        mWorkspace.forEachVisiblePage(page
+                -> containers.add(((CellLayout) page).getShortcutsAndWidgets()));
 
         // Order: Preferred item by itself or in folder, then by matching package/user
         return getFirstMatch(containers, preferredItem, forFolderMatch(preferredItem),

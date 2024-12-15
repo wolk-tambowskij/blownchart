@@ -40,7 +40,6 @@ import static com.android.launcher3.config.FeatureFlags.enableSplitContextually;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_APP_LAUNCH_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED;
-import static com.android.launcher3.model.data.ItemInfo.NO_MATCHING_ID;
 import static com.android.launcher3.popup.QuickstepSystemShortcut.getSplitSelectShortcutByPosition;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
 import static com.android.launcher3.popup.SystemShortcut.DONT_SUGGEST_APP;
@@ -1192,7 +1191,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
                 (v != null && v.getDisplay() != null) ? v.getDisplay().getDisplayId()
                         : Display.DEFAULT_DISPLAY);
         Utilities.allowBGLaunch(activityOptions.options);
-        addLaunchCookie(item, activityOptions.options);
         return activityOptions;
     }
 
@@ -1212,60 +1210,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer 
     @BinderThread
     public void enterStageSplitFromRunningApp(boolean leftOrTop) {
         mSplitWithKeyboardShortcutController.enterStageSplit(leftOrTop);
-    }
-
-    /**
-     * Adds a new launch cookie for the activity launch if supported.
-     *
-     * @param info the item info for the launch
-     * @param opts the options to set the launchCookie on.
-     */
-    public void addLaunchCookie(ItemInfo info, ActivityOptions opts) {
-        IBinder launchCookie = getLaunchCookie(info);
-        if (launchCookie != null) {
-            opts.setLaunchCookie(launchCookie);
-        }
-    }
-
-    /**
-     * Return a new launch cookie for the activity launch if supported.
-     *
-     * @param info the item info for the launch
-     */
-    public IBinder getLaunchCookie(ItemInfo info) {
-        if (info == null) {
-            return null;
-        }
-        switch (info.container) {
-            case Favorites.CONTAINER_DESKTOP:
-            case Favorites.CONTAINER_HOTSEAT:
-            case Favorites.CONTAINER_PRIVATESPACE:
-                // Fall through and continue it's on the workspace (we don't support swiping back
-                // to other containers like all apps or the hotseat predictions (which can change)
-                break;
-            default:
-                if (info.container >= 0) {
-                    // Also allow swiping to folders
-                    break;
-                }
-                // Reset any existing launch cookies associated with the cookie
-                return ObjectWrapper.wrap(NO_MATCHING_ID);
-        }
-        switch (info.itemType) {
-            case Favorites.ITEM_TYPE_APPLICATION:
-            case Favorites.ITEM_TYPE_DEEP_SHORTCUT:
-            case Favorites.ITEM_TYPE_APPWIDGET:
-                // Fall through and continue if it's an app, shortcut, or widget
-                break;
-            default:
-                // Reset any existing launch cookies associated with the cookie
-                return ObjectWrapper.wrap(NO_MATCHING_ID);
-        }
-        return ObjectWrapper.wrap(new Integer(info.id));
-    }
-
-    public void setHintUserWillBeActive() {
-        addActivityFlags(ACTIVITY_STATE_USER_WILL_BE_ACTIVE);
     }
 
     @Override

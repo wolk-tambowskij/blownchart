@@ -26,6 +26,7 @@ import android.graphics.Matrix;
 import android.graphics.Matrix.ScaleToFit;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.Log;
 import android.view.RemoteAnimationTarget;
 
 import androidx.annotation.NonNull;
@@ -85,7 +86,7 @@ public abstract class SwipeUpAnimationLogic implements
     protected boolean mIsSwipeForSplit;
 
     public SwipeUpAnimationLogic(Context context, RecentsAnimationDeviceState deviceState,
-            GestureState gestureState) {
+                                 GestureState gestureState) {
         mContext = context;
         mDeviceState = deviceState;
         mGestureState = gestureState;
@@ -267,7 +268,7 @@ public abstract class SwipeUpAnimationLogic implements
         mCurrentShift.updateValue(startProgress);
         RectF[] startRects = new RectF[mRemoteTargetHandles.length];
         for (int i = 0, mRemoteTargetHandlesLength = mRemoteTargetHandles.length;
-                i < mRemoteTargetHandlesLength; i++) {
+             i < mRemoteTargetHandlesLength; i++) {
             RemoteTargetHandle remoteHandle = mRemoteTargetHandles[i];
             TaskViewSimulator tvs = remoteHandle.getTaskViewSimulator();
             tvs.apply(remoteHandle.getTransformParams().setProgress(startProgress));
@@ -300,14 +301,14 @@ public abstract class SwipeUpAnimationLogic implements
      * @param homeAnimationFactory The home animation factory.
      */
     protected RectFSpringAnim[] createWindowAnimationToHome(float startProgress,
-            HomeAnimationFactory homeAnimationFactory) {
+                                                            HomeAnimationFactory homeAnimationFactory) {
         // TODO(b/195473584) compute separate end targets for different staged split
         final RectF targetRect = homeAnimationFactory.getWindowTargetRect();
         RectFSpringAnim[] out = new RectFSpringAnim[mRemoteTargetHandles.length];
         Matrix[] homeToWindowPositionMap = new Matrix[mRemoteTargetHandles.length];
         RectF[] startRects = updateProgressForStartRect(homeToWindowPositionMap, startProgress);
         for (int i = 0, mRemoteTargetHandlesLength = mRemoteTargetHandles.length;
-                i < mRemoteTargetHandlesLength; i++) {
+             i < mRemoteTargetHandlesLength; i++) {
             RemoteTargetHandle remoteHandle = mRemoteTargetHandles[i];
             out[i] = getWindowAnimationToHomeInternal(
                     homeAnimationFactory,
@@ -380,6 +381,8 @@ public abstract class SwipeUpAnimationLogic implements
 
     protected class SpringAnimationRunner extends AnimationSuccessListener
             implements RectFSpringAnim.OnUpdateListener, BuilderProxy {
+
+        private static final String TAG = "SpringAnimationRunner";
 
         final Rect mCropRect = new Rect();
         final Matrix mMatrix = new Matrix();
@@ -481,10 +484,26 @@ public abstract class SwipeUpAnimationLogic implements
                 return;
             }
             mTargetTaskView.setAlpha(mAnimationFactory.isAnimatingIntoIcon() ? 1f : alpha);
-            float width = mThumbnailStartBounds.width();
-            float height =  mThumbnailStartBounds.height();
-            float scale = Math.min(currentRect.width(), currentRect.height())
-                    / Math.min(width, height);
+            float startWidth = mThumbnailStartBounds.width();
+            float startHeight =  mThumbnailStartBounds.height();
+            float currentWidth = currentRect.width();
+            float currentHeight = currentRect.height();
+            float scale;
+
+            boolean isStartWidthValid = Float.compare(startWidth, 0f) > 0;
+            boolean isStartHeightValid = Float.compare(startHeight, 0f) > 0;
+            if (isStartWidthValid && isStartHeightValid) {
+                scale = Math.min(currentWidth, currentHeight) / Math.min(startWidth, startHeight);
+            } else {
+                Log.e(TAG, "TaskView starting bounds are invalid: " + mThumbnailStartBounds);
+                if (isStartWidthValid) {
+                    scale = currentWidth / startWidth;
+                } else if (isStartHeightValid) {
+                    scale = currentHeight / startHeight;
+                } else {
+                    scale = 1f;
+                }
+            }
 
             mTargetTaskView.setScaleX(scale);
             mTargetTaskView.setScaleY(scale);
@@ -496,7 +515,7 @@ public abstract class SwipeUpAnimationLogic implements
 
         @Override
         public void onBuildTargetParams(SurfaceProperties builder, RemoteAnimationTarget app,
-                TransformParams params) {
+                                        TransformParams params) {
             builder.setMatrix(mMatrix)
                     .setWindowCrop(mCropRect)
                     .setCornerRadius(params.getCornerRadius());

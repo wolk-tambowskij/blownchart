@@ -55,7 +55,6 @@ import static com.android.launcher3.config.FeatureFlags.ENABLE_BACK_SWIPE_HOME_A
 import static com.android.launcher3.config.FeatureFlags.ENABLE_SCRIM_FOR_APP_LAUNCH;
 import static com.android.launcher3.config.FeatureFlags.KEYGUARD_ANIMATION;
 import static com.android.launcher3.config.FeatureFlags.SEPARATE_RECENTS_ACTIVITY;
-import static com.android.launcher3.model.data.ItemInfo.NO_MATCHING_ID;
 import static com.android.launcher3.testing.shared.TestProtocol.WALLPAPER_OPEN_ANIMATION_FINISHED_MESSAGE;
 import static com.android.launcher3.util.DisplayController.isTransientTaskbar;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
@@ -139,6 +138,7 @@ import com.android.launcher3.util.ActivityOptionsWrapper;
 import com.android.launcher3.util.DynamicResource;
 import com.android.launcher3.util.ObjectWrapper;
 import com.android.launcher3.util.RunnableList;
+import com.android.launcher3.util.StableViewInfo;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.ScrimView;
@@ -1360,16 +1360,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 ? new ArrayList<>()
                 : runningTaskTarget.taskInfo.launchCookies;
 
-        int launchCookieItemId = NO_MATCHING_ID;
-        for (IBinder cookie : launchCookies) {
-            Integer itemId = ObjectWrapper.unwrap(cookie);
-            if (itemId != null) {
-                launchCookieItemId = itemId;
-                break;
-            }
-        }
-
-        return mLauncher.getFirstMatchForAppClose(launchCookieItemId, packageName,
+        return mLauncher.getFirstMatchForAppClose(
+                StableViewInfo.fromLaunchCookies(launchCookies), packageName,
                 UserHandle.of(runningTaskTarget.taskInfo.userId), true /* supportsAllAppsState */);
     }
 

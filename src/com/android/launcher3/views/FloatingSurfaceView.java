@@ -15,9 +15,8 @@
  */
 package com.android.launcher3.views;
 
-import static com.android.launcher3.model.data.ItemInfo.NO_MATCHING_ID;
 import static com.android.launcher3.views.FloatingIconView.getLocationBoundsForView;
-import static com.android.launcher3.views.IconLabelDotView.setIconAndDotVisible;
+import static com.android.launcher3.views.FloatingIconViewCompanion.setPropertiesVisible;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -106,7 +105,9 @@ public class FloatingSurfaceView extends AbstractFloatingView implements
     private void removeViewImmediate() {
         // Cancel any pending remove
         Executors.MAIN_EXECUTOR.getHandler().removeCallbacks(mRemoveViewRunnable);
-        removeViewFromParent();
+        if (isAttachedToWindow()) {
+            removeViewFromParent();
+        }
     }
 
     /**
@@ -160,7 +161,7 @@ public class FloatingSurfaceView extends AbstractFloatingView implements
         if (mContract == null) {
             return;
         }
-        View icon = mLauncher.getFirstMatchForAppClose(NO_MATCHING_ID,
+        View icon = mLauncher.getFirstMatchForAppClose(null /* StableViewInfo */,
                 mContract.componentName.getPackageName(), mContract.user,
                 false /* supportsAllAppsState */);
 
@@ -213,7 +214,7 @@ public class FloatingSurfaceView extends AbstractFloatingView implements
 
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder surfaceHolder,
-            int format, int width, int height) {
+                               int format, int width, int height) {
         drawOnSurface();
     }
 
@@ -227,17 +228,23 @@ public class FloatingSurfaceView extends AbstractFloatingView implements
 
     private void drawOnSurface() {
         SurfaceHolder surfaceHolder = mSurfaceView.getHolder();
+        if (!surfaceHolder.getSurface().isValid()) return;
 
-        Canvas c = surfaceHolder.lockHardwareCanvas();
-        if (c != null) {
-            mPicture.draw(c);
-            surfaceHolder.unlockCanvasAndPost(c);
+        synchronized (this) {
+            Canvas c = surfaceHolder.lockHardwareCanvas();
+            if (c != null) {
+                try {
+                    mPicture.draw(c);
+                } finally {
+                    surfaceHolder.unlockCanvasAndPost(c);
+                }
+            }
         }
     }
 
     private void setCurrentIconVisible(boolean isVisible) {
         if (mIcon != null) {
-            setIconAndDotVisible(mIcon, isVisible);
+            setPropertiesVisible(mIcon, isVisible);
         }
     }
 }

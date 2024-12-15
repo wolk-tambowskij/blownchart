@@ -67,6 +67,8 @@ import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BaseDragLayer;
 
+import app.lawnchair.icons.CustomAdaptiveIconDrawable;
+
 /** A custom view for rendering an icon, folder, shortcut or widget during drag-n-drop. */
 public abstract class DragView<T extends Context & ActivityContext> extends FrameLayout {
 
@@ -265,7 +267,7 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
                 try (LauncherIcons li = LauncherIcons.obtain(mActivity)) {
                     // Since we just want the scale, avoid heavy drawing operations
                     Utilities.scaleRectAboutCenter(bounds, li.getNormalizer().getScale(
-                            new AdaptiveIconDrawable(new ColorDrawable(Color.BLACK), null),
+                            new CustomAdaptiveIconDrawable (new ColorDrawable(Color.BLACK), null),
                             null, null, null));
                 }
 

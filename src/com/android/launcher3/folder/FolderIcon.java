@@ -21,6 +21,7 @@ package com.android.launcher3.folder;
 import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.MAX_NUM_ITEMS_IN_PREVIEW;
+import static com.android.launcher3.folder.FolderGridOrganizer.createFolderGridOrganizer;
 import static com.android.launcher3.folder.PreviewItemManager.INITIAL_ITEM_ANIMATION_DURATION;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_FOLDER_AUTO_LABELED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_FOLDER_AUTO_LABELING_SKIPPED_EMPTY_PRIMARY;
@@ -84,7 +85,7 @@ import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.views.ActivityContext;
-import com.android.launcher3.views.IconLabelDotView;
+import com.android.launcher3.views.FloatingIconViewCompanion;
 import com.android.launcher3.widget.PendingAddShortcutInfo;
 
 import java.util.ArrayList;
@@ -94,29 +95,25 @@ import java.util.function.Predicate;
 /**
  * An icon that can appear on in the workspace representing an {@link Folder}.
  */
-public class FolderIcon extends FrameLayout implements FolderListener, IconLabelDotView,
+public class FolderIcon extends FrameLayout implements FolderListener, FloatingIconViewCompanion,
         DraggableView, Reorderable {
 
     private final MultiTranslateDelegate mTranslateDelegate = new MultiTranslateDelegate(this);
-    @Thunk
-    ActivityContext mActivity;
-    @Thunk
-    Folder mFolder;
+    @Thunk ActivityContext mActivity;
+    @Thunk Folder mFolder;
     public FolderInfo mInfo;
 
     private CheckLongPressHelper mLongPressHelper;
 
     static final int DROP_IN_ANIMATION_DURATION = 400;
 
-    // Flag whether the folder should open itself when an item is dragged over is
-    // enabled.
+    // Flag whether the folder should open itself when an item is dragged over is enabled.
     public static final boolean SPRING_LOADING_ENABLED = true;
 
     // Delay when drag enters until the folder opens, in miliseconds.
     private static final int ON_OPEN_DELAY = 800;
 
-    @Thunk
-    BubbleTextView mFolderName;
+    @Thunk BubbleTextView mFolderName;
 
     PreviewBackground mBackground = new PreviewBackground(getContext());
     private boolean mBackgroundIsVisible = true;
@@ -144,8 +141,8 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
 
     private float mScaleForReorderBounce = 1f;
 
-    private static final Property<FolderIcon, Float> DOT_SCALE_PROPERTY = new Property<FolderIcon, Float>(Float.TYPE,
-            "dotScale") {
+    private static final Property<FolderIcon, Float> DOT_SCALE_PROPERTY
+            = new Property<FolderIcon, Float>(Float.TYPE, "dotScale") {
         @Override
         public Float get(FolderIcon folderIcon) {
             return folderIcon.mDotScale;
@@ -176,7 +173,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
     }
 
     public static <T extends Context & ActivityContext> FolderIcon inflateFolderAndIcon(int resId,
-            T activityContext, ViewGroup group, FolderInfo folderInfo) {
+                                                                                        T activityContext, ViewGroup group, FolderInfo folderInfo) {
         Folder folder = Folder.fromXml(activityContext);
 
         FolderIcon icon = inflateIcon(resId, activityContext, group, folderInfo);
@@ -190,7 +187,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
      * Builds a FolderIcon to be added to the Launcher
      */
     public static FolderIcon inflateIcon(int resId, ActivityContext activity,
-            @Nullable ViewGroup group, FolderInfo folderInfo) {
+                                         @Nullable ViewGroup group, FolderInfo folderInfo) {
         @SuppressWarnings("all") // suppress dead code warning
         final boolean error = INITIAL_ITEM_ANIMATION_DURATION >= DROP_IN_ANIMATION_DURATION;
         if (error) {
@@ -229,7 +226,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
 
         icon.setAccessibilityDelegate(activity.getAccessibilityDelegate());
 
-        icon.mPreviewVerifier = new FolderGridOrganizer(activity.getDeviceProfile());
+        icon.mPreviewVerifier = createFolderGridOrganizer(activity.getDeviceProfile());
         icon.mPreviewVerifier.setFolderInfo(folderInfo);
         icon.updatePreviewItems(false);
 
@@ -284,8 +281,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
     }
 
     public void onDragEnter(ItemInfo dragInfo) {
-        if (mFolder.isDestroyed() || !willAcceptItem(dragInfo))
-            return;
+        if (mFolder.isDestroyed() || !willAcceptItem(dragInfo)) return;
         CellLayoutLayoutParams lp = (CellLayoutLayoutParams) getLayoutParams();
         CellLayout cl = (CellLayout) getParent().getParent();
 
@@ -310,8 +306,8 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
     }
 
     public void performCreateAnimation(final ItemInfo destInfo, final View destView,
-            final ItemInfo srcInfo, final DragObject d, Rect dstRect,
-            float scaleRelativeToDragLayer) {
+                                       final ItemInfo srcInfo, final DragObject d, Rect dstRect,
+                                       float scaleRelativeToDragLayer) {
         final DragView srcView = d.dragView;
         prepareCreateAnimation(destView);
         addItem(destInfo);
@@ -337,14 +333,12 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
     }
 
     private void onDrop(final ItemInfo item, DragObject d, Rect finalRect,
-            float scaleRelativeToDragLayer, int index, boolean itemReturnedOnFailedDrop) {
+                        float scaleRelativeToDragLayer, int index, boolean itemReturnedOnFailedDrop) {
         item.cellX = -1;
         item.cellY = -1;
         DragView animateView = d.dragView;
-        // Typically, the animateView corresponds to the DragView; however, if this is
-        // being done
-        // after a configuration activity (ie. for a Shortcut being dragged from
-        // AllApps) we
+        // Typically, the animateView corresponds to the DragView; however, if this is being done
+        // after a configuration activity (ie. for a Shortcut being dragged from AllApps) we
         // will not have a view to animate
         if (animateView != null && mActivity instanceof Launcher) {
             final Launcher launcher = (Launcher) mActivity;
@@ -353,8 +347,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
             if (to == null) {
                 to = new Rect();
                 Workspace<?> workspace = launcher.getWorkspace();
-                // Set cellLayout and this to it's final state to compute final animation
-                // locations
+                // Set cellLayout and this to it's final state to compute final animation locations
                 workspace.setFinalTransitionTransform();
                 float scaleX = getScaleX();
                 float scaleY = getScaleY();
@@ -426,8 +419,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
 
             mFolder.hideItem(item);
 
-            if (!itemAdded)
-                mPreviewItemManager.hidePreviewItem(index, true);
+            if (!itemAdded) mPreviewItemManager.hidePreviewItem(index, true);
 
             FolderNameInfos nameInfos = new FolderNameInfos();
             Executors.MODEL_EXECUTOR.post(() -> {
@@ -469,7 +461,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
 
         mInfo.setTitle(newTitle, mFolder.mLauncherDelegate.getModelWriter());
         onTitleChanged(mInfo.title);
-        mFolder.mFolderName.setText(mInfo.title);
+        mFolder.getFolderName().setText(mInfo.title);
 
         // Logging for folder creation flow
         StatsLogManager.newInstance(getContext()).logger()
@@ -483,12 +475,13 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
                 .log(LAUNCHER_FOLDER_AUTO_LABELED);
     }
 
+
     public void onDrop(DragObject d, boolean itemReturnedOnFailedDrop) {
         ItemInfo item;
         if (d.dragInfo instanceof WorkspaceItemFactory) {
             // Came from all apps -- make a copy
             item = ((WorkspaceItemFactory) d.dragInfo).makeWorkspaceItem(getContext());
-        } else if (d.dragSource instanceof BaseItemDragListener) {
+        } else if (d.dragSource instanceof BaseItemDragListener){
             // Came from a different window -- make a copy
             if (d.dragInfo instanceof AppPairInfo) {
                 // dragged item is app pair
@@ -611,8 +604,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
 
-        if (!mBackgroundIsVisible)
-            return;
+        if (!mBackgroundIsVisible) return;
 
         mPreviewItemManager.recomputePreviewDrawingParams();
 
@@ -620,8 +612,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
             mBackground.drawBackground(canvas);
         }
 
-        if (mCurrentPreviewItems.isEmpty() && !mAnimating)
-            return;
+        if (mCurrentPreviewItems.isEmpty() && !mAnimating) return;
 
         mPreviewItemManager.draw(canvas);
 
@@ -635,8 +626,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
     public void drawDot(Canvas canvas) {
         if (!mForceHideDot && ((mDotInfo != null && mDotInfo.hasDot()) || mDotScale > 0)) {
             Rect iconBounds = mDotParams.iconBounds;
-            // FolderIcon draws the icon to be top-aligned (with padding) &
-            // horizontally-centered
+            // FolderIcon draws the icon to be top-aligned (with padding) & horizontally-centered
             int iconSize = mActivity.getDeviceProfile().iconSizePx;
             iconBounds.left = (getWidth() - iconSize) / 2;
             iconBounds.right = iconBounds.left + iconSize;
@@ -749,8 +739,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
             return false;
         }
 
-        // Call the superclass onTouchEvent first, because sometimes it changes the
-        // state to
+        // Call the superclass onTouchEvent first, because sometimes it changes the state to
         // isPressed() on an ACTION_UP
         super.onTouchEvent(event);
         mLongPressHelper.onTouchEvent(event);
@@ -847,20 +836,16 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
     }
 
     /**
-     * Interface that provides callbacks to a parent ViewGroup that hosts this
-     * FolderIcon.
+     * Interface that provides callbacks to a parent ViewGroup that hosts this FolderIcon.
      */
     public interface FolderIconParent {
         /**
-         * Tells the FolderIconParent to draw a "leave-behind" when the Folder is open
-         * and leaving a
+         * Tells the FolderIconParent to draw a "leave-behind" when the Folder is open and leaving a
          * gap where the FolderIcon would be when the Folder is closed.
          */
         void drawFolderLeaveBehindForIcon(FolderIcon child);
-
         /**
-         * Tells the FolderIconParent to stop drawing the "leave-behind" as the Folder
-         * is closed.
+         * Tells the FolderIconParent to stop drawing the "leave-behind" as the Folder is closed.
          */
         void clearFolderLeaveBehind(FolderIcon child);
     }

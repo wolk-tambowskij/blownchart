@@ -48,6 +48,7 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Property;
 import android.util.Size;
 import android.util.TypedValue;
@@ -85,12 +86,13 @@ import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.ShortcutUtil;
 import com.android.launcher3.views.ActivityContext;
-import com.android.launcher3.views.IconLabelDotView;
+import com.android.launcher3.views.FloatingIconViewCompanion;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 
+import app.lawnchair.LawnchairApp;
 import app.lawnchair.font.FontManager;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.util.LawnchairUtilsKt;
@@ -103,7 +105,7 @@ import app.lawnchair.util.LawnchairUtilsKt;
  * too aggressive.
  */
 public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
-        IconLabelDotView, DraggableView, Reorderable {
+        FloatingIconViewCompanion, DraggableView, Reorderable {
 
     public static final int DISPLAY_WORKSPACE = 0;
     public static final int DISPLAY_ALL_APPS = 1;
@@ -231,7 +233,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     public BubbleTextView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mActivity = ActivityContext.lookupContext(context);
-        FastBitmapDrawable.setFlagHoverEnabled(enableCursorHoverStates());
+        FastBitmapDrawable.setFlagHoverEnabled(LawnchairApp.isRecentsEnabled() && enableCursorHoverStates());
 
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.BubbleTextView, defStyle, 0);
@@ -1273,6 +1275,13 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         setForceHideDot(true);
         return () -> {
         };
+    }
+
+    @Override
+    public void resetIconScale(boolean shouldReset) {
+        if (shouldReset) {
+            mIcon.resetScale();
+        }
     }
 
     private void resetIconScale() {

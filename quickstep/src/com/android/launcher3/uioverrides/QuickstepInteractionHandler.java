@@ -57,7 +57,7 @@ public class QuickstepInteractionHandler implements RemoteViews.InteractionHandl
     @SuppressWarnings("NewApi")
     @Override
     public boolean onInteraction(View view, PendingIntent pendingIntent,
-            RemoteViews.RemoteResponse remoteResponse) {
+                                 RemoteViews.RemoteResponse remoteResponse) {
         LauncherAppWidgetHostView hostView = findHostViewAncestor(view);
         if (hostView == null) {
             Log.e(TAG, "View did not have a LauncherAppWidgetHostView ancestor.");
@@ -74,15 +74,8 @@ public class QuickstepInteractionHandler implements RemoteViews.InteractionHandl
         Pair<Intent, ActivityOptions> options = remoteResponse.getLaunchOptions(view);
         ActivityOptionsWrapper activityOptions = mLauncher.getAppTransitionManager()
                 .getActivityLaunchOptions(hostView);
-        Object itemInfo = hostView.getTag();
-        IBinder launchCookie = null;
-        if (itemInfo instanceof ItemInfo) {
-            launchCookie = mLauncher.getLaunchCookie((ItemInfo) itemInfo);
-            activityOptions.options.setLaunchCookie(launchCookie);
-        }
-        if (Utilities.ATLEAST_S && !pendingIntent.isActivity() && LawnchairApp.isRecentsEnabled()) {
-            // In the event this pending intent eventually launches an activity, i.e. a
-            // trampoline,
+        if (!pendingIntent.isActivity()) {
+            // In the event this pending intent eventually launches an activity, i.e. a trampoline,
             // use the Quickstep transition animation.
             try {
                 IActivityTaskManagerHidden atm = Refine.unsafeCast(ActivityTaskManager.getService());
@@ -90,7 +83,7 @@ public class QuickstepInteractionHandler implements RemoteViews.InteractionHandl
                     atm.registerRemoteAnimationForNextActivityStart(
                             pendingIntent.getCreatorPackage(),
                             activityOptions.options.getRemoteAnimationAdapter(),
-                            launchCookie);
+                            activityOptions.options.getLaunchCookie());
                 } catch (NoSuchMethodError e) {
                     atm.registerRemoteAnimationForNextActivityStart(
                             pendingIntent.getCreatorPackage(),
@@ -99,16 +92,18 @@ public class QuickstepInteractionHandler implements RemoteViews.InteractionHandl
             } catch (RemoteException e) {
                 // Do nothing.
             }
+        }
+        try {
             activityOptions.options.setPendingIntentLaunchFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            if (Utilities.ATLEAST_T) {
-                activityOptions.options.setSplashScreenStyle(SplashScreen.SPLASH_SCREEN_STYLE_SOLID_COLOR);
-            }
-            Utilities.allowBGLaunch(activityOptions.options);
-
+            activityOptions.options.setSplashScreenStyle(SplashScreen.SPLASH_SCREEN_STYLE_SOLID_COLOR);
+            activityOptions.options.setPendingIntentBackgroundActivityStartMode(
+                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+        } catch (Throwable t) {
+            // ignore
         }
         options = Pair.create(options.first, activityOptions.options);
         if (pendingIntent.isActivity()) {
-            logAppLaunch(itemInfo);
+            logAppLaunch(hostView.getTag());
         }
         return RemoteViews.startPendingIntent(hostView, pendingIntent, options);
     }

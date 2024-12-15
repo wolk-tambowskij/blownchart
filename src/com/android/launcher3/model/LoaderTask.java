@@ -23,6 +23,7 @@ import static com.android.launcher3.Flags.enableSmartspaceRemovalToggle;
 import static com.android.launcher3.LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE;
 import static com.android.launcher3.LauncherPrefs.SHOULD_SHOW_SMARTSPACE;
 import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
+import static com.android.launcher3.folder.FolderGridOrganizer.createFolderGridOrganizer;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_HAS_SHORTCUT_PERMISSION;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_QUIET_MODE_CHANGE_PERMISSION;
@@ -576,17 +577,9 @@ public class LoaderTask implements Runnable {
      */
     @WorkerThread
     private void processFolderItems() {
-        // Sort the folder items, update ranks, and make sure all preview items are high
-        // res.
-        List<FolderGridOrganizer> verifiers;
-        
-        if (Utilities.ATLEAST_U) {
-            verifiers = mApp.getInvariantDeviceProfile().supportedProfiles
-                .stream().map(FolderGridOrganizer::new).toList();
-        } else {
-            verifiers = mApp.getInvariantDeviceProfile().supportedProfiles
-                .stream().map(FolderGridOrganizer::new).collect(Collectors.toList());
-        }
+        // Sort the folder items, update ranks, and make sure all preview items are high res.
+        List<FolderGridOrganizer> verifiers = mApp.getInvariantDeviceProfile().supportedProfiles
+                .stream().map(FolderGridOrganizer::createFolderGridOrganizer).collect(Collectors.toList());
         for (CollectionInfo collection : mBgDataModel.collections) {
             if (!(collection instanceof FolderInfo folder)) {
                 continue;

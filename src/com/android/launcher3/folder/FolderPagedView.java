@@ -103,7 +103,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         super(context, attrs);
         ActivityContext activityContext = ActivityContext.lookupContext(context);
         DeviceProfile profile = activityContext.getDeviceProfile();
-        mOrganizer = new FolderGridOrganizer(profile);
+        mOrganizer = FolderGridOrganizer.createFolderGridOrganizer(profile);
 
         mIsRtl = Utilities.isRtl(getResources());
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);

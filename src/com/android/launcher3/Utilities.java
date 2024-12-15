@@ -769,7 +769,7 @@ public final class Utilities {
         }
         AdaptiveIconDrawable result;
 
-        if(ExtendedBitmapDrawable.isFromIconPack(mainIcon)) return null;
+        if(ExtendedBitmapDrawable.isFromIconPack(mainIcon) || !PreferenceManager.INSTANCE.get(context).getWrapAdaptiveIcons().get()) return null;
         if (mainIcon instanceof AdaptiveIconDrawable aid) {
             result = aid;
         } else {
