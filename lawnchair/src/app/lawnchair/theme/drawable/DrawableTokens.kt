@@ -3,6 +3,7 @@ package app.lawnchair.theme.drawable
 import android.content.res.ColorStateList
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.InsetDrawable
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.RippleDrawable
 import android.graphics.drawable.StateListDrawable
@@ -186,4 +187,8 @@ object DrawableTokens {
     @JvmField
     val WorkCard = ResourceDrawableToken<GradientDrawable>(R.drawable.work_card)
         .setColor(ColorTokens.Surface)
+
+    @JvmField
+    val WidgetAddButtonBackground = ResourceDrawableToken<InsetDrawable>(R.drawable.widget_cell_add_button_background)
+        .setTint(ColorTokens.WidgetAddButtonBackgroundColor)
 }

@@ -144,6 +144,10 @@ object ColorTokens {
 
     @JvmField val SurfaceBrightColor = DayNightColorToken(Neutral2_600.setLStar(98.0), Neutral2_600.setLStar(24.0))
 
+    @JvmField val PrimaryButton = Accent1_600
+
+    @JvmField val WidgetAddButtonBackgroundColor = PrimaryButton
+
     val SwitchThumbOn = Accent1_100
     val SwitchThumbOff = DayNightColorToken(Neutral2_300, Neutral1_400)
     val SwitchThumbDisabled = DayNightColorToken(Neutral2_100, Neutral1_700)
