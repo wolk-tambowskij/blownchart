@@ -106,7 +106,7 @@ public abstract class AbstractFloatingView extends LinearLayout implements Touch
     public static final int TYPE_PIN_IME_POPUP = 1 << 22;
 
     // Custom compose popups
-    public static final int TYPE_COMPOSE_VIEW = 1 << 22;
+    public static final int TYPE_COMPOSE_VIEW = 1 << 23;
 
     public static final int TYPE_ALL = TYPE_FOLDER | TYPE_ACTION_POPUP
             | TYPE_WIDGETS_BOTTOM_SHEET | TYPE_WIDGET_RESIZE_FRAME | TYPE_WIDGETS_FULL_SHEET
