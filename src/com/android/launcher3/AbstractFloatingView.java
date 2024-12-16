@@ -115,14 +115,14 @@ public abstract class AbstractFloatingView extends LinearLayout implements Touch
             | TYPE_ICON_SURFACE | TYPE_DRAG_DROP_POPUP | TYPE_PIN_WIDGET_FROM_EXTERNAL_POPUP
             | TYPE_TASKBAR_EDUCATION_DIALOG | TYPE_TASKBAR_ALL_APPS | TYPE_OPTIONS_POPUP_DIALOG
             | TYPE_ADD_TO_HOME_CONFIRMATION | TYPE_TASKBAR_OVERLAY_PROXY
-            | TYPE_TASKBAR_PINNING_POPUP | TYPE_PIN_IME_POPUP;
+            | TYPE_TASKBAR_PINNING_POPUP | TYPE_PIN_IME_POPUP | TYPE_COMPOSE_VIEW;
 
     // Type of popups which should be kept open during launcher rebind
     public static final int TYPE_REBIND_SAFE = TYPE_WIDGETS_FULL_SHEET
             | TYPE_WIDGETS_BOTTOM_SHEET | TYPE_ON_BOARD_POPUP | TYPE_DISCOVERY_BOUNCE
             | TYPE_ALL_APPS_EDU | TYPE_ICON_SURFACE | TYPE_TASKBAR_EDUCATION_DIALOG
             | TYPE_TASKBAR_ALL_APPS | TYPE_OPTIONS_POPUP_DIALOG | TYPE_TASKBAR_OVERLAY_PROXY
-            | TYPE_PIN_IME_POPUP;
+            | TYPE_PIN_IME_POPUP | TYPE_COMPOSE_VIEW;
 
     /** Type of popups that should get exclusive accessibility focus. */
     public static final int TYPE_ACCESSIBLE = TYPE_ALL & ~TYPE_DISCOVERY_BOUNCE & ~TYPE_LISTENER
