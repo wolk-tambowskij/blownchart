@@ -27,6 +27,7 @@ import android.util.Log
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.util.SingletonHolder
 import app.lawnchair.util.ensureOnMainThread
+import app.lawnchair.util.getSignatureHash
 import app.lawnchair.util.useApplicationContext
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
@@ -153,20 +154,17 @@ class FeedBridge(private val context: Context) {
         private const val TAG = "FeedBridge"
         private const val OVERLAY_ACTION = "com.android.launcher3.WINDOW_OVERLAY"
 
-        private val whitelist = mapOf(
-            // HomeFeeder, t.me/homefeeder
-            "ua.itaysonlab.homefeeder" to 0x887456ed,
-            // Librechair, t.me/librechair
-            "launcher.libre.dev" to 0x2e9dbab5,
-            // Smartspacer
-            SmartspacerConstants.SMARTSPACER_PACKAGE_NAME to 0x15c6e36f,
-            // AIDL Bridge
-            "amirz.aidlbridge" to 0xb662cc2f,
-            // Google
-            "com.google.android.googlequicksearchbox" to 0xe3ca78d8,
-            // Pixel Bridge (or launcher)
-            "com.google.android.apps.nexuslauncher" to 0xb662cc2f,
-        )
+        private val whitelist = mutableMapOf<String, Long?>()
+
+        fun initializeWhitelist(context: Context) {
+            whitelist["com.saulhdev.neofeed"] = getSignatureHash(context, "com.saulhdev.neofeed")
+            whitelist["ua.itaysonlab.homefeeder"] = 0x887456ed
+            whitelist["launcher.libre.dev"] = 0x2e9dbab5
+            whitelist[SmartspacerConstants.SMARTSPACER_PACKAGE_NAME] = 0x15c6e36f
+            whitelist["amirz.aidlbridge"] = 0xb662cc2f
+            whitelist["com.google.android.googlequicksearchbox"] = 0xe3ca78d8
+            whitelist["com.google.android.apps.nexuslauncher"] = 0xb662cc2f
+        }
 
         fun getAvailableProviders(context: Context) = context.packageManager
             .queryIntentServices(
@@ -180,5 +178,9 @@ class FeedBridge(private val context: Context) {
 
         @JvmStatic
         fun useBridge(context: Context) = getInstance(context).let { it.shouldUseFeed || it.customBridgeAvailable() }
+    }
+
+    init {
+        initializeWhitelist(context)
     }
 }
