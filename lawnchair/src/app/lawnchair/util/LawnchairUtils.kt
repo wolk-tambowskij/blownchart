@@ -298,17 +298,20 @@ fun blurBitmap(source: Bitmap, percent: Int, factorThreshold: Int = 25): Bitmap 
 }
 
 fun getSignatureHash(context: Context, packageName: String): Long? {
-    val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        context.packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
-    } else {
-        context.packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
-    }
+    return try {
+        val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            context.packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+        } else {
+            context.packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
+        }
 
-    val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        packageInfo.signingInfo?.apkContentsSigners
-    } else {
-        packageInfo.signatures
+        val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageInfo.signingInfo?.apkContentsSigners
+        } else {
+            packageInfo.signatures
+        }
+        signatures?.firstOrNull()?.hashCode()?.toLong()
+    } catch (_: PackageManager.NameNotFoundException) {
+        null
     }
-
-    return signatures?.firstOrNull()?.hashCode()?.toLong()
 }
