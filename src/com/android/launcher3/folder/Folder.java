@@ -910,14 +910,18 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         a.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
-                setWindowInsetsAnimationCallback(null);
+                if (Utilities.ATLEAST_R) {
+                    setWindowInsetsAnimationCallback(null);
+                }
                 mIsAnimatingClosed = true;
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
                 if (mKeyboardInsetAnimationCallback != null) {
-                    setWindowInsetsAnimationCallback(mKeyboardInsetAnimationCallback);
+                    if (Utilities.ATLEAST_R) {
+                        setWindowInsetsAnimationCallback(mKeyboardInsetAnimationCallback);
+                    }
                 }
                 closeComplete(true);
                 announceAccessibilityChanges();
