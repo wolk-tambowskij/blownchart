@@ -33,6 +33,8 @@ import static com.android.wm.shell.common.split.SplitScreenConstants.SPLIT_POSIT
 import static com.android.wm.shell.common.split.SplitScreenConstants.SPLIT_POSITION_TOP_OR_LEFT;
 import static com.android.wm.shell.common.split.SplitScreenConstants.isPersistentSnapPosition;
 
+import static java.util.stream.Collectors.toList;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.LauncherApps;
@@ -336,7 +338,7 @@ public class AppPairsController {
             List<? extends ItemInfo> itemInfos) {
         TaskbarActivityContext context = (TaskbarActivityContext) launchingIconView.getContext();
         List<ComponentKey> componentKeys =
-                itemInfos.stream().map(ItemInfo::getComponentKey).toList();
+                itemInfos.stream().map(ItemInfo::getComponentKey).collect(toList());
 
         // Use TopTaskTracker to find the currently running app (or apps)
         TopTaskTracker topTaskTracker = getTopTaskTracker();
@@ -362,7 +364,7 @@ public class AppPairsController {
                                     } else {
                                         return INVALID_TASK_ID;
                                     }
-                                }).toList();
+                                }).collect(toList());
 
                         if (lastActiveTasksOfAppPair.contains(runningTaskId1)
                                 && lastActiveTasksOfAppPair.contains(runningTaskId2)) {

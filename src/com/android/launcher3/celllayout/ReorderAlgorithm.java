@@ -150,18 +150,11 @@ public class ReorderAlgorithm {
         ).thenComparing(
                 view -> ((CellLayoutLayoutParams) ((View) view).getLayoutParams()).getCellY()
         );
-        List<View> views = new ArrayList<>();
-        if (Utilities.ATLEAST_U) {
-            views = solution.map.keySet().stream().sorted(comparator).toList();
-        } else {
-            List<Object> keys = new ArrayList<>(solution.map.keySet());
-            for (Object key : keys) {
-                if (key instanceof View) {
-                    views.add((View) key);
-                }
-            }
-            views.sort(comparator);
-        }
+        List<View> views = solution.map.keySet().stream()
+                .filter(View.class::isInstance)
+                .map(View.class::cast)
+                .collect(Collectors.toList());
+        views.sort(comparator);
         for (View child : views) {
             if (child == ignoreView) continue;
             CellAndSpan c = solution.map.get(child);

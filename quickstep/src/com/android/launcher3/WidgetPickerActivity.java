@@ -143,10 +143,12 @@ public class WidgetPickerActivity extends BaseActivity {
         if (uiSurfaceParam != null && UI_SURFACE_PATTERN.matcher(uiSurfaceParam).matches()) {
             mUiSurface = uiSurfaceParam;
         }
-        ArrayList<AppWidgetProviderInfo> addedWidgets = getIntent().getParcelableArrayListExtra(
-                EXTRA_ADDED_APP_WIDGETS, AppWidgetProviderInfo.class);
-        if (addedWidgets != null) {
-            mAddedWidgets = addedWidgets;
+        if (Utilities.ATLEAST_T) {
+            ArrayList<AppWidgetProviderInfo> addedWidgets = getIntent().getParcelableArrayListExtra(
+                    EXTRA_ADDED_APP_WIDGETS, AppWidgetProviderInfo.class);
+            if (addedWidgets != null) {
+                mAddedWidgets = addedWidgets;
+            }
         }
     }
 

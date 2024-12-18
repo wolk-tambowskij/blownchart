@@ -18,6 +18,8 @@ package com.android.launcher3.taskbar.bubbles;
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 
+import static java.util.stream.Collectors.toList;
+
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -463,7 +465,7 @@ public class BubbleBarViewController {
      */
     public void reorderBubbles(List<BubbleBarBubble> newOrder) {
         List<BubbleView> viewList = newOrder.stream().filter(Objects::nonNull)
-                .map(BubbleBarBubble::getView).toList();
+                .map(BubbleBarBubble::getView).collect(toList());
         mBarView.reorder(viewList);
     }
 

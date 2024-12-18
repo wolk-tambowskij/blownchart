@@ -43,6 +43,8 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_N
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_VOICE_INTERACTION_WINDOW_SHOWING;
 import static com.android.wm.shell.Flags.enableTinyTaskbar;
 
+import static java.util.stream.Collectors.toList;
+
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.app.ActivityOptions;
@@ -1258,7 +1260,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
         boolean isLaunchingAppPair = itemInfos.size() == 2;
         // Convert the list of ItemInfo instances to a list of ComponentKeys
-        List<ComponentKey> componentKeys = itemInfos.stream().map(ItemInfo::getComponentKey).toList();
+        List<ComponentKey> componentKeys = itemInfos.stream().map(ItemInfo::getComponentKey).collect(toList());
         recents.getSplitSelectController().findLastActiveTasksAndRunCallback(
                 componentKeys,
                 isLaunchingAppPair,

@@ -19,6 +19,8 @@ package com.android.app.viewcapture;
 import static com.android.app.viewcapture.data.ExportedData.MagicNumber.MAGIC_NUMBER_H;
 import static com.android.app.viewcapture.data.ExportedData.MagicNumber.MAGIC_NUMBER_L;
 
+import static java.util.stream.Collectors.toList;
+
 import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -206,7 +208,7 @@ public abstract class ViewCapture {
     }
 
     private static List<String> toStringList(List<Class> classList) {
-        return classList.stream().map(Class::getName).toList();
+        return classList.stream().map(Class::getName).collect(toList());
     }
 
     public CompletableFuture<Optional<MotionWindowData>> getDumpTask(View view) {
@@ -224,8 +226,8 @@ public abstract class ViewCapture {
                                                               ArrayList<Class> outClassList, Predicate<WindowListener> filter) {
         ViewIdProvider idProvider = new ViewIdProvider(context.getResources());
         return CompletableFuture.supplyAsync(() ->
-                mListeners.stream().filter(filter).toList(), MAIN_EXECUTOR).thenApplyAsync(it ->
-                        it.stream().map(l -> l.dumpToProto(idProvider, outClassList)).toList(),
+                mListeners.stream().filter(filter).collect(toList()), MAIN_EXECUTOR).thenApplyAsync(it ->
+                        it.stream().map(l -> l.dumpToProto(idProvider, outClassList)).collect(toList()),
                 mBgExecutor);
     }
 

@@ -19,6 +19,8 @@ package com.android.quickstep;
 import static com.android.quickstep.util.SplitScreenUtils.convertShellSplitBoundsToLauncher;
 import static com.android.wm.shell.util.SplitBounds.KEY_EXTRA_SPLIT_BOUNDS;
 
+import static java.util.stream.Collectors.toList;
+
 import android.app.WindowConfiguration;
 import android.content.Context;
 import android.graphics.Rect;
@@ -175,7 +177,7 @@ public class RemoteTargetGluer {
                     mSplitBounds.rightBottomTaskId);
             List<RemoteAnimationTarget> overlayTargets = Arrays.stream(targets.apps).filter(
                     target -> target.windowConfiguration.getWindowingMode()
-                            != WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW).toList();
+                            != WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW).collect(toList());
 
             // remoteTargetHandle[0] denotes topLeft task, so we pass in the bottomRight to exclude,
             // vice versa
@@ -223,7 +225,7 @@ public class RemoteTargetGluer {
         for (int i = 0; i < mRemoteTargetHandles.length; i++) {
             RemoteAnimationTarget primaryTaskTarget = targets.apps[i];
             List<RemoteAnimationTarget> excludeTargets = Arrays.stream(targets.apps)
-                    .filter(target -> target.taskId != primaryTaskTarget.taskId).toList();
+                    .filter(target -> target.taskId != primaryTaskTarget.taskId).collect(toList());
             mRemoteTargetHandles[i].mTransformParams.setTargetSet(
                     createRemoteAnimationTargetsForTarget(targets, excludeTargets));
             mRemoteTargetHandles[i].mTaskViewSimulator.setPreview(primaryTaskTarget, null);

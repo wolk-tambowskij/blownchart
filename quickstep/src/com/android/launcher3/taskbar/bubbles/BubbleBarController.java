@@ -31,6 +31,8 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_Q
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_STATUS_BAR_KEYGUARD_SHOWING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_STATUS_BAR_KEYGUARD_SHOWING_OCCLUDED;
 
+import static java.util.stream.Collectors.toList;
+
 import android.annotation.BinderThread;
 import android.annotation.Nullable;
 import android.app.Notification;
@@ -398,7 +400,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
         if (update.bubbleKeysInOrder != null && !update.bubbleKeysInOrder.isEmpty()) {
             // Create the new list
             List<BubbleBarBubble> newOrder = update.bubbleKeysInOrder.stream()
-                    .map(mBubbles::get).filter(Objects::nonNull).toList();
+                    .map(mBubbles::get).filter(Objects::nonNull).collect(toList());
             if (!newOrder.isEmpty()) {
                 mBubbleBarViewController.reorderBubbles(newOrder);
             }

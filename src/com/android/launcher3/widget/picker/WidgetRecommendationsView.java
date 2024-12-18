@@ -18,6 +18,8 @@ package com.android.launcher3.widget.picker;
 
 import static com.android.launcher3.widget.util.WidgetsTableUtils.groupWidgetItemsUsingRowPxWithoutReordering;
 
+import static java.util.stream.Collectors.toList;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.Bundle;
@@ -318,7 +320,7 @@ public final class WidgetRecommendationsView extends PagedView<PageIndicatorDots
         // Show only those widgets that were displayed when user first opened the picker.
         if (!mDisplayedWidgets.isEmpty()) {
             filteredRecommendedWidgets = recommendedWidgets.stream().filter(
-                    w -> mDisplayedWidgets.contains(w.componentName)).toList();
+                    w -> mDisplayedWidgets.contains(w.componentName)).collect(toList());
         }
         Context context = getContext();
         LayoutInflater inflater = LayoutInflater.from(context);

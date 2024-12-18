@@ -83,11 +83,7 @@ public final class WidgetsTableUtils {
                 sortedWidgetItems, context, dp, rowPx,
                 cellPadding);
         Stream<ArrayList<WidgetItem>> sortedRows = rows.stream().sorted(WIDGETS_TABLE_ROW_SIZE_COMPARATOR);
-        if (Utilities.ATLEAST_U) {
-            return sortedRows.toList();
-        } else {
-            return sortedRows.collect(Collectors.toList());
-        }
+        return sortedRows.collect(Collectors.toList());
     }
 
     /**

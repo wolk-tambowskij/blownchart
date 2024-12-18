@@ -104,12 +104,10 @@ public class ShortcutCachingLogic implements CachingLogic<ShortcutInfo> {
      * Launcher specific checks
      */
     public static Drawable getIcon(Context context, ShortcutInfo shortcutInfo, int density) {
-        if (!WIDGETS_ENABLED) {
-            return null;
-        }
         try {
-            return context.getSystemService(LauncherApps.class)
+            Drawable icon = context.getSystemService(LauncherApps.class)
                     .getShortcutIconDrawable(shortcutInfo, density);
+            return CustomAdaptiveIconDrawable.wrap(icon);
         } catch (SecurityException | IllegalStateException | NullPointerException e) {
             Log.e(TAG, "Failed to get shortcut icon", e);
             return null;

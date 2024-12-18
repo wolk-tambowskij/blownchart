@@ -94,12 +94,7 @@ public class WidgetsModel {
             Stream<WidgetItem> widgetItems = entry.getValue()
                     .stream()
                     .filter(widgetItemFilter);
-            List<WidgetItem> widgetItemsList;
-            if (Utilities.ATLEAST_U) {
-                widgetItemsList = widgetItems.toList();
-            } else {
-                widgetItemsList = widgetItems.collect(toList());
-            };
+            List<WidgetItem> widgetItemsList = widgetItems.collect(toList());
             if (!widgetItemsList.isEmpty()) {
                 String sectionName = (pkgItem.title == null) ? "" :
                         indexer.computeSectionName(pkgItem.title);
