@@ -47,9 +47,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -124,15 +121,21 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
     }
 
     override fun doSearch(query: String, callback: SearchCallback<BaseAllAppsAdapter.AdapterItem>) {
-        appState.model.enqueueModelUpdateTask(object : LauncherModel.ModelUpdateTask {
-            override fun execute(app: ModelTaskController, dataModel: BgDataModel, apps: AllAppsList) {
-                coroutineScope.launch(Dispatchers.Main) {
-                    getAllSearchResults(apps.data, query, prefs).collect { allResults ->
-                        callback.onSearchResult(query, ArrayList(allResults))
+        appState.model.enqueueModelUpdateTask(
+            object : LauncherModel.ModelUpdateTask {
+                override fun execute(
+                    app: ModelTaskController,
+                    dataModel: BgDataModel,
+                    apps: AllAppsList,
+                ) {
+                    coroutineScope.launch(Dispatchers.Main) {
+                        getAllSearchResults(apps.data, query.trimEnd(), prefs).let { allResults ->
+                            callback.onSearchResult(query, ArrayList(allResults))
+                        }
                     }
                 }
-            }
-        })
+            },
+        )
     }
 
     override fun cancel(interruptActiveRequests: Boolean) {
@@ -141,67 +144,70 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
         }
     }
 
-    private fun getAllSearchResults(
+    private suspend fun getAllSearchResults(
         apps: MutableList<AppInfo>,
         query: String,
         prefs: PreferenceManager,
-    ): Flow<List<BaseAllAppsAdapter.AdapterItem>> = channelFlow {
-        val allResults = mutableListOf<BaseAllAppsAdapter.AdapterItem>()
+    ): List<BaseAllAppsAdapter.AdapterItem> {
+        val allResults = mutableListOf<SearchTargetCompat>()
 
-        launch {
-            if (searchApps) {
-                getAppSearchResults(apps, query).collect { appResults ->
-                    allResults.addAll(appResults)
-                    send(allResults.toList())
-                }
-            }
-            getLocalSearchResults(query, prefs).collect { localResults ->
-                allResults.addAll(localResults)
-                send(allResults.toList())
-            }
-            getSearchLinks(query).collect { otherResults ->
-                allResults.addAll(otherResults)
-                send(allResults.toList())
+        if (searchApps) {
+            getAppSearchResults(apps, query).let { appResults ->
+                allResults.addAll(appResults)
             }
         }
+        getLocalSearchResults(query, prefs).let { localResults ->
+            allResults.addAll(localResults)
+        }
+        getSearchLinks(query).let { otherResults ->
+            allResults.addAll(otherResults)
+        }
+
+        setFirstItemQuickLaunch(allResults)
+        val finalResults = transformSearchResults(allResults).toList()
+
+        return finalResults
     }
 
     private fun getAppSearchResults(
         apps: MutableList<AppInfo>,
         query: String,
-    ): Flow<List<BaseAllAppsAdapter.AdapterItem>> = flow {
+    ): List<SearchTargetCompat> {
         val searchTargets = mutableListOf<SearchTargetCompat>()
         val appResults = performAppSearch(apps, query)
 
         parseAppSearchResults(appResults, searchTargets)
 
-        setFirstItemQuickLaunch(searchTargets)
-        emit(transformSearchResults(searchTargets))
+        return searchTargets
     }
 
-    private fun getLocalSearchResults(
+    private suspend fun getLocalSearchResults(
         query: String,
         prefs: PreferenceManager,
-    ): Flow<List<BaseAllAppsAdapter.AdapterItem>> = flow {
+    ): List<SearchTargetCompat> {
         val searchTargets = mutableListOf<SearchTargetCompat>()
         val localSearchResults = performDeviceLocalSearch(query, prefs)
         parseLocalSearchResults(localSearchResults, searchTargets)
-        emit(transformSearchResults(searchTargets))
+        return searchTargets
     }
 
     private fun getSearchLinks(
         query: String,
-    ): Flow<List<BaseAllAppsAdapter.AdapterItem>> = flow {
+    ): List<SearchTargetCompat> {
         val searchTargets = mutableListOf<SearchTargetCompat>()
 
         searchTargets.add(searchTargetFactory.createHeaderTarget(SPACE))
         if (useWebSuggestions) {
-            withContext(Dispatchers.IO) {
-                searchTargets.add(searchTargetFactory.createWebSearchTarget(query, webSuggestionsProvider))
-            }
+            searchTargets.add(
+                searchTargetFactory.createWebSearchTarget(
+                    query,
+                    webSuggestionsProvider,
+                ),
+            )
         }
         searchTargetFactory.createMarketSearchTarget(query)?.let { searchTargets.add(it) }
-        emit(transformSearchResults(searchTargets))
+
+        return searchTargets
     }
 
     private fun parseAppSearchResults(
@@ -217,7 +223,14 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
                 if (shortcuts != null) {
                     if (shortcuts.isNotEmpty()) {
                         searchTargets.add(searchTargetFactory.createHeaderTarget(SPACE))
-                        singleAppResult.let { searchTargets.add(searchTargetFactory.createAppSearchTarget(it, true)) }
+                        singleAppResult.let {
+                            searchTargets.add(
+                                searchTargetFactory.createAppSearchTarget(
+                                    it,
+                                    true,
+                                ),
+                            )
+                        }
                         searchTargets.addAll(shortcuts.map(searchTargetFactory::createShortcutTarget))
                     }
                 }
@@ -238,7 +251,10 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
             searchTargets.add(suggestionsHeader)
             searchTargets.addAll(
                 suggestions.map {
-                    searchTargetFactory.createWebSuggestionsTarget(it.resultData as String, suggestionProvider)
+                    searchTargetFactory.createWebSuggestionsTarget(
+                        it.resultData as String,
+                        suggestionProvider,
+                    )
                 },
             )
         }
@@ -278,7 +294,14 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
                 HEADER_JUSTIFY,
             )
             searchTargets.add(recentKeywordHeader)
-            searchTargets.addAll(recentKeyword.map { searchTargetFactory.createSearchHistoryTarget(it.resultData as RecentKeyword, suggestionProvider) })
+            searchTargets.addAll(
+                recentKeyword.map {
+                    searchTargetFactory.createSearchHistoryTarget(
+                        it.resultData as RecentKeyword,
+                        suggestionProvider,
+                    )
+                },
+            )
         }
 
         val files = filterByType(localSearchResults, FILES)
@@ -299,7 +322,10 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
         SearchUtils.normalSearch(apps, query, maxAppResultsCount, hiddenApps, hiddenAppsInSearch)
     }
 
-    private suspend fun performDeviceLocalSearch(query: String, prefs: PreferenceManager): MutableList<SearchResult> =
+    private suspend fun performDeviceLocalSearch(
+        query: String,
+        prefs: PreferenceManager,
+    ): MutableList<SearchResult> =
         withContext(Dispatchers.IO) {
             val results = ArrayList<SearchResult>()
 
@@ -349,12 +375,13 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
                     val timeout = maxWebSuggestionDelay.toLong()
                     val result = withTimeoutOrNull(timeout) {
                         if (prefs.searchResultStartPageSuggestion.get()) {
-                            WebSearchProvider.fromString(webSuggestionsProvider).getSuggestions(query, maxWebSuggestionsCount).map {
-                                SearchResult(
-                                    WEB_SUGGESTION,
-                                    it,
-                                )
-                            }
+                            WebSearchProvider.fromString(webSuggestionsProvider)
+                                .getSuggestions(query, maxWebSuggestionsCount).map {
+                                    SearchResult(
+                                        WEB_SUGGESTION,
+                                        it,
+                                    )
+                                }
                         } else {
                             emptyList()
                         }
