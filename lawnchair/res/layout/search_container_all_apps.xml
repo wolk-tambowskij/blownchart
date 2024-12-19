@@ -25,8 +25,8 @@
     <FrameLayout
         android:id="@+id/search_wrapper"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/search_box_height"
-        android:layout_gravity="bottom"
+        android:layout_height="@dimen/qsb_icon_width"
+        android:layout_gravity="center"
         android:background="@drawable/search_input_fg"
         android:clickable="false"
         android:focusable="true"
@@ -72,7 +72,7 @@
         android:id="@+id/search_icon"
         android:layout_width="@dimen/search_box_height"
         android:layout_height="@dimen/search_box_height"
-        android:layout_gravity="bottom|center|start"
+        android:layout_gravity="center|start"
         android:background="@drawable/pill_ripple"
         android:layout_marginEnd="6dp"
         android:clickable="true"
@@ -84,30 +84,33 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="@dimen/search_box_height"
-        android:layout_gravity="bottom|end|center"
+        android:layout_gravity="end|center"
         android:clipToPadding="false"
         android:orientation="horizontal"
         tools:ignore="RtlSymmetry">
 
         <app.lawnchair.qsb.AssistantIconView
             android:id="@+id/mic_btn"
-            android:layout_width="@dimen/search_box_height"
+            android:layout_width="@dimen/qsb_icon_width"
             android:layout_height="@dimen/search_box_height"
             android:background="@drawable/pill_ripple"
             android:clickable="true"
             android:contentDescription="@string/label_voice_search"
-            android:scaleType="center"
+            android:scaleType="fitCenter"
+            android:padding="@dimen/qsb_icon_padding"
             android:src="@drawable/ic_remove_no_shadow"
             app:tint="?android:textColorSecondary" />
 
         <ImageButton
             android:id="@+id/lens_btn"
-            android:layout_width="@dimen/search_box_height"
+            android:layout_width="@dimen/qsb_icon_width"
             android:layout_height="@dimen/search_box_height"
             android:background="@drawable/pill_ripple"
             android:clickable="true"
+            android:layout_marginStart="-6dp"
             android:contentDescription="@string/label_lens"
-            android:scaleType="center"
+            android:scaleType="fitCenter"
+            android:padding="@dimen/qsb_icon_padding"
             android:src="@drawable/ic_remove_no_shadow"
             app:tint="?android:textColorSecondary" />
 

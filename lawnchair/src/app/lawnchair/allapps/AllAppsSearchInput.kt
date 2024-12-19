@@ -30,6 +30,7 @@ import app.lawnchair.preferences2.subscribeBlocking
 import app.lawnchair.qsb.AssistantIconView
 import app.lawnchair.qsb.LawnQsbLayout.Companion.getLensIntent
 import app.lawnchair.qsb.LawnQsbLayout.Companion.getSearchProvider
+import app.lawnchair.qsb.ThemingMethod
 import app.lawnchair.qsb.providers.Google
 import app.lawnchair.qsb.providers.GoogleGo
 import app.lawnchair.qsb.providers.PixelSearch
@@ -151,6 +152,13 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
                         resId = iconRes,
                         themed = themed || iconRes == R.drawable.ic_qsb_search,
                         method = searchProvider.themingMethod,
+                    )
+                } else {
+                    // Always theme default search icon
+                    setThemedIconResource(
+                        resId = R.drawable.ic_qsb_search,
+                        themed = true,
+                        method = ThemingMethod.TINT,
                     )
                 }
 
