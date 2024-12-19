@@ -77,12 +77,17 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
+import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Stack;
+
+import app.lawnchair.preferences2.PreferenceManager2;
+import app.lawnchair.theme.color.tokens.ColorTokens;
+import app.lawnchair.theme.drawable.DrawableTokens;
 
 public class CellLayout extends ViewGroup {
     private static final String TAG = "CellLayout";
@@ -208,6 +213,8 @@ public class CellLayout extends ViewGroup {
 
     CellLayoutContainer mCellLayoutContainer;
 
+    public final PreferenceManager2 pref;
+
     public static final FloatProperty<CellLayout> SPRING_LOADED_PROGRESS =
             new FloatProperty<CellLayout>("spring_loaded_progress") {
                 @Override
@@ -244,6 +251,7 @@ public class CellLayout extends ViewGroup {
         mActivity = ActivityContext.lookupContext(context);
         DeviceProfile deviceProfile = mActivity.getDeviceProfile();
 
+        pref = PreferenceManager2.getInstance(context);
         resetCellSizeInternal(deviceProfile);
 
         mCountX = deviceProfile.inv.numColumns;
@@ -258,11 +266,11 @@ public class CellLayout extends ViewGroup {
 
         Resources res = getResources();
 
-        mBackground = getContext().getDrawable(R.drawable.bg_celllayout);
+        mBackground = DrawableTokens.BgCellLayout.resolve(getContext());
         mBackground.setCallback(this);
         mBackground.setAlpha(0);
 
-        mGridColor = Themes.getAttrColor(getContext(), R.attr.workspaceAccentColor);
+        mGridColor = ColorTokens.WorkspaceAccentColor.resolveColor(getContext());
         mGridVisualizationRoundingRadius =
                 res.getDimensionPixelSize(R.dimen.grid_visualization_rounding_radius);
         mReorderPreviewAnimationMagnitude = (REORDER_PREVIEW_MAGNITUDE * deviceProfile.iconSizePx);
@@ -274,7 +282,7 @@ public class CellLayout extends ViewGroup {
         for (int i = 0; i < mDragOutlines.length; i++) {
             mDragOutlines[i] = new CellLayoutLayoutParams(0, 0, 0, 0);
         }
-        mDragOutlinePaint.setColor(Themes.getAttrColor(context, R.attr.workspaceTextColor));
+        mDragOutlinePaint.setColor(ColorTokens.WorkspaceAccentColor.resolveColor(getContext()));
 
         // When dragging things around the home screens, we show a green outline of
         // where the item will land. The outlines gradually fade out, leaving a trail
@@ -1853,7 +1861,7 @@ public class CellLayout extends ViewGroup {
 
     public boolean isOccupied(int x, int y) {
         if (x >= 0 && x < mCountX && y >= 0 && y < mCountY) {
-            return mOccupied.cells[x][y];
+            return mOccupied.cells[x][y] && !PreferenceExtensionsKt.firstBlocking(pref.getAllowWidgetOverlap());
         }
         if (BuildConfigs.IS_STUDIO_BUILD) {
             throw new RuntimeException("Position exceeds the bound of this CellLayout");
@@ -1936,7 +1944,7 @@ public class CellLayout extends ViewGroup {
     }
 
     public boolean isRegionVacant(int x, int y, int spanX, int spanY) {
-        return mOccupied.isRegionVacant(x, y, spanX, spanY);
+        return mOccupied.isRegionVacant(x, y, spanX, spanY) || PreferenceExtensionsKt.firstBlocking(pref.getAllowWidgetOverlap());
     }
 
     public void setSpaceBetweenCellLayoutsPx(@Px int spaceBetweenCellLayoutsPx) {
