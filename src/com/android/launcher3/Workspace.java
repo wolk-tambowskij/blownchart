@@ -619,7 +619,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     }
 
     public void updateStatusbarClock() {
-        if (mCurrentPage == 0) {
+        if (mCurrentPage == 0 && PreferenceExtensionsKt.firstBlocking(mPreferenceManager2.getStatusBarClock())) {
             LawnchairAppKt.getLawnchairApp(mLauncher).hideClockInStatusBar();
         } else {
             LawnchairAppKt.getLawnchairApp(mLauncher).restoreClockInStatusBar();

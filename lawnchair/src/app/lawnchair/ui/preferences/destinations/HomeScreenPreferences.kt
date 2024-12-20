@@ -161,13 +161,13 @@ fun HomeScreenPreferences(
                     adapter = prefs2.darkStatusBar.getAdapter(),
                     label = stringResource(id = R.string.dark_status_bar_label),
                 )
-                if (LawnchairApp.isRecentsEnabled) {
-                    SwitchPreference(
-                        adapter = prefs2.statusBarClock.getAdapter(),
-                        label = stringResource(id = R.string.status_bar_clock_label),
-                        description = stringResource(id = R.string.status_bar_clock_description),
-                    )
-                }
+            }
+            ExpandAndShrink(visible = showStatusBarAdapter.state.value && LawnchairApp.isRecentsEnabled) {
+                SwitchPreference(
+                    adapter = prefs2.statusBarClock.getAdapter(),
+                    label = stringResource(id = R.string.status_bar_clock_label),
+                    description = stringResource(id = R.string.status_bar_clock_description),
+                )
             }
         }
         PreferenceGroup(heading = stringResource(id = R.string.icons)) {
