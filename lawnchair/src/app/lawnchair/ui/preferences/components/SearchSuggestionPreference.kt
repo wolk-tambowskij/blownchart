@@ -1,5 +1,6 @@
 package app.lawnchair.ui.preferences.components
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -159,8 +160,29 @@ private fun BottomSheetContent(
 ) {
     ModalBottomSheetContent(
         buttons = {
-            OutlinedButton(onClick = { onHide() }) {
-                Text(text = stringResource(id = R.string.action_apply))
+            Crossfade(
+                !isPermissionGranted && (onRequestPermission != null && permissionRationale != null),
+                label = "transition",
+            ) {
+                if (it) {
+                    Row {
+                        OutlinedButton(onClick = { onHide() }) {
+                            Text(text = stringResource(id = android.R.string.cancel))
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                onRequestPermission?.invoke()
+                            },
+                        ) {
+                            Text(text = stringResource(id = R.string.grant_requested_permissions))
+                        }
+                    }
+                } else {
+                    OutlinedButton(onClick = { onHide() }) {
+                        Text(text = stringResource(id = R.string.action_apply))
+                    }
+                }
             }
         },
     ) {
@@ -183,6 +205,9 @@ private fun BottomSheetContent(
             }
             if (!isPermissionGranted) {
                 if (onRequestPermission != null && permissionRationale != null) {
+                    Spacer(
+                        modifier = Modifier.height(8.dp),
+                    )
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -195,17 +220,6 @@ private fun BottomSheetContent(
                             Text(
                                 text = permissionRationale,
                             )
-                            Spacer(Modifier.height(8.dp))
-                            Row {
-                                Spacer(Modifier.weight(1f))
-                                Button(
-                                    onClick = {
-                                        onRequestPermission()
-                                    },
-                                ) {
-                                    Text(text = stringResource(id = R.string.grant_requested_permissions))
-                                }
-                            }
                         }
                     }
                 }
