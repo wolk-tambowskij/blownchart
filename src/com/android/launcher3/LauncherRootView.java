@@ -2,6 +2,8 @@ package com.android.launcher3;
 
 import static com.android.launcher3.config.FeatureFlags.SEPARATE_RECENTS_ACTIVITY;
 
+import static app.lawnchair.util.PackagePermissionManagerKt.checkAndRequestFilesPermission;
+
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -57,7 +59,9 @@ public class LauncherRootView extends InsettableFrameLayout {
         pref = PreferenceManager.getInstance(getContext());
 
         if (pref.getEnableWallpaperBlur().get()){
-            setUpBlur(context);
+            if (checkAndRequestFilesPermission(context, pref)){
+                setUpBlur(context);
+            }
         }
     }
 
