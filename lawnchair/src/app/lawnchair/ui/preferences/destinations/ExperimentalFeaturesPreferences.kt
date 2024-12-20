@@ -66,9 +66,8 @@ fun ExperimentalFeaturesPreferences(
                 SliderPreference(
                     label = stringResource(id = R.string.wallpaper_background_blur_factor),
                     adapter = prefs.wallpaperBlurFactorThreshold.getAdapter(),
-                    step = 5,
-                    valueRange = 0..100,
-                    showUnit = "%",
+                    step = 1F,
+                    valueRange = 0F..10F,
                 )
             }
         }

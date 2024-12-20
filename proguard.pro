@@ -22,6 +22,16 @@
 -dontwarn dalvik.system.CloseGuard
 -dontwarn lineageos.providers.LineageSettings$System
 -dontwarn androidx.compose.runtime.PrimitiveSnapshotStateKt
+-dontwarn androidx.renderscript.Allocation
+-dontwarn androidx.renderscript.BaseObj
+-dontwarn androidx.renderscript.Element
+-dontwarn androidx.renderscript.FieldPacker
+-dontwarn androidx.renderscript.RSRuntimeException
+-dontwarn androidx.renderscript.RenderScript
+-dontwarn androidx.renderscript.Script$LaunchOptions
+-dontwarn androidx.renderscript.ScriptC
+-dontwarn androidx.renderscript.ScriptIntrinsicBlur
+-dontwarn androidx.renderscript.Type
 
 
 # Common rules.

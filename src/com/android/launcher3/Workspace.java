@@ -149,6 +149,7 @@ import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.smartspace.SmartspaceAppWidgetProvider;
 import app.lawnchair.smartspace.model.LawnchairSmartspace;
 import app.lawnchair.smartspace.model.SmartspaceMode;
+import app.lawnchair.theme.drawable.DrawableTokens;
 import app.lawnchair.util.LawnchairUtilsKt;
 
 /**
@@ -351,20 +352,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         setMotionEventSplittingEnabled(true);
         setOnTouchListener(new WorkspaceTouchListener(mLauncher, this));
         mStatsLogManager = StatsLogManager.newInstance(context);
-
-        if (mPreferenceManger.getEnableWallpaperBlur().get() && mWallpaperManager.getDrawable() != null) {
-            var blurWallpaper = mPreferenceManger.getWallpaperBlur().get();
-            var blurThreshold = mPreferenceManger.getWallpaperBlurFactorThreshold().get();
-            var wallpaperBitmap = mWallpaperManager.getDrawable();
-            try {
-                mWallpaperManager.setBitmap(
-                        LawnchairUtilsKt.blurBitmap(toBitmap(wallpaperBitmap), blurWallpaper, blurThreshold), null,
-                        true, WallpaperManager.FLAG_SYSTEM);
-                mWallpaperManager.forgetLoadedWallpaper();
-            } catch (Exception ex) {
-                Log.e(TAG, "error failed bluring wallpaper");
-            }
-        }
     }
 
     @Override
@@ -681,10 +668,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * Initializes and binds the first page
      */
     public void bindAndInitFirstWorkspaceScreen() {
-        if (!FeatureFlags.topQsbOnFirstScreenEnabled(mLauncher)) {
-            return;
-        }
-
         // Add the first page
         CellLayout firstPage = insertNewWorkspaceScreen(Workspace.FIRST_SCREEN_ID, getChildCount());
         // Always add a QSB on the first screen.
