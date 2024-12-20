@@ -228,6 +228,12 @@ class PreferenceManager2 private constructor(private val context: Context) : Pre
         defaultValue = context.resources.getBoolean(R.bool.config_default_show_status_bar),
     )
 
+    val statusBarClock = preference(
+        key = booleanPreferencesKey(name = "status_bar_clock"),
+        defaultValue = context.resources.getBoolean(R.bool.config_default_dynamic_hide_status_bar_clock),
+        onSet = { reloadHelper.reloadGrid() },
+    )
+
     val rememberPosition = preference(
         key = booleanPreferencesKey(name = "all_apps_remember_position"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_remember_position),

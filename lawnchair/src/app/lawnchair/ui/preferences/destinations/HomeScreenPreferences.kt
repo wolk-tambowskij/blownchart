@@ -23,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import app.lawnchair.LawnchairApp
 import app.lawnchair.data.iconoverride.IconOverrideRepository
 import app.lawnchair.nexuslauncher.OverlayCallbackImpl
 import app.lawnchair.preferences.getAdapter
@@ -160,6 +161,13 @@ fun HomeScreenPreferences(
                     adapter = prefs2.darkStatusBar.getAdapter(),
                     label = stringResource(id = R.string.dark_status_bar_label),
                 )
+                if (LawnchairApp.isRecentsEnabled) {
+                    SwitchPreference(
+                        adapter = prefs2.statusBarClock.getAdapter(),
+                        label = stringResource(id = R.string.status_bar_clock_label),
+                        description = stringResource(id = R.string.status_bar_clock_description),
+                    )
+                }
             }
         }
         PreferenceGroup(heading = stringResource(id = R.string.icons)) {
