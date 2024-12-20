@@ -273,7 +273,6 @@ class SearchTargetFactory(
             LayoutType.PEOPLE_TILE,
             SearchTargetCompat.RESULT_TYPE_CONTACT_TILE,
             CONTACT,
-            Bundle(),
         )
     }
 
@@ -307,7 +306,6 @@ class SearchTargetFactory(
             LayoutType.THUMBNAIL,
             SearchTargetCompat.RESULT_TYPE_FILE_TILE,
             FILES,
-            Bundle(),
         )
     }
 

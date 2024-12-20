@@ -18,7 +18,6 @@ import app.lawnchair.search.model.SearchResultActionCallBack
 import app.lawnchair.util.copyToClipboard
 import com.android.app.search.LayoutType
 import com.android.launcher3.R
-import com.android.launcher3.touch.ItemClickHandler
 import com.android.launcher3.views.BubbleTextHolder
 
 class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
@@ -69,11 +68,11 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
         }
     }
 
-    override val isQuickLaunch get() = icon.isQuickLaunch
-    override val titleText get() = icon.titleText
+    override val isQuickLaunch get() = icon.isQuickLaunch || hasFlag(flags, SearchResultView.FLAG_QUICK_LAUNCH)
+    override val titleText get() = if (icon.titleText != "") icon.titleText else title.text
 
     override fun launch(): Boolean {
-        ItemClickHandler.INSTANCE.onClick(this)
+        performClick()
         return true
     }
 

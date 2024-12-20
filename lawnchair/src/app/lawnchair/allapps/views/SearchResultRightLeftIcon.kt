@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.AttributeSet
+import android.util.Log
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -33,6 +34,8 @@ class SearchResultRightLeftIcon(context: Context, attrs: AttributeSet?) :
     private var defPhoneAppInfo: AppInfo? = null
     private var defSmsAppInfo: AppInfo? = null
     private var isSmall = false
+
+    private var flags = 0
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -79,11 +82,16 @@ class SearchResultRightLeftIcon(context: Context, attrs: AttributeSet?) :
         this.layoutParams = layoutParams
     }
 
-    override val isQuickLaunch: Boolean get() = false
+    override val isQuickLaunch: Boolean get() = hasFlag(flags, SearchResultView.FLAG_QUICK_LAUNCH)
 
     override val titleText: CharSequence? get() = title.text
 
-    override fun launch(): Boolean = false
+    override fun launch(): Boolean {
+        val logTag = "Contact or files"
+        Log.d(logTag, "in launch")
+        Log.d(logTag, performClick().toString())
+        return true
+    }
 
     override fun bind(
         target: SearchTargetCompat,

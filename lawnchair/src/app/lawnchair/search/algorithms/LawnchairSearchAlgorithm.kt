@@ -115,7 +115,12 @@ sealed class LawnchairSearchAlgorithm(
     protected fun setFirstItemQuickLaunch(searchTargets: List<SearchTargetCompat>) {
         val hasQuickLaunch = searchTargets.any { it.extras.getBoolean(EXTRA_QUICK_LAUNCH, false) }
         if (!hasQuickLaunch) {
-            searchTargets.firstOrNull()?.extras?.apply {
+            // check if we have a header or spacer item. if so, we skip as there isn't any relevant
+            // action to be applied
+            val target = searchTargets.getOrNull(
+                searchTargets.indexOfFirst { it.layoutType != TEXT_HEADER },
+            )
+            target?.extras?.apply {
                 putBoolean(EXTRA_QUICK_LAUNCH, true)
             }
         }
