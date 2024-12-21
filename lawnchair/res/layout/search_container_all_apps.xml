@@ -25,7 +25,7 @@
     <FrameLayout
         android:id="@+id/search_wrapper"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/qsb_icon_width"
+        android:layout_height="@dimen/search_box_height"
         android:layout_gravity="center"
         android:background="@drawable/search_input_fg"
         android:clickable="false"
