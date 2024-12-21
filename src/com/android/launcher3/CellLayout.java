@@ -740,7 +740,7 @@ public class CellLayout extends ViewGroup {
     }
 
     public boolean acceptsWidget() {
-        return mContainerType == WORKSPACE;
+        return mContainerType == WORKSPACE || mContainerType == HOTSEAT;
     }
 
     /**
