@@ -107,7 +107,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
             enableSmartspaceAsAWidget =
                     properties.getBoolean(Flags.FLAG_ENABLE_SMARTSPACE_AS_A_WIDGET, false);
             enableSmartspaceRemovalToggle =
-                    properties.getBoolean(Flags.FLAG_ENABLE_SMARTSPACE_REMOVAL_TOGGLE, false);
+                    properties.getBoolean(Flags.FLAG_ENABLE_SMARTSPACE_REMOVAL_TOGGLE, true);
             enableSupportForArchiving =
                     properties.getBoolean(Flags.FLAG_ENABLE_SUPPORT_FOR_ARCHIVING, true);
             enableTabletTwoPanePickerV2 =
