@@ -150,7 +150,7 @@ public class PackageManagerHelper implements SafeCloseable {
                     PackageManager.PackageInfoFlags.of(
                             PackageManager.MATCH_ARCHIVED_PACKAGES)).applicationInfo;
             return info.isArchived;
-        } catch (NameNotFoundException e) {
+        } catch (Throwable e) {
             Log.e(TAG, "Failed to get applicationInfo for package: " + packageName, e);
             return false;
         }
