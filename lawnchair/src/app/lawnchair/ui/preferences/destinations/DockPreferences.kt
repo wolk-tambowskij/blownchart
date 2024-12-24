@@ -80,6 +80,7 @@ fun DockPreferences(
         val qsbAlphaAdapter = prefs.hotseatQsbAlpha.getAdapter()
         val qsbHotseatStrokeWidth = prefs.hotseatQsbStrokeWidth.getAdapter()
         val hotseatBottomFactorAdapter = prefs2.hotseatBottomFactor.getAdapter()
+        val strokeColorStyleAdapter = prefs2.strokeColorStyle.getAdapter()
 
         MainSwitchPreference(adapter = isHotseatEnabled, label = stringResource(id = R.string.show_hotseat_title)) {
             if (isPortrait) {
@@ -102,6 +103,7 @@ fun DockPreferences(
                             qsbCornerAdapter.state.value,
                             qsbAlphaAdapter.state.value,
                             qsbHotseatStrokeWidth.state.value,
+                            strokeColorStyleAdapter.state.value
                         ) {
                             DummyLauncherLayout(
                                 idp = createPreviewIdp { copy(numHotseatColumns = prefs.hotseatColumns.get()) },
