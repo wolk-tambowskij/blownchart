@@ -101,6 +101,12 @@ class PreferenceManager private constructor(private val context: Context) : Base
     val hotseatQsbCornerRadius = FloatPref("pref_hotseatQsbCornerRadius", 1F, recreate)
     val hotseatQsbAlpha = IntPref("pref_searchHotseatTranparency", 100, recreate)
     val hotseatQsbStrokeWidth = FloatPref("pref_searchStrokeWidth", 0F, recreate)
+    val hotseatBG = BoolPref("pref_hotseatBG", false, recreate)
+    val hotseatBGHorizontalInsetLeft = IntPref("pref_hotseatBGHRinsetLeft", 0, recreate)
+    val hotseatBGVerticalInsetTop = IntPref("pref_hotseatBGVRinsetTop", 0, recreate)
+    val hotseatBGHorizontalInsetRight = IntPref("pref_hotseatBGHRinsetRight", 0, recreate)
+    val hotseatBGVerticalInsetBottom = IntPref("pref_hotseatBGVRinsetBottom", 0, recreate)
+
     val enableWallpaperBlur = BoolPref("pref_enableWallpaperBlur", false, recreate)
     val wallpaperBlur = IntPref("pref_wallpaperBlur", 25, recreate)
     val wallpaperBlurFactorThreshold = FloatPref("pref_wallpaperBlurFactor", 3.0F, recreate)

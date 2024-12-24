@@ -26,6 +26,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.drawable.InsetDrawable;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -40,7 +41,10 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import app.lawnchair.hotseat.DisabledHotseat;
 import app.lawnchair.hotseat.HotseatMode;
 import app.lawnchair.hotseat.LawnchairHotseat;
+import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
+import app.lawnchair.theme.drawable.DrawableTokens;
+
 import com.android.launcher3.util.HorizontalInsettableView;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.views.ActivityContext;
@@ -62,6 +66,7 @@ public class Hotseat extends CellLayout implements Insettable {
     private final View mQsb;
 
     PreferenceManager2 preferenceManager2;
+    PreferenceManager preferenceManager;
 
     public Hotseat(Context context) {
         this(context, null);
@@ -75,6 +80,7 @@ public class Hotseat extends CellLayout implements Insettable {
         super(context, attrs, defStyle);
 
         preferenceManager2 = PreferenceManager2.getInstance(context);
+        preferenceManager = PreferenceManager.getInstance(context);
         HotseatMode hotseatMode = PreferenceExtensionsKt.firstBlocking(preferenceManager2.getHotseatMode());
         var hotseatEnabled = PreferenceExtensionsKt.firstBlocking(preferenceManager2.isHotseatEnabled());
 
@@ -92,6 +98,20 @@ public class Hotseat extends CellLayout implements Insettable {
 
         mQsb = LayoutInflater.from(context).inflate(layoutId, this, false);
         addView(mQsb);
+
+        setUpBackground();
+    }
+
+    private void setUpBackground() {
+        if(!preferenceManager.getHotseatBG().get()) return;
+
+        int insetHorizontalLeft = preferenceManager.getHotseatBGHorizontalInsetLeft().get();
+        int insetHorizontalRight = preferenceManager.getHotseatBGHorizontalInsetRight().get();
+        int insetVerticalTop = preferenceManager.getHotseatBGVerticalInsetTop().get();
+        int insetVerticalBottom = preferenceManager.getHotseatBGVerticalInsetBottom().get();
+        InsetDrawable bg = new InsetDrawable(DrawableTokens.BgCellLayout.resolve(getContext()),
+                insetHorizontalLeft, insetVerticalTop, insetHorizontalRight, insetVerticalBottom);
+        setBackground(bg);
     }
 
     /**

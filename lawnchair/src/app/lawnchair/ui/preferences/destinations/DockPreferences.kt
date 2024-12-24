@@ -81,6 +81,11 @@ fun DockPreferences(
         val qsbHotseatStrokeWidth = prefs.hotseatQsbStrokeWidth.getAdapter()
         val hotseatBottomFactorAdapter = prefs2.hotseatBottomFactor.getAdapter()
         val strokeColorStyleAdapter = prefs2.strokeColorStyle.getAdapter()
+        val hotseatBgAdapter = prefs.hotseatBG.getAdapter()
+        val hotseatBgHorizontalInsetLeftAdapter = prefs.hotseatBGHorizontalInsetLeft.getAdapter()
+        val hotseatBgVerticalInsetTopAdapter = prefs.hotseatBGVerticalInsetTop.getAdapter()
+        val hotseatBgHorizontalInsetRightAdapter = prefs.hotseatBGHorizontalInsetRight.getAdapter()
+        val hotseatBgVerticalInsetBottomAdapter = prefs.hotseatBGVerticalInsetBottom.getAdapter()
 
         MainSwitchPreference(adapter = isHotseatEnabled, label = stringResource(id = R.string.show_hotseat_title)) {
             if (isPortrait) {
@@ -104,12 +109,56 @@ fun DockPreferences(
                             qsbAlphaAdapter.state.value,
                             qsbHotseatStrokeWidth.state.value,
                             strokeColorStyleAdapter.state.value,
+                            hotseatBgAdapter.state.value,
+                            hotseatBgHorizontalInsetLeftAdapter.state.value,
+                            hotseatBgVerticalInsetTopAdapter.state.value,
+                            hotseatBgHorizontalInsetRightAdapter.state.value,
+                            hotseatBgVerticalInsetBottomAdapter.state.value,
                         ) {
                             DummyLauncherLayout(
                                 idp = createPreviewIdp { copy(numHotseatColumns = prefs.hotseatColumns.get()) },
                                 modifier = Modifier.fillMaxSize(),
                             )
                         }
+                    }
+                }
+            }
+
+            PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
+                SwitchPreference(
+                    adapter = hotseatBgAdapter,
+                    label = stringResource(id = R.string.hotseat_background),
+                )
+                ExpandAndShrink(visible = hotseatBgAdapter.state.value) {
+                    DividerColumn {
+                        SliderPreference(
+                            label = stringResource(id = R.string.hotseat_bg_horizontal_inset_left),
+                            adapter = hotseatBgHorizontalInsetLeftAdapter,
+                            step = 1,
+                            valueRange = 0..100,
+                            showUnit = "px",
+                        )
+                        SliderPreference(
+                            label = stringResource(id = R.string.hotseat_bg_horizontal_inset_right),
+                            adapter = hotseatBgHorizontalInsetRightAdapter,
+                            step = 1,
+                            valueRange = 0..100,
+                            showUnit = "px",
+                        )
+                        SliderPreference(
+                            label = stringResource(id = R.string.hotseat_bg_vertical_inset_top),
+                            adapter = hotseatBgVerticalInsetTopAdapter,
+                            step = 1,
+                            valueRange = 0..100,
+                            showUnit = "px",
+                        )
+                        SliderPreference(
+                            label = stringResource(id = R.string.hotseat_bg_vertical_inset_bottom),
+                            adapter = hotseatBgVerticalInsetBottomAdapter,
+                            step = 1,
+                            valueRange = 0..100,
+                            showUnit = "px",
+                        )
                     }
                 }
             }
