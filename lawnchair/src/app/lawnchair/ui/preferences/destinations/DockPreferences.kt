@@ -103,7 +103,7 @@ fun DockPreferences(
                             qsbCornerAdapter.state.value,
                             qsbAlphaAdapter.state.value,
                             qsbHotseatStrokeWidth.state.value,
-                            strokeColorStyleAdapter.state.value
+                            strokeColorStyleAdapter.state.value,
                         ) {
                             DummyLauncherLayout(
                                 idp = createPreviewIdp { copy(numHotseatColumns = prefs.hotseatColumns.get()) },
