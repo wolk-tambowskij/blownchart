@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -87,4 +88,31 @@ fun createPreviewView(idp: InvariantDeviceProfile = invariantDeviceProfile()): V
     }
     val previewManager = remember { LauncherPreviewManager(context) }
     return remember(idp) { previewManager.createPreviewView(idp) }
+}
+
+fun Modifier.clipToPercentage(percentage: Float): Modifier {
+    return this.then(
+        Modifier.layout { measurable, constraints ->
+            val placeable = measurable.measure(constraints)
+            val height = (placeable.height * percentage).toInt()
+            layout(placeable.width, height) {
+                placeable.place(0, 0)
+            }
+        },
+    )
+}
+
+fun Modifier.clipToVisiblePercentage(percentage: Float): Modifier {
+    return this.then(
+        Modifier.layout { measurable, constraints ->
+            val placeable = measurable.measure(constraints)
+            val totalHeight = placeable.height
+            val visibleHeight = (totalHeight * percentage).toInt()
+            val offsetY = totalHeight - visibleHeight
+
+            layout(placeable.width, visibleHeight) {
+                placeable.place(0, -offsetY)
+            }
+        },
+    )
 }

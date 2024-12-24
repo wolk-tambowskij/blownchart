@@ -16,9 +16,16 @@
 
 package app.lawnchair.ui.preferences.destinations
 
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import app.lawnchair.hotseat.HotseatMode
@@ -29,13 +36,19 @@ import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.qsb.providers.QsbSearchProvider
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.components.DummyLauncherBox
+import app.lawnchair.ui.preferences.components.DummyLauncherLayout
 import app.lawnchair.ui.preferences.components.NavigationActionPreference
+import app.lawnchair.ui.preferences.components.WallpaperPreview
+import app.lawnchair.ui.preferences.components.clipToPercentage
+import app.lawnchair.ui.preferences.components.clipToVisiblePercentage
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.controls.MainSwitchPreference
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
+import app.lawnchair.ui.preferences.components.createPreviewIdp
 import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
@@ -52,6 +65,8 @@ fun DockPreferences(
 ) {
     val prefs = preferenceManager()
     val prefs2 = preferenceManager2()
+    val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
+
     PreferenceLayout(
         label = stringResource(id = R.string.dock_label),
         backArrowVisible = !LocalIsExpandedScreen.current,
@@ -59,7 +74,44 @@ fun DockPreferences(
     ) {
         val isHotseatEnabled = prefs2.isHotseatEnabled.getAdapter()
         val hotseatModeAdapter = prefs2.hotseatMode.getAdapter()
+        val hotseatColumnAdapter = prefs.hotseatColumns.getAdapter()
+        val themeQsbAdapter = prefs2.themedHotseatQsb.getAdapter()
+        val qsbCornerAdapter = prefs.hotseatQsbCornerRadius.getAdapter()
+        val qsbAlphaAdapter = prefs.hotseatQsbAlpha.getAdapter()
+        val qsbHotseatStrokeWidth = prefs.hotseatQsbStrokeWidth.getAdapter()
+        val hotseatBottomFactorAdapter = prefs2.hotseatBottomFactor.getAdapter()
+
         MainSwitchPreference(adapter = isHotseatEnabled, label = stringResource(id = R.string.show_hotseat_title)) {
+            if (isPortrait) {
+                PreferenceGroup(
+                    heading = stringResource(id = R.string.preview_label),
+                ) {
+                    DummyLauncherBox(
+                        modifier = Modifier.weight(1f)
+                            .align(Alignment.CenterHorizontally)
+                            .clip(MaterialTheme.shapes.large)
+                            .clipToVisiblePercentage(0.3f)
+                            .clipToPercentage(1.0f),
+                    ) {
+                        WallpaperPreview(modifier = Modifier.fillMaxSize())
+                        key(
+                            isHotseatEnabled.state.value,
+                            hotseatModeAdapter.state.value,
+                            hotseatColumnAdapter.state.value,
+                            themeQsbAdapter.state.value,
+                            qsbCornerAdapter.state.value,
+                            qsbAlphaAdapter.state.value,
+                            qsbHotseatStrokeWidth.state.value,
+                        ) {
+                            DummyLauncherLayout(
+                                idp = createPreviewIdp { copy(numHotseatColumns = prefs.hotseatColumns.get()) },
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
+                }
+            }
+
             PreferenceGroup(heading = stringResource(id = R.string.search_bar_label)) {
                 HotseatModePreference(
                     adapter = hotseatModeAdapter,
@@ -77,24 +129,23 @@ fun DockPreferences(
                             ),
                         )
                         SwitchPreference(
-                            adapter = prefs2.themedHotseatQsb.getAdapter(),
+                            adapter = themeQsbAdapter,
                             label = stringResource(id = R.string.apply_accent_color_label),
                         )
                         SliderPreference(
                             label = stringResource(id = R.string.corner_radius_label),
-                            adapter = prefs.hotseatQsbCornerRadius.getAdapter(),
+                            adapter = qsbCornerAdapter,
                             step = 0.05F,
                             valueRange = 0F..1F,
                             showAsPercentage = true,
                         )
                         SliderPreference(
                             label = stringResource(id = R.string.qsb_hotseat_background_transparency),
-                            adapter = prefs.hotseatQsbAlpha.getAdapter(),
+                            adapter = qsbAlphaAdapter,
                             step = 5,
                             valueRange = 0..100,
                             showUnit = "%",
                         )
-                        val qsbHotseatStrokeWidth = prefs.hotseatQsbStrokeWidth.getAdapter()
 
                         SliderPreference(
                             label = stringResource(id = R.string.qsb_hotseat_stroke_width),
@@ -112,12 +163,12 @@ fun DockPreferences(
             PreferenceGroup(heading = stringResource(id = R.string.grid)) {
                 SliderPreference(
                     label = stringResource(id = R.string.dock_icons),
-                    adapter = prefs.hotseatColumns.getAdapter(),
+                    adapter = hotseatColumnAdapter,
                     step = 1,
                     valueRange = 3..10,
                 )
                 SliderPreference(
-                    adapter = prefs2.hotseatBottomFactor.getAdapter(),
+                    adapter = hotseatBottomFactorAdapter,
                     label = stringResource(id = R.string.hotseat_bottom_space_label),
                     valueRange = 0.0F..1.7F,
                     step = 0.1F,
