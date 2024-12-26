@@ -114,6 +114,7 @@ fun DockPreferences(
                             hotseatBgVerticalInsetTopAdapter.state.value,
                             hotseatBgHorizontalInsetRightAdapter.state.value,
                             hotseatBgVerticalInsetBottomAdapter.state.value,
+                            hotseatBottomFactorAdapter.state.value,
                         ) {
                             DummyLauncherLayout(
                                 idp = createPreviewIdp { copy(numHotseatColumns = prefs.hotseatColumns.get()) },
