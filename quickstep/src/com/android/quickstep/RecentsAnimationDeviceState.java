@@ -154,7 +154,7 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
         mDisplayController = DisplayController.INSTANCE.get(context);
         mExclusionManager = exclusionManager;
         mAssistStateManager = AssistStateManager.INSTANCE.get(context);
-        mIsOneHandedModeSupported = SystemProperties.getBoolean(SUPPORT_ONE_HANDED_MODE, false);
+        mIsOneHandedModeSupported = LawnchairApp.isRecentsEnabled() && SystemProperties.getBoolean(SUPPORT_ONE_HANDED_MODE, false);
         mRotationTouchHelper = RotationTouchHelper.INSTANCE.get(context);
         if (isInstanceForTouches) {
             // rotationTouchHelper doesn't get initialized after being destroyed, so only
