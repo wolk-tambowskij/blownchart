@@ -19,7 +19,7 @@ class LawnchairAlphabeticalAppsList<T>(
     context: T,
     appsStore: AllAppsStore<T>,
     workProfileManager: WorkProfileManager?,
-    privateProfileManager: PrivateProfileManager,
+    privateProfileManager: PrivateProfileManager?,
 ) : AlphabeticalAppsList<T>(context, appsStore, workProfileManager, privateProfileManager)
     where T : Context, T : ActivityContext {
 

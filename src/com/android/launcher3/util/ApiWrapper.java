@@ -25,14 +25,18 @@ import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.LauncherActivityInfo;
+import android.content.pm.LauncherApps;
+import android.content.pm.LauncherUserInfo;
 import android.content.pm.ShortcutInfo;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.ArrayMap;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.android.launcher3.BuildConfig;
 import com.android.launcher3.Launcher;
@@ -60,7 +64,7 @@ public class ApiWrapper implements ResourceBasedOverride, SafeCloseable {
     /**
      * Returns the list of persons associated with the provided shortcut info
      */
-    public static Person[] getPersons(ShortcutInfo si) {
+    public Person[] getPersons(ShortcutInfo si) {
         return Utilities.EMPTY_PERSON_ARRAY;
     }
 
@@ -90,10 +94,28 @@ public class ApiWrapper implements ResourceBasedOverride, SafeCloseable {
                 // TODO: Migrate to a better platform API
                 NoopDrawable d = new NoopDrawable();
                 boolean isWork = (d != mContext.getPackageManager().getUserBadgedIcon(d, user));
+
+                var launcherApps = mContext.getSystemService(LauncherApps.class);
                 UserIconInfo info = new UserIconInfo(
                         user,
                         isWork ? UserIconInfo.TYPE_WORK : UserIconInfo.TYPE_MAIN,
                         serial);
+
+                if (launcherApps != null && Utilities.ATLEAST_U) {
+                    LauncherUserInfo userInfo = launcherApps.getLauncherUserInfo(user);
+                    if (userInfo != null) {
+                        var userType = userInfo.getUserType();
+                        info = new UserIconInfo(
+                                user,
+                                userType.equals (UserManager.USER_TYPE_PROFILE_MANAGED) ? UserIconInfo.TYPE_WORK :
+                                        userType.equals (UserManager.USER_TYPE_PROFILE_CLONE) ? UserIconInfo.TYPE_CLONED :
+                                                userType.equals (UserManager.USER_TYPE_PROFILE_PRIVATE) ? UserIconInfo.TYPE_PRIVATE :
+                                                        UserIconInfo.TYPE_MAIN,
+                                serial
+                        );
+                    }
+                }
+
                 users.put(user, info);
             }
         }
@@ -145,14 +167,16 @@ public class ApiWrapper implements ResourceBasedOverride, SafeCloseable {
      * as HOME app, a toast asking the user to do the latter is shown.
      */
     public void assignDefaultHomeRole(Context context) {
-        RoleManager roleManager = context.getSystemService(RoleManager.class);
-        assert roleManager != null;
-        if (roleManager.isRoleAvailable(RoleManager.ROLE_HOME)
-                && !roleManager.isRoleHeld(RoleManager.ROLE_HOME)) {
-            Intent roleRequestIntent = roleManager.createRequestRoleIntent(
-                    RoleManager.ROLE_HOME);
-            Launcher launcher = Launcher.getLauncher(context);
-            launcher.startActivityForResult(roleRequestIntent, REQUEST_HOME_ROLE);
+        RoleManager roleManager = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            roleManager = context.getSystemService(RoleManager.class);
+            if (roleManager != null && roleManager.isRoleAvailable (RoleManager.ROLE_HOME)
+                    && !roleManager.isRoleHeld (RoleManager.ROLE_HOME)) {
+                Intent roleRequestIntent = roleManager.createRequestRoleIntent (
+                        RoleManager.ROLE_HOME);
+                Launcher launcher = Launcher.getLauncher (context);
+                launcher.startActivityForResult (roleRequestIntent , REQUEST_HOME_ROLE);
+            }
         }
     }
 

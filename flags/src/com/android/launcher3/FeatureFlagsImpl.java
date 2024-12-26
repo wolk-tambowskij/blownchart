@@ -152,19 +152,19 @@ public final class FeatureFlagsImpl implements FeatureFlags {
         try {
             var properties = DeviceConfigHelper.Companion.getPrefs();
             enablePrivateSpace =
-                    properties.getBoolean(Flags.FLAG_ENABLE_PRIVATE_SPACE, true);
+                    properties.getBoolean(Flags.FLAG_ENABLE_PRIVATE_SPACE, BuildCompat.isAtLeastU());
             privateSpaceAddFloatingMaskView =
-                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_ADD_FLOATING_MASK_VIEW, false);
+                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_ADD_FLOATING_MASK_VIEW, BuildCompat.isAtLeastU());
             privateSpaceAnimation =
-                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_ANIMATION, true);
+                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_ANIMATION, BuildCompat.isAtLeastU());
             privateSpaceAppInstallerButton =
-                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_APP_INSTALLER_BUTTON, true);
+                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_APP_INSTALLER_BUTTON, BuildCompat.isAtLeastU());
             privateSpaceRestrictAccessibilityDrag =
-                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_RESTRICT_ACCESSIBILITY_DRAG, true);
+                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_RESTRICT_ACCESSIBILITY_DRAG, BuildCompat.isAtLeastU());
             privateSpaceRestrictItemDrag =
-                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_RESTRICT_ITEM_DRAG, true);
+                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_RESTRICT_ITEM_DRAG, BuildCompat.isAtLeastU());
             privateSpaceSysAppsSeparation =
-                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_SYS_APPS_SEPARATION, true);
+                    properties.getBoolean(Flags.FLAG_PRIVATE_SPACE_SYS_APPS_SEPARATION, BuildCompat.isAtLeastU());
         } catch (NullPointerException e) {
             throw new RuntimeException(
                     "Cannot read value from namespace launcher_search "

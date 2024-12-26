@@ -206,7 +206,7 @@ public class WorkspaceItemInfo extends ItemInfoWithIcon {
         }
 
         if (Utilities.ATLEAST_Q) {
-            Person[] persons = ApiWrapper.getPersons(shortcutInfo);
+            Person[] persons = ApiWrapper.INSTANCE.get(context).getPersons(shortcutInfo);
             personKeys = persons.length == 0 ? Utilities.EMPTY_STRING_ARRAY
                     : Arrays.stream(persons).map(Person::getKey).sorted().toArray(String[]::new);
         }
