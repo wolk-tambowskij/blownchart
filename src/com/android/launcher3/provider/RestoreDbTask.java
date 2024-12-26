@@ -198,7 +198,7 @@ public class RestoreDbTask {
                 });
     }
 
-    private static boolean performRestore(Context context, ModelDbController controller) {
+    public static boolean performRestore(Context context, ModelDbController controller) {
         SQLiteDatabase db = controller.getDb();
         FileLog.d(TAG, "performRestore: starting restore from db");
         try (SQLiteTransaction t = new SQLiteTransaction(db)) {

@@ -19,6 +19,8 @@ import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherFiles
 import com.android.launcher3.R
 import com.android.launcher3.model.DeviceGridState
+import com.android.launcher3.model.ModelDbController
+import com.android.launcher3.provider.RestoreDbTask
 import com.google.protobuf.Timestamp
 import java.io.File
 import java.io.FileInputStream
@@ -79,6 +81,9 @@ class LawnchairBackup(
         context.getDatabasePath(LAUNCHER_DB_FILE_NAME).parentFile?.deleteRecursively()
         DeviceGridState(info.gridState).writeToPrefs(context, true)
         readZip(handlers)
+
+        var dbController = ModelDbController(context)
+        RestoreDbTask.performRestore(context, dbController)
     }
 
     private suspend fun readZip(handlers: Map<String, suspend (InputStream) -> Unit>) {
