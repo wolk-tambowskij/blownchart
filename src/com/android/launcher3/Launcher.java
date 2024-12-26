@@ -2234,6 +2234,7 @@ public class Launcher extends StatefulActivity<LauncherState>
             BubbleTextView btv = (BubbleTextView) v;
             btv.setStayPressed(true);
             result.add(() -> btv.setStayPressed(false));
+            btv.resetIconScale(true);
         }
         return result;
     }

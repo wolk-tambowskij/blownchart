@@ -242,7 +242,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mDeviceProfile = mActivity.getDeviceProfile();
         mCenterVertically = a.getBoolean(R.styleable.BubbleTextView_centerVertically, false);
 
-        var grid = mDeviceProfile;
         mDisplay = a.getInteger(R.styleable.BubbleTextView_iconDisplay, DISPLAY_WORKSPACE);
         final int defaultIconSize;
         if (mDisplay == DISPLAY_WORKSPACE) {
@@ -252,9 +251,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             setCenterVertically(mDeviceProfile.iconCenterVertically);
         } else if (mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW
                 || mDisplay == DISPLAY_SEARCH_RESULT_APP_ROW) {
-            setTextSize(TypedValue.COMPLEX_UNIT_PX, grid.allAppsIconTextSizePx);
-            setCompoundDrawablePadding(grid.allAppsIconDrawablePaddingPx);
-            defaultIconSize = grid.allAppsIconSizePx;
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.allAppsIconTextSizePx);
+            setCompoundDrawablePadding(mDeviceProfile.allAppsIconDrawablePaddingPx);
+            defaultIconSize = mDeviceProfile.allAppsIconSizePx;
             LawnchairUtilsKt.overrideAllAppsTextColor(this);
         } else if (mDisplay == DISPLAY_FOLDER) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.folderChildTextSizePx);
@@ -308,6 +307,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         // Disable marques when not focused to that, so that updating text does not
         // cause relayout.
         setEllipsize(focused ? TruncateAt.MARQUEE : TruncateAt.END);
+        resetIconScale(true);
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
     }
 
@@ -347,6 +347,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         setTranslationY(0);
         setMaxLines(1);
         setVisibility(VISIBLE);
+        resetIconScale(true);
     }
 
     private void cancelDotScaleAnim() {
@@ -462,6 +463,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mDotParams.dotColor = IconPalette.getMutedColor(iconDrawable.getIconColor(), 0.54f);
         setIcon(iconDrawable);
         applyLabel(info);
+        resetIconScale(true);
     }
 
     public boolean shouldUseTheme() {
@@ -588,8 +590,11 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         // here
         // to avoid flickering.
         mIgnorePressedStateChange = true;
+        mStayPressed = true;
         boolean result = super.onKeyUp(keyCode, event);
         mIgnorePressedStateChange = false;
+        mStayPressed = false;
+        resetIconScale(true);
         refreshDrawableState();
         return result;
     }
@@ -1271,7 +1276,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     @Override
     public SafeCloseable prepareDrawDragView() {
-        resetIconScale();
+        resetIconScale(true);
         setForceHideDot(true);
         return () -> {
         };
@@ -1280,13 +1285,14 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     @Override
     public void resetIconScale(boolean shouldReset) {
         if (shouldReset) {
-            mIcon.resetScale();
+            resetIconScale();
         }
     }
 
     private void resetIconScale() {
         if (mIcon != null) {
             mIcon.resetScale();
+            setStayPressed(false);
         }
     }
 
