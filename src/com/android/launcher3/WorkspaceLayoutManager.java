@@ -137,6 +137,10 @@ public interface WorkspaceLayoutManager {
 
         // Get the canonical child id to uniquely represent this view in this screen
         ItemInfo info = (ItemInfo) child.getTag();
+        if (info == null) {
+            Log.e(TAG, "Attempted to add null item to workspace");
+            return;
+        }
         int childId = info.getViewId();
 
         boolean markCellsAsOccupied = !(child instanceof Folder);

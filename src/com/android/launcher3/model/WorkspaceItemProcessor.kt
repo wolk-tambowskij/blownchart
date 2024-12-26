@@ -340,16 +340,11 @@ class WorkspaceItemProcessor(
                     pmHelper
                 )
             }
-            val isArchived = try {
-                activityInfo.applicationInfo.isArchived
-            } catch (_: NoSuchFieldError) {
-                false
-            }
             if (
                 (c.restoreFlag != 0 ||
                     Flags.enableSupportForArchiving() &&
                         activityInfo != null &&
-                        isArchived) && !TextUtils.isEmpty(targetPkg)
+                        activityInfo.applicationInfo.isArchived) && !TextUtils.isEmpty(targetPkg)
             ) {
                 tempPackageKey.update(targetPkg, c.user)
                 val si = installingPkgs[tempPackageKey]

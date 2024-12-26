@@ -1,5 +1,7 @@
 package com.android.launcher3;
 // TODO(b/303773055): Remove the annotation after access issue is resolved.
+import androidx.core.os.BuildCompat;
+
 import com.android.quickstep.util.DeviceConfigHelper;
 
 import java.nio.file.Files;
@@ -109,7 +111,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
             enableSmartspaceRemovalToggle =
                     properties.getBoolean(Flags.FLAG_ENABLE_SMARTSPACE_REMOVAL_TOGGLE, true);
             enableSupportForArchiving =
-                    properties.getBoolean(Flags.FLAG_ENABLE_SUPPORT_FOR_ARCHIVING, true);
+                    properties.getBoolean(Flags.FLAG_ENABLE_SUPPORT_FOR_ARCHIVING, BuildCompat.isAtLeastU());
             enableTabletTwoPanePickerV2 =
                     properties.getBoolean(Flags.FLAG_ENABLE_TABLET_TWO_PANE_PICKER_V2, false);
             enableTaskbarCustomization =
