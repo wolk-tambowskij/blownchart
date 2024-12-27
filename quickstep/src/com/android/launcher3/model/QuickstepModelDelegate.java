@@ -117,7 +117,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
 
     private final InvariantDeviceProfile mIDP;
     private final AppEventProducer mAppEventProducer;
-    private final StatsManager mStatsManager;
+    private StatsManager mStatsManager;
 
     protected boolean mActive = false;
 
@@ -127,7 +127,11 @@ public class QuickstepModelDelegate extends ModelDelegate {
 
         mIDP = InvariantDeviceProfile.INSTANCE.get(context);
         StatsLogCompatManager.LOGS_CONSUMER.add(mAppEventProducer);
-        mStatsManager = context.getSystemService(StatsManager.class);
+        try {
+            mStatsManager = context.getSystemService(StatsManager.class);
+        } catch (Throwable e) {
+            Log.e(TAG, "Failed to get StatsManager", e);
+        }
     }
 
     @CallSuper
@@ -300,7 +304,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
                         return StatsManager.PULL_SUCCESS;
                     });
             Log.d(TAG, "Successfully registered for launcher snapshot logging!");
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
             Log.e(TAG, "Failed to register launcher snapshot logging callback with StatsManager",
                     e);
         }
@@ -342,7 +346,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
         if (mIsPrimaryInstance && mStatsManager != null && LawnchairQuickstepCompat.ATLEAST_R) {
             try {
                 mStatsManager.clearPullAtomCallback(SysUiStatsLog.LAUNCHER_LAYOUT_SNAPSHOT);
-            } catch (RuntimeException e) {
+            } catch (Throwable e) {
                 Log.e(TAG, "Failed to unregister snapshot logging callback with StatsManager", e);
             }
         }
