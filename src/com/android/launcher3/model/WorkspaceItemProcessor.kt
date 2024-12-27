@@ -340,28 +340,32 @@ class WorkspaceItemProcessor(
                     pmHelper
                 )
             }
-            if (
-                (c.restoreFlag != 0 ||
-                    Flags.enableSupportForArchiving() &&
-                        activityInfo != null &&
-                        activityInfo.applicationInfo.isArchived) && !TextUtils.isEmpty(targetPkg)
-            ) {
-                tempPackageKey.update(targetPkg, c.user)
-                val si = installingPkgs[tempPackageKey]
-                if (si == null) {
-                    info.runtimeStatusFlags =
-                        info.runtimeStatusFlags and
-                            ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE.inv()
-                } else if (
-                    activityInfo == null ||
-                        (Flags.enableSupportForArchiving() &&
-                            activityInfo.applicationInfo.isArchived)
+            try {
+                if (
+                    Utilities.ATLEAST_U && (c.restoreFlag != 0 ||
+                            Flags.enableSupportForArchiving() &&
+                            activityInfo != null &&
+                            activityInfo.applicationInfo.isArchived) && !TextUtils.isEmpty(targetPkg)
                 ) {
-                    // For archived apps, include progress info in case there is
-                    // a pending install session post restart of device.
-                    val installProgress = (si.getProgress() * 100).toInt()
-                    info.setProgressLevel(installProgress, PackageInstallInfo.STATUS_INSTALLING)
+                    tempPackageKey.update(targetPkg, c.user)
+                    val si = installingPkgs[tempPackageKey]
+                    if (si == null) {
+                        info.runtimeStatusFlags =
+                            info.runtimeStatusFlags and
+                                    ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE.inv()
+                    } else if (
+                        activityInfo == null ||
+                        (Flags.enableSupportForArchiving() &&
+                                activityInfo.applicationInfo.isArchived)
+                    ) {
+                        // For archived apps, include progress info in case there is
+                        // a pending install session post restart of device.
+                        val installProgress = (si.getProgress() * 100).toInt()
+                        info.setProgressLevel(installProgress, PackageInstallInfo.STATUS_INSTALLING)
+                    }
                 }
+            } catch (t: Throwable) {
+                Log.e(TAG, "Error loading icon", t)
             }
             c.checkAndAddItem(info, bgDataModel, memoryLogger)
         } else {

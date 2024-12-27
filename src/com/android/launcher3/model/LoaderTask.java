@@ -731,21 +731,25 @@ public class LoaderTask implements Runnable {
                 LauncherActivityInfo app = apps.get(i);
                 AppInfo appInfo = new AppInfo(app, mUserCache.getUserInfo(user),
                         ApiWrapper.INSTANCE.get(mApp.getContext()), mPmHelper, quietMode);
-                if (Flags.enableSupportForArchiving()) {
-                    if (app.getApplicationInfo().isArchived) {
-                        // For archived apps, include progress info in case there is a pending
-                        // install session post restart of device.
-                        String appPackageName = app.getApplicationInfo().packageName;
-                        SessionInfo si = mInstallingPkgsCached != null ? mInstallingPkgsCached.get(
-                                new PackageUserKey(appPackageName, user))
-                                : mSessionHelper.getActiveSessionInfo(user,
-                                appPackageName);
-                        if (si != null) {
-                            appInfo.runtimeStatusFlags |= FLAG_INSTALL_SESSION_ACTIVE;
-                            appInfo.setProgressLevel((int) (si.getProgress() * 100),
-                                    PackageInstallInfo.STATUS_INSTALLING);
+                try {
+                    if (Flags.enableSupportForArchiving()) {
+                        if (app.getApplicationInfo().isArchived) {
+                            // For archived apps, include progress info in case there is a pending
+                            // install session post restart of device.
+                            String appPackageName = app.getApplicationInfo().packageName;
+                            SessionInfo si = mInstallingPkgsCached != null ? mInstallingPkgsCached.get(
+                                    new PackageUserKey(appPackageName, user))
+                                    : mSessionHelper.getActiveSessionInfo(user,
+                                    appPackageName);
+                            if (si != null) {
+                                appInfo.runtimeStatusFlags |= FLAG_INSTALL_SESSION_ACTIVE;
+                                appInfo.setProgressLevel((int) (si.getProgress() * 100),
+                                        PackageInstallInfo.STATUS_INSTALLING);
+                            }
                         }
                     }
+                } catch (Throwable e) {
+                    // Ignore any exceptions while trying to get the session info.
                 }
 
                 iconRequestInfos.add(new IconRequestInfo<>(
