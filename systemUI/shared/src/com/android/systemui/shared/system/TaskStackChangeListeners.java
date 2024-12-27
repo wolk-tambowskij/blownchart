@@ -172,7 +172,7 @@ public class TaskStackChangeListeners {
                     if (!LawnchairQuickstepCompat.ATLEAST_V) return;
                     ActivityTaskManager.getService().registerTaskStackListener(this);
                     mRegistered = true;
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     Log.w(TAG, "Failed to call registerTaskStackListener", e);
                 }
             }
@@ -190,7 +190,7 @@ public class TaskStackChangeListeners {
                     if (!LawnchairQuickstepCompat.ATLEAST_V) return;
                     ActivityTaskManager.getService().unregisterTaskStackListener(this);
                     mRegistered = false;
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     Log.w(TAG, "Failed to call unregisterTaskStackListener", e);
                 }
             }

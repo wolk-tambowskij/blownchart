@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.View.OnAttachStateChangeListener;
 import android.view.ViewRootImpl;
 
+import com.android.launcher3.Utilities;
 import com.android.quickstep.RemoteAnimationTargets.ReleaseCheck;
 
 import app.lawnchair.compat.LawnchairQuickstepCompat;
@@ -76,7 +77,11 @@ public class SurfaceTransactionApplier extends ReleaseCheck {
 
     private void initialize(View view) {
         mTargetViewRootImpl = view.getViewRootImpl();
-        mBarrierSurfaceControl = mTargetViewRootImpl.getSurfaceControl();
+        try {
+            mBarrierSurfaceControl = mTargetViewRootImpl.getSurfaceControl();
+        } catch (Throwable t) {
+            // Ignore
+        }
         mInitialized = true;
     }
 
@@ -109,6 +114,7 @@ public class SurfaceTransactionApplier extends ReleaseCheck {
         final int toApplySeqNo = mLastSequenceNumber;
         setCanRelease(false);
         mTargetViewRootImpl.registerRtFrameCallback(frame -> {
+            if (mBarrierSurfaceControl == null && !Utilities.ATLEAST_Q) return;
             if (mBarrierSurfaceControl == null || !mBarrierSurfaceControl.isValid()) {
                 Message.obtain(mApplyHandler, MSG_UPDATE_SEQUENCE_NUMBER, toApplySeqNo, 0)
                         .sendToTarget();
