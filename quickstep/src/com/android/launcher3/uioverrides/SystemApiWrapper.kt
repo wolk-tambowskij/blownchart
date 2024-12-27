@@ -77,55 +77,69 @@ open class SystemApiWrapper(context: Context?) : ApiWrapper(context) {
         if (!enablePrivateSpace() || !LawnchairApp.isRecentsEnabled) {
             return super.queryAllUsers()
         }
-        val users = ArrayMap<UserHandle, UserIconInfo>()
-        mContext.getSystemService(UserManager::class.java)!!.userProfiles?.forEach { user ->
-            mContext.getSystemService(LauncherApps::class.java)!!.getLauncherUserInfo(user)?.apply {
-                users[user] =
-                    UserIconInfo(
-                        user,
-                        when (userType) {
-                            UserManager.USER_TYPE_PROFILE_MANAGED -> UserIconInfo.TYPE_WORK
-                            UserManager.USER_TYPE_PROFILE_CLONE -> UserIconInfo.TYPE_CLONED
-                            UserManager.USER_TYPE_PROFILE_PRIVATE -> UserIconInfo.TYPE_PRIVATE
-                            else -> UserIconInfo.TYPE_MAIN
-                        },
-                        userSerialNumber.toLong()
-                    )
+        return try {
+            val users = ArrayMap<UserHandle, UserIconInfo>()
+            mContext.getSystemService(UserManager::class.java)!!.userProfiles?.forEach { user ->
+                mContext.getSystemService(LauncherApps::class.java)!!.getLauncherUserInfo(user)?.apply {
+                    users[user] =
+                        UserIconInfo(
+                            user,
+                            when (userType) {
+                                UserManager.USER_TYPE_PROFILE_MANAGED -> UserIconInfo.TYPE_WORK
+                                UserManager.USER_TYPE_PROFILE_CLONE -> UserIconInfo.TYPE_CLONED
+                                UserManager.USER_TYPE_PROFILE_PRIVATE -> UserIconInfo.TYPE_PRIVATE
+                                else -> UserIconInfo.TYPE_MAIN
+                            },
+                            userSerialNumber.toLong()
+                        )
+                }
             }
+            return users
+        } catch (t : Throwable) {
+            return super.queryAllUsers()
         }
-        return users
     }
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-    override fun getPreInstalledSystemPackages(user: UserHandle): List<String> =
-        if (enablePrivateSpace() && privateSpaceSysAppsSeparation())
-            mContext
-                .getSystemService(LauncherApps::class.java)!!
-                .getPreInstalledSystemPackages(user)
-        else ArrayList()
+    override fun getPreInstalledSystemPackages(user: UserHandle): List<String> {
+       return try {
+           if (enablePrivateSpace() && privateSpaceSysAppsSeparation())
+               mContext
+                   .getSystemService(LauncherApps::class.java)!!
+                   .getPreInstalledSystemPackages(user)
+           else ArrayList()
+       } catch (t: Throwable) {
+           super.getPreInstalledSystemPackages(user)
+       }
+    }
 
-    override fun getAppMarketActivityIntent(packageName: String, user: UserHandle): Intent =
-        if (
-            enablePrivateSpace() &&
-            (privateSpaceAppInstallerButton() || enablePrivateSpaceInstallShortcut())
-        )
-            ProxyActivityStarter.getLaunchIntent(
-                mContext,
-                StartActivityParams(null as PendingIntent?, 0).apply {
-                    intentSender =
-                        mContext
-                            .getSystemService(LauncherApps::class.java)!!
-                            .getAppMarketActivityIntent(packageName, user)
-                    options =
-                        ActivityOptions.makeBasic()
-                            .setPendingIntentBackgroundActivityStartMode(
-                                ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                            )
-                            .toBundle()
-                    requireActivityResult = false
-                }
+    override fun getAppMarketActivityIntent(packageName: String, user: UserHandle): Intent {
+        return try {
+            if (
+                enablePrivateSpace() &&
+                (privateSpaceAppInstallerButton() || enablePrivateSpaceInstallShortcut())
             )
-        else super.getAppMarketActivityIntent(packageName, user)
+                ProxyActivityStarter.getLaunchIntent(
+                    mContext,
+                    StartActivityParams(null as PendingIntent?, 0).apply {
+                        intentSender =
+                            mContext
+                                .getSystemService(LauncherApps::class.java)!!
+                                .getAppMarketActivityIntent(packageName, user)
+                        options =
+                            ActivityOptions.makeBasic()
+                                .setPendingIntentBackgroundActivityStartMode(
+                                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                                )
+                                .toBundle()
+                        requireActivityResult = false
+                    }
+                )
+            else super.getAppMarketActivityIntent(packageName, user)
+        } catch (t: Throwable) {
+            super.getAppMarketActivityIntent(packageName, user)
+        }
+    }
 
     /** Returns an intent which can be used to open Private Space Settings. */
     override fun getPrivateSpaceSettingsIntent(): Intent? =

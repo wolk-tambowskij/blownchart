@@ -101,19 +101,23 @@ public class ApiWrapper implements ResourceBasedOverride, SafeCloseable {
                         isWork ? UserIconInfo.TYPE_WORK : UserIconInfo.TYPE_MAIN,
                         serial);
 
-                if (launcherApps != null && Utilities.ATLEAST_V) {
-                    LauncherUserInfo userInfo = launcherApps.getLauncherUserInfo(user);
-                    if (userInfo != null) {
-                        var userType = userInfo.getUserType();
-                        info = new UserIconInfo(
-                                user,
-                                userType.equals (UserManager.USER_TYPE_PROFILE_MANAGED) ? UserIconInfo.TYPE_WORK :
-                                        userType.equals (UserManager.USER_TYPE_PROFILE_CLONE) ? UserIconInfo.TYPE_CLONED :
-                                                userType.equals (UserManager.USER_TYPE_PROFILE_PRIVATE) ? UserIconInfo.TYPE_PRIVATE :
-                                                        UserIconInfo.TYPE_MAIN,
-                                serial
-                        );
+                try {
+                    if (Utilities.ATLEAST_U && launcherApps != null) {
+                        LauncherUserInfo userInfo = launcherApps.getLauncherUserInfo(user);
+                        if (userInfo != null) {
+                            var userType = userInfo.getUserType();
+                            info = new UserIconInfo(
+                                    user,
+                                    userType.equals (UserManager.USER_TYPE_PROFILE_MANAGED) ? UserIconInfo.TYPE_WORK :
+                                            userType.equals (UserManager.USER_TYPE_PROFILE_CLONE) ? UserIconInfo.TYPE_CLONED :
+                                                    userType.equals (UserManager.USER_TYPE_PROFILE_PRIVATE) ? UserIconInfo.TYPE_PRIVATE :
+                                                            UserIconInfo.TYPE_MAIN,
+                                    serial
+                            );
+                        }
                     }
+                } catch (Throwable t) {
+                    // Ignore
                 }
 
                 users.put(user, info);
