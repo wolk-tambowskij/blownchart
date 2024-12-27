@@ -142,25 +142,30 @@ open class SystemApiWrapper(context: Context?) : ApiWrapper(context) {
     }
 
     /** Returns an intent which can be used to open Private Space Settings. */
-    override fun getPrivateSpaceSettingsIntent(): Intent? =
-        if (enablePrivateSpace())
-            ProxyActivityStarter.getLaunchIntent(
-                mContext,
-                StartActivityParams(null as PendingIntent?, 0).apply {
-                    intentSender =
-                        mContext
-                            .getSystemService(LauncherApps::class.java)
-                            ?.privateSpaceSettingsIntent ?: return null
-                    options =
-                        ActivityOptions.makeBasic()
-                            .setPendingIntentBackgroundActivityStartMode(
-                                ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                            )
-                            .toBundle()
-                    requireActivityResult = false
-                }
-            )
-        else null
+    override fun getPrivateSpaceSettingsIntent(): Intent? {
+        return try {
+            if (enablePrivateSpace())
+                ProxyActivityStarter.getLaunchIntent(
+                    mContext,
+                    StartActivityParams(null as PendingIntent?, 0).apply {
+                        intentSender =
+                            mContext
+                                .getSystemService(LauncherApps::class.java)
+                                ?.privateSpaceSettingsIntent ?: return null
+                        options =
+                            ActivityOptions.makeBasic()
+                                .setPendingIntentBackgroundActivityStartMode(
+                                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                                )
+                                .toBundle()
+                        requireActivityResult = false
+                    }
+                )
+            else null
+        } catch (t: Throwable) {
+            super.privateSpaceSettingsIntent
+        }
+    }
 
     override fun isNonResizeableActivity(lai: LauncherActivityInfo): Boolean {
         return try {
