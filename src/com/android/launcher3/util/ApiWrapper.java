@@ -101,7 +101,7 @@ public class ApiWrapper implements ResourceBasedOverride, SafeCloseable {
                         isWork ? UserIconInfo.TYPE_WORK : UserIconInfo.TYPE_MAIN,
                         serial);
 
-                if (launcherApps != null && Utilities.ATLEAST_U) {
+                if (launcherApps != null && Utilities.ATLEAST_V) {
                     LauncherUserInfo userInfo = launcherApps.getLauncherUserInfo(user);
                     if (userInfo != null) {
                         var userType = userInfo.getUserType();
