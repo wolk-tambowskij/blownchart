@@ -32,6 +32,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.util.SparseArray;
 import android.widget.Toast;
 
@@ -114,7 +115,7 @@ public class LauncherWidgetHolder {
             mWidgetHost.startListening();
         } catch (Exception e) {
             if (!Utilities.isBinderSizeError(e)) {
-                throw new RuntimeException(e);
+                return;
             }
             // We're willing to let this slide. The exception is being caused by the list of
             // RemoteViews which is being passed back. The startListening relationship will
@@ -306,8 +307,15 @@ public class LauncherWidgetHolder {
         if (!WIDGETS_ENABLED) {
             return;
         }
-        mWidgetHost.stopListening();
-        setListeningFlag(false);
+        try {
+            if (mWidgetHost != null) {
+                mWidgetHost.stopListening();
+            }
+        } catch (Exception e) {
+            Log.e("LauncherWidgetHolder", "Error stopping widget listening", e);
+        } finally {
+            setListeningFlag(false);
+        }
     }
 
     protected void setListeningFlag(final boolean isListening) {
