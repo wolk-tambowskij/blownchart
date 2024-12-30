@@ -238,6 +238,22 @@ public class LauncherWidgetHolder {
         } catch (ActivityNotFoundException | SecurityException e) {
             Toast.makeText(activity, R.string.activity_not_found, Toast.LENGTH_SHORT).show();
             sendActionCancelled(activity, requestCode);
+        } catch (IllegalArgumentException e) {
+            // Widget ID became invalid, possibly due to two-step configuration some cases
+            Log.e(this.getClass().getName(), "Widget ID became invalid during configuration", e);
+            handleInvalidWidgetId(activity, widgetId, requestCode);
+        }
+    }
+
+    private void handleInvalidWidgetId(BaseDraggingActivity activity, int widgetId, int requestCode) {
+        // Remove the invalid widget
+        deleteAppWidgetId(widgetId);
+
+        int newWidgetId = allocateAppWidgetId();
+        if (newWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+            startConfigActivity(activity, newWidgetId, requestCode);
+        } else {
+            sendActionCancelled(activity, requestCode);
         }
     }
 
@@ -272,7 +288,9 @@ public class LauncherWidgetHolder {
         // Must allow background activity start for U.
         Utilities.allowBGLaunch(activityOptionsWrapper.options);
         Bundle bundle = activityOptionsWrapper.toBundle();
-        bundle.putInt(KEY_SPLASH_SCREEN_STYLE, SPLASH_SCREEN_STYLE_EMPTY);
+        if (Utilities.ATLEAST_S) {
+            bundle.putInt(KEY_SPLASH_SCREEN_STYLE, SPLASH_SCREEN_STYLE_EMPTY);
+        }
         return bundle;
     }
 
