@@ -415,8 +415,7 @@ class LawnchairLauncher : QuickstepLauncher() {
      */
     private fun reloadIconsIfNeeded() {
         if (
-            preferenceManager2.alwaysReloadIcons.firstBlocking() &&
-            (prefs.iconPackPackage.get().isNotEmpty() || prefs.themedIconPackPackage.get().isNotEmpty())
+            preferenceManager2.alwaysReloadIcons.firstBlocking()
         ) {
             LauncherAppState.getInstance(this).reloadIcons()
         }
