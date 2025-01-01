@@ -44,14 +44,14 @@ public interface ComponentWithLabelAndIcon extends ComponentWithLabel {
         @NonNull
         @Override
         public BitmapInfo loadIcon(@NonNull Context context,
-                @NonNull ComponentWithLabelAndIcon object) {
+                                   @NonNull ComponentWithLabelAndIcon object) {
             Drawable d = object.getFullResIcon(LauncherAppState.getInstance(context)
-                    .getIconCache());
+                .getIconCache());
             if (d == null) {
                 return super.loadIcon(context, object);
             }
             try (LauncherIcons li = LauncherIcons.obtain(context)) {
-                return li.createBadgedIconBitmap(d);
+                return li.createBadgedIconBitmap(d, new BaseIconFactory.IconOptions().setUser(object.getUser()));
             }
         }
     }

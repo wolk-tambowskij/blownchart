@@ -764,6 +764,10 @@ public final class Utilities {
             badge = icon.getBadge();
         }
 
+        if (useTheme && mainIcon instanceof BitmapInfo.Extender) {
+            mainIcon = ((BitmapInfo.Extender) mainIcon).getThemedDrawable(context);
+        }
+
         if (mainIcon == null) {
             return null;
         }

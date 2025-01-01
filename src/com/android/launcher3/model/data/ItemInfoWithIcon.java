@@ -23,7 +23,6 @@ import android.os.Process;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.Flags;
-import com.android.launcher3.Utilities;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.logging.FileLog;
@@ -328,7 +327,7 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
      * Returns a FastBitmapDrawable with the icon and context theme applied
      */
     public FastBitmapDrawable newIcon(Context context, @BitmapInfo.DrawableCreationFlags int creationFlags) {
-        FastBitmapDrawable drawable = bitmap.newIcon(context, creationFlags);
+        FastBitmapDrawable drawable = (creationFlags & BitmapInfo.FLAG_THEMED) != 0 ? bitmap.newThemedIcon(context) : bitmap.newIcon(context, creationFlags);
         drawable.setIsDisabled(isDisabled());
         return drawable;
     }
