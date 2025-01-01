@@ -94,7 +94,7 @@ class PreferenceManager private constructor(private val context: Context) : Base
 
     val allAppBulkIconLoading = BoolPref("pref_allapps_bulk_icon_loading", false, recreate)
 
-    val themedIcons = BoolPref("themed_icons", true, recreate)
+    val themedIcons = BoolPref("themed_icons", false, recreate)
     val drawerThemedIcons = BoolPref("drawer_themed_icons", false, recreate)
     val tintIconPackBackgrounds = BoolPref("tint_icon_pack_backgrounds", false, recreate)
 
