@@ -214,6 +214,7 @@ public abstract class FastScrollRecyclerView extends RecyclerView {
         if (state == SCROLL_STATE_IDLE) {
             AccessibilityManagerCompat.sendTestProtocolEventToTest(getContext(),
                     SCROLL_FINISHED_MESSAGE);
+            saveScrollPosition();
         }
     }
 
