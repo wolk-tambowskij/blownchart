@@ -86,6 +86,7 @@ fun DockPreferences(
         val hotseatBgVerticalInsetTopAdapter = prefs.hotseatBGVerticalInsetTop.getAdapter()
         val hotseatBgHorizontalInsetRightAdapter = prefs.hotseatBGHorizontalInsetRight.getAdapter()
         val hotseatBgVerticalInsetBottomAdapter = prefs.hotseatBGVerticalInsetBottom.getAdapter()
+        val pageIndicatorHeightFactorAdapter = prefs2.pageIndicatorHeightFactor.getAdapter()
 
         MainSwitchPreference(adapter = isHotseatEnabled, label = stringResource(id = R.string.show_hotseat_title)) {
             if (isPortrait) {
@@ -115,6 +116,7 @@ fun DockPreferences(
                             hotseatBgHorizontalInsetRightAdapter.state.value,
                             hotseatBgVerticalInsetBottomAdapter.state.value,
                             hotseatBottomFactorAdapter.state.value,
+                            pageIndicatorHeightFactorAdapter.state.value,
                         ) {
                             DummyLauncherLayout(
                                 idp = createPreviewIdp { copy(numHotseatColumns = prefs.hotseatColumns.get()) },
@@ -223,6 +225,13 @@ fun DockPreferences(
                     adapter = hotseatBottomFactorAdapter,
                     label = stringResource(id = R.string.hotseat_bottom_space_label),
                     valueRange = 0.0F..1.7F,
+                    step = 0.1F,
+                    showAsPercentage = true,
+                )
+                SliderPreference(
+                    adapter = pageIndicatorHeightFactorAdapter,
+                    label = stringResource(id = R.string.page_indicator_height),
+                    valueRange = 0.0F..1.0F,
                     step = 0.1F,
                     showAsPercentage = true,
                 )

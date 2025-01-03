@@ -391,6 +391,12 @@ class PreferenceManager2 private constructor(private val context: Context) : Pre
         onSet = { reloadHelper.reloadGrid() },
     )
 
+    val pageIndicatorHeightFactor = preference(
+        key = floatPreferencesKey(name = "page_indicator_height_factor"),
+        defaultValue = resourceProvider.getFloat(R.dimen.page_indicator_height_factor),
+        onSet = { reloadHelper.reloadGrid() },
+    )
+
     val drawerIconLabelSizeFactor = preference(
         key = floatPreferencesKey(name = "drawer_icon_label_size_factor"),
         defaultValue = resourceProvider.getFloat(R.dimen.config_default_drawer_icon_label_size_factor),

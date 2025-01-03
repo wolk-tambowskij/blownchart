@@ -184,7 +184,7 @@ public class DeviceProfile {
     public int workspaceBottomPadding;
 
     // Workspace page indicator
-    public final int workspacePageIndicatorHeight;
+    public int workspacePageIndicatorHeight;
     private final int mWorkspacePageIndicatorOverlapWorkspace;
 
     // Workspace icons
@@ -523,6 +523,10 @@ public class DeviceProfile {
 
         workspacePageIndicatorHeight = res.getDimensionPixelSize(
                 R.dimen.workspace_page_indicator_height);
+        float pageIndicatorHeightFactor = PreferenceExtensionsKt
+            .firstBlocking(preferenceManager2.getPageIndicatorHeightFactor());
+        
+        workspacePageIndicatorHeight *= (int) pageIndicatorHeightFactor;
         mWorkspacePageIndicatorOverlapWorkspace = res
                 .getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace);
 
