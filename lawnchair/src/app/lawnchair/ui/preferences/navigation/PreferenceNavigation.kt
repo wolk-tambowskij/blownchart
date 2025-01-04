@@ -120,7 +120,16 @@ fun InnerNavigation(
             composable(route = AppDrawerRoutes.HIDDEN_APPS) { HiddenAppsPreferences() }
         }
 
-        composable(route = Routes.SEARCH) { SearchPreferences() }
+        composable(
+            route = "${Routes.SEARCH}/{selectedId}",
+            arguments = listOf(
+                navArgument("selectedId") { type = NavType.IntType },
+            ),
+        ) { backStackEntry ->
+            val args = backStackEntry.arguments!!
+            val selectedId = args.getInt("selectedId")
+            SearchPreferences(currentTab = selectedId)
+        }
         composable(route = Routes.FOLDERS) { FolderPreferences() }
 
         composable(route = Routes.GESTURES) { GesturePreferences() }

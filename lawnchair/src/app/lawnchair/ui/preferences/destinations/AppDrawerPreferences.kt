@@ -76,6 +76,7 @@ fun AppDrawerPreferences(
             )
             SuggestionsPreference()
         }
+        SearchBarPreference(1)
         PreferenceGroup(heading = stringResource(id = R.string.hidden_apps_label)) {
             val hiddenApps = prefs2.hiddenApps.getAdapter().state.value
             NavigationActionPreference(

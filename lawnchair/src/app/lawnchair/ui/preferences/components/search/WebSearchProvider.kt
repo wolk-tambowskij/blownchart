@@ -1,4 +1,4 @@
-package app.lawnchair.ui.preferences.components
+package app.lawnchair.ui.preferences.components.search
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

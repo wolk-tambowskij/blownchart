@@ -121,10 +121,10 @@ fun PreferencesDashboard(
         )
 
         PreferenceCategory(
-            label = stringResource(R.string.drawer_search_label),
+            label = stringResource(R.string.search_bar_label),
             description = stringResource(R.string.drawer_search_description),
             iconResource = R.drawable.ic_search,
-            onNavigate = { onNavigate(Routes.SEARCH) },
+            onNavigate = { onNavigate("${Routes.SEARCH}/0") },
             isSelected = currentRoute.contains(Routes.SEARCH),
         )
 

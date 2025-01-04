@@ -1,4 +1,4 @@
-package app.lawnchair.ui.preferences.components
+package app.lawnchair.ui.preferences.components.search
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background

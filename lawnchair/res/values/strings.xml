@@ -540,7 +540,10 @@
     <!-- Dock settings -->
     <string name="show_hotseat_title">Show dock</string>
 
+    <string name="enable_dock_to_access_qsb_settings">Search bar settings are available when the Dock is visible. Tap to show the Dock.</string>
+
     <string name="search_bar_label">Search bar</string>
+    <string name="search_bar_settings">Search bar settings</string>
     <string name="hotseat_mode_label">Search bar widget</string>
     <string name="hotseat_mode_disabled">Disabled</string>
     <string name="hotseat_mode_lawnchair" translatable="false">Lawnchair</string>

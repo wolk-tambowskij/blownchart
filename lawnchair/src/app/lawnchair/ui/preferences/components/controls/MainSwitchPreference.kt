@@ -118,7 +118,7 @@ fun MainSwitchPreference(
                 .fillMaxHeight()
                 .padding(vertical = 24.dp)
                 .padding(start = 16.dp),
-            title = { Text(text = label) },
+            title = { Text(text = label, style = MaterialTheme.typography.titleMedium) },
             endWidget = {
                 Switch(
                     modifier = Modifier
