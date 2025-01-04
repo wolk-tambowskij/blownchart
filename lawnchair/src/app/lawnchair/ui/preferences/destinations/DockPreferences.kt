@@ -85,28 +85,28 @@ fun DockPreferences(
                         SliderPreference(
                             label = stringResource(id = R.string.hotseat_bg_horizontal_inset_left),
                             adapter = hotseatBgHorizontalInsetLeftAdapter,
-                            step = 1,
+                            step = 5,
                             valueRange = 0..100,
                             showUnit = "px",
                         )
                         SliderPreference(
                             label = stringResource(id = R.string.hotseat_bg_horizontal_inset_right),
                             adapter = hotseatBgHorizontalInsetRightAdapter,
-                            step = 1,
+                            step = 5,
                             valueRange = 0..100,
                             showUnit = "px",
                         )
                         SliderPreference(
                             label = stringResource(id = R.string.hotseat_bg_vertical_inset_top),
                             adapter = hotseatBgVerticalInsetTopAdapter,
-                            step = 1,
+                            step = 5,
                             valueRange = 0..100,
                             showUnit = "px",
                         )
                         SliderPreference(
                             label = stringResource(id = R.string.hotseat_bg_vertical_inset_bottom),
                             adapter = hotseatBgVerticalInsetBottomAdapter,
-                            step = 1,
+                            step = 5,
                             valueRange = 0..100,
                             showUnit = "px",
                         )
