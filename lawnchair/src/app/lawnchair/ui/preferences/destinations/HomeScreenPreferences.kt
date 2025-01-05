@@ -49,6 +49,7 @@ import kotlinx.coroutines.launch
 
 object HomeScreenRoutes {
     const val GRID = "grid"
+    const val POPUP_EDITOR = "popup_editor"
 }
 
 @Composable
@@ -136,19 +137,7 @@ fun HomeScreenPreferences(
                 label = stringResource(id = R.string.show_material_u_popup_label),
                 description = stringResource(id = R.string.show_material_u_popup_description),
             )
-            SwitchPreference(
-                adapter = prefs2.lockHomeScreenButtonOnPopUp.getAdapter(),
-                label = stringResource(id = R.string.home_screen_lock_toggle_from_home_popup),
-            )
-            SwitchPreference(
-                adapter = prefs2.showSystemSettingsEntryOnPopUp.getAdapter(),
-                label = stringResource(id = R.string.show_system_settings_entry),
-            )
-            SwitchPreference(
-                adapter = prefs2.editHomeScreenButtonOnPopUp.getAdapter(),
-                label = stringResource(id = R.string.home_screen_edit_toggle_from_home_popup),
-                enabled = lockHomeScreenAdapter.state.value.not(),
-            )
+            LauncherPopupPreferenceItem()
         }
         PreferenceGroup(heading = stringResource(id = R.string.status_bar_label)) {
             val showStatusBarAdapter = prefs2.showStatusBar.getAdapter()

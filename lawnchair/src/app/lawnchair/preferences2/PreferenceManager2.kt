@@ -42,6 +42,7 @@ import app.lawnchair.smartspace.model.SmartspaceTimeFormat
 import app.lawnchair.theme.color.ColorMode
 import app.lawnchair.theme.color.ColorOption
 import app.lawnchair.theme.color.ColorStyle
+import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.ui.preferences.components.HiddenAppsInSearch
 import app.lawnchair.util.kotlinxJson
 import com.android.launcher3.InvariantDeviceProfile
@@ -254,6 +255,12 @@ class PreferenceManager2 private constructor(private val context: Context) : Pre
     val lockHomeScreen = preference(
         key = booleanPreferencesKey(name = "lock_home_screen"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_lock_home_screen),
+    )
+
+    val launcherPopupOrder = preference(
+        key = stringPreferencesKey(name = "launcher_popup_order"),
+        defaultValue = LauncherOptionsPopup.DEFAULT_ORDER,
+        onSet = { reloadHelper.reloadGrid() },
     )
 
     val lockHomeScreenButtonOnPopUp = preference(
