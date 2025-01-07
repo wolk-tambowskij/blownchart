@@ -217,6 +217,8 @@ public class AllAppsState extends LauncherState {
 
     @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
-        return LawnchairUtilsKt.getAllAppsScrimColor(launcher);
+        return launcher.getDeviceProfile().isTablet 
+            ? launcher.getResources().getColor(android.R.color.transparent) 
+            : LawnchairUtilsKt.getAllAppsScrimColor(launcher);
     }
 }

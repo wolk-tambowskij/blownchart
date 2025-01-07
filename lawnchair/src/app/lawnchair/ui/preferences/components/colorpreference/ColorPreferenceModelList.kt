@@ -33,6 +33,13 @@ class ColorPreferenceModelList(context: Context) {
         )
         registerModel(
             ColorPreferenceModel(
+                prefObject = prefs.appDrawerBackgroundColor,
+                labelRes = R.string.app_drawer_bg_color_label,
+                dynamicEntries = dynamicColorsWithDefault,
+            ),
+        )
+        registerModel(
+            ColorPreferenceModel(
                 prefObject = prefs.notificationDotColor,
                 labelRes = R.string.notification_dots_color,
                 dynamicEntries = dynamicColorsWithDefault,

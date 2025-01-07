@@ -151,7 +151,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     protected WorkProfileManager mWorkManager;
     protected final PrivateProfileManager mPrivateProfileManager;
     protected final Point mFastScrollerOffset = new Point();
-    protected final int mScrimColor;
+    protected int mScrimColor;
     protected final float mHeaderThreshold;
     protected final AllAppsSearchUiDelegate mSearchUiDelegate;
 
@@ -832,6 +832,11 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     protected int getHeaderColor(float blendRatio) {
         var opacity = pref.getDrawerOpacity().get();
+        var colorOptions = PreferenceExtensionsKt.firstBlocking(pref2.getAppDrawerBackgroundColor());
+        var color = colorOptions.getColorPreferenceEntry().getLightColor().invoke(mContext);
+        if (color != 0) {
+            mScrimColor = color;
+        }
         return ColorUtils.setAlphaComponent(
                 ColorUtils.blendARGB(mScrimColor, mHeaderProtectionColor, blendRatio),
                 Math.round(opacity * 255));

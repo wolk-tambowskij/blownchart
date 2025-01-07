@@ -620,6 +620,7 @@
     <string name="app_drawer_columns">App drawer columns</string>
     <string name="row_height_label">Row height</string>
     <string name="app_drawer_indent_label">Horizontal padding</string>
+    <string name="app_drawer_bg_color_label">Background color</string>
 
     <!-- HiddenAppsPreferences -->
     <string name="hide_from_drawer">Hide from app drawer</string>
