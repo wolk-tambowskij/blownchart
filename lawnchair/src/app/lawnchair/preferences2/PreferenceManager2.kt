@@ -145,7 +145,7 @@ class PreferenceManager2 private constructor(private val context: Context) :
         key = stringPreferencesKey(name = "app_drawer_bg_color"),
         parse = ColorOption::fromString,
         save = ColorOption::toString,
-        onSet = { reloadHelper.reloadGrid() },
+        onSet = { reloadHelper.recreate() },
         defaultValue = ColorOption.fromString(context.getString(R.string.config_default_app_drawer_bg_color)),
     )
 
