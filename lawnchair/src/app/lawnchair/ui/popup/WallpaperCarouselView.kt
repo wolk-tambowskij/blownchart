@@ -39,22 +39,13 @@ class WallpaperCarouselView @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     private val viewModel: WallpaperViewModel
-
     private val deviceProfile = ActivityContext.lookupContext<LawnchairLauncher>(context).deviceProfile
-
     private var currentItemIndex = 0
     private val iconFrame = IconFrame(context).apply {
         setIcon(R.drawable.ic_tick)
-        setBackgroundWithRadius(
-            bgColor = Themes.getColorAccent(context),
-            cornerRadius = 100F,
-        )
+        setBackgroundWithRadius(bgColor = Themes.getColorAccent(context), cornerRadius = 100F)
     }
-
-    private val loadingView: ProgressBar = ProgressBar(context).apply {
-        isIndeterminate = true
-        visibility = VISIBLE
-    }
+    private val loadingView: ProgressBar = ProgressBar(context).apply { isIndeterminate = true }
 
     init {
         orientation = HORIZONTAL
@@ -71,102 +62,97 @@ class WallpaperCarouselView @JvmOverloads constructor(
                 visibility = GONE
                 loadingView.visibility = GONE
             } else {
-                try {
-                    visibility = VISIBLE
-                    displayWallpapers(wallpapers)
-                } catch (e: Exception) {
-                    Log.e("WallpaperCarouselView", "Error displaying wallpapers: ${e.message}")
-                }
+                visibility = VISIBLE
+                displayWallpapers(wallpapers)
             }
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     private fun displayWallpapers(wallpapers: List<Wallpaper>) {
         removeAllViews()
         val isLandscape = deviceProfile.isLandscape
         val totalWidth = width.takeIf { it > 0 } ?: (deviceProfile.widthPx * if (isLandscape) 0.5 else 0.8).toInt()
-
         val firstItemWidth = totalWidth * 0.5
         val remainingWidth = totalWidth - firstItemWidth
-
         val marginBetweenItems = totalWidth * 0.02
         val itemWidth = (remainingWidth - (marginBetweenItems * (wallpapers.size - 1))) / (wallpapers.size - 1)
 
         wallpapers.forEachIndexed { index, wallpaper ->
-            val cardView = CardView(context).apply {
-                radius = Themes.getDialogCornerRadius(context) / 2
-
-                layoutParams = LayoutParams(
-                    when (index) {
-                        currentItemIndex -> firstItemWidth.toInt()
-                        else -> itemWidth.toInt()
-                    },
-                    LayoutParams.MATCH_PARENT,
-                ).apply {
-                    setMargins(
-                        if (index > 0) marginBetweenItems.toInt() else 0,
-                        0,
-                        0,
-                        0,
-                    )
-                }
-
-                setOnTouchListener { _, _ ->
-                    if (index != currentItemIndex) {
-                        animateWidthTransition(index, firstItemWidth, itemWidth)
-                    } else {
-                        setWallpaper(wallpaper)
-                    }
-                    true
-                }
-            }
-
-            val placeholderImageView = ImageView(context).apply {
-                setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_deepshortcut_placeholder))
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            }
-
-            cardView.addView(placeholderImageView)
+            val cardView = createCardView(index, firstItemWidth, itemWidth, marginBetweenItems, wallpaper)
             addView(cardView)
 
-            CoroutineScope(Dispatchers.IO).launch {
-                val wallpaperFile = File(wallpaper.imagePath)
-                if (wallpaperFile.exists()) {
-                    val bitmap = BitmapFactory.decodeFile(wallpaper.imagePath)
-                    withContext(Dispatchers.Main) {
-                        (cardView.getChildAt(0) as? ImageView)?.apply {
-                            setImageBitmap(bitmap)
-                        }
-                        if (index == currentItemIndex) {
-                            addIconFrameToCenter(cardView)
-                        }
-                    }
-                } else {
-                    Log.e("WallpaperCarouselView", "File not found: ${wallpaper.imagePath}")
-                    withContext(Dispatchers.Main) {
-                        (cardView.getChildAt(0) as? ImageView)?.apply {
-                            setImageDrawable(
-                                ContextCompat.getDrawable(context, R.drawable.ic_deepshortcut_placeholder),
-                            )
-                        }
-                    }
-                }
-            }
+            // Load the wallpaper image only if necessary
+            loadWallpaperImage(wallpaper, cardView, index == currentItemIndex)
         }
 
         loadingView.visibility = GONE
-        requestLayout()
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        if (viewModel.wallpapers.value?.isNotEmpty() == true) {
-            displayWallpapers(viewModel.wallpapers.value!!)
+    @SuppressLint("ClickableViewAccessibility")
+    private fun createCardView(
+        index: Int,
+        firstItemWidth: Double,
+        itemWidth: Double,
+        marginBetweenItems: Double,
+        wallpaper: Wallpaper,
+    ): CardView {
+        return CardView(context).apply {
+            radius = Themes.getDialogCornerRadius(context) / 2
+            layoutParams = LayoutParams(
+                when (index) {
+                    currentItemIndex -> firstItemWidth.toInt()
+                    else -> itemWidth.toInt()
+                },
+                LayoutParams.MATCH_PARENT,
+            ).apply {
+                setMargins(
+                    if (index > 0) marginBetweenItems.toInt() else 0,
+                    0,
+                    0,
+                    0,
+                )
+            }
+
+            setOnTouchListener { _, _ ->
+                if (index != currentItemIndex) {
+                    animateWidthTransition(index, firstItemWidth, itemWidth)
+                } else {
+                    setWallpaper(wallpaper)
+                }
+                true
+            }
+        }
+    }
+
+    private fun loadWallpaperImage(wallpaper: Wallpaper, cardView: CardView, isCurrent: Boolean) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val wallpaperFile = File(wallpaper.imagePath)
+            val bitmap = if (wallpaperFile.exists()) {
+                BitmapFactory.decodeFile(wallpaper.imagePath)
+            } else {
+                null
+            }
+
+            withContext(Dispatchers.Main) {
+                val imageView = ImageView(context).apply {
+                    setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_deepshortcut_placeholder))
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                }
+                cardView.addView(imageView)
+
+                if (bitmap != null) {
+                    imageView.setImageBitmap(bitmap)
+                    if (isCurrent) addIconFrameToCenter(cardView)
+                } else {
+                    Log.e("WallpaperCarouselView", "File not found: ${wallpaper.imagePath}")
+                    imageView.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_deepshortcut_placeholder))
+                }
+            }
         }
     }
 
     private fun setWallpaper(wallpaper: Wallpaper) {
+        val currentCardView = getChildAt(currentItemIndex) as CardView
         val loadingSpinner = ProgressBar(context).apply {
             isIndeterminate = true
             layoutParams = FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
@@ -174,7 +160,6 @@ class WallpaperCarouselView @JvmOverloads constructor(
             }
         }
 
-        val currentCardView = getChildAt(currentItemIndex) as CardView
         currentCardView.removeView(iconFrame)
         currentCardView.addView(loadingSpinner)
 
@@ -184,7 +169,6 @@ class WallpaperCarouselView @JvmOverloads constructor(
                 val bitmap = BitmapFactory.decodeFile(wallpaper.imagePath)
 
                 wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM)
-
                 viewModel.updateWallpaperRank(wallpaper)
 
                 withContext(Dispatchers.Main) {
@@ -216,12 +200,18 @@ class WallpaperCarouselView @JvmOverloads constructor(
         cardView.addView(iconFrame, params)
     }
 
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (viewModel.wallpapers.value?.isNotEmpty() == true) {
+            displayWallpapers(viewModel.wallpapers.value!!)
+        }
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val isLandscape = deviceProfile.isLandscape
         val valWidth = if (isLandscape) (deviceProfile.widthPx * 0.5).toInt() else (deviceProfile.widthPx * 0.8).toInt()
         val width = MeasureSpec.makeMeasureSpec(valWidth, MeasureSpec.EXACTLY)
         super.onMeasure(width, heightMeasureSpec)
-        requestLayout()
     }
 
     private fun animateWidthTransition(

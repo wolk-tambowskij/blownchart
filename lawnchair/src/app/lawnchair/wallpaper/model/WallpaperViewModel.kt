@@ -8,16 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.lawnchair.wallpaper.WallpaperManagerCompat
 import app.lawnchair.wallpaper.service.Wallpaper
-import app.lawnchair.wallpaper.service.WallpaperDatabase
-import app.lawnchair.wallpaper.service.WallpaperService
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class WallpaperViewModel(context: Context) : ViewModel() {
-    private val dao = WallpaperDatabase.INSTANCE.get(context).wallpaperDao()
-    private val service = WallpaperService.INSTANCE.get(context)
-
     private val wallpaperManagerCompat = WallpaperManagerCompat.INSTANCE.get(context)
 
     private val _wallpapers = MutableLiveData<List<Wallpaper>>()
@@ -41,12 +36,12 @@ class WallpaperViewModel(context: Context) : ViewModel() {
     }
 
     private suspend fun saveWallpaper(wallpaperManager: WallpaperManager) {
-        service.saveWallpaper(wallpaperManager)
+        wallpaperManagerCompat.service.saveWallpaper(wallpaperManager)
         refreshWallpapers()
     }
 
     private suspend fun refreshWallpapers() {
-        val topWallpapers = dao.getTopWallpapers()
+        val topWallpapers = wallpaperManagerCompat.service.dao.getTopWallpapers()
         _wallpapers.postValue(topWallpapers)
     }
 
@@ -59,7 +54,7 @@ class WallpaperViewModel(context: Context) : ViewModel() {
     }
 
     suspend fun updateWallpaperRank(wallpaper: Wallpaper) {
-        service.updateWallpaperRank(wallpaper)
+        wallpaperManagerCompat.service.updateWallpaperRank(wallpaper)
         loadTopWallpapers()
     }
 }

@@ -5,13 +5,18 @@ import android.content.Context
 import app.lawnchair.util.MainThreadInitializedObject
 import app.lawnchair.util.requireSystemService
 import app.lawnchair.wallpaper.WallpaperColorsCompat.Companion.HINT_SUPPORTS_DARK_THEME
+import app.lawnchair.wallpaper.service.WallpaperService
 import com.android.launcher3.Utilities
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 sealed class WallpaperManagerCompat(val context: Context) {
 
     private val listeners = mutableListOf<OnColorsChangedListener>()
     private val colorHints: Int get() = wallpaperColors?.colorHints ?: 0
     val wallpaperManager: WallpaperManager = context.requireSystemService()
+    val service = WallpaperService(context)
 
     abstract val wallpaperColors: WallpaperColorsCompat?
 
@@ -26,6 +31,12 @@ sealed class WallpaperManagerCompat(val context: Context) {
     }
 
     protected fun notifyChange() {
+        if (service.getTopWallpapers().isEmpty()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                service.saveWallpaper(wallpaperManager)
+            }
+        }
+
         listeners.toTypedArray().forEach {
             it.onColorsChanged()
         }

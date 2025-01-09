@@ -15,7 +15,7 @@ import kotlinx.coroutines.runBlocking
 
 class WallpaperService(val context: Context) : SafeCloseable {
 
-    private val dao = WallpaperDatabase.INSTANCE.get(context).wallpaperDao()
+    val dao = WallpaperDatabase.INSTANCE.get(context).wallpaperDao()
 
     suspend fun saveWallpaper(wallpaperManager: WallpaperManager) {
         try {
