@@ -10,7 +10,6 @@ import com.android.launcher3.Utilities
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
 import com.android.launcher3.views.OptionsPopupView.OptionItem
 import com.patrykmichalik.opto.core.firstBlocking
-import com.patrykmichalik.opto.core.setBlocking
 
 object LauncherOptionsPopup {
     const val DEFAULT_ORDER = "-lock|-edit_mode|+wallpaper|+widgets|+home_settings|-sys_settings"
@@ -30,19 +29,6 @@ object LauncherOptionsPopup {
         val prefs2 = getInstance(launcher!!)
         val lockHomeScreen = prefs2.lockHomeScreen.firstBlocking()
         val optionOrder = prefs2.launcherPopupOrder.firstBlocking()
-
-        if (lockHomeScreen) {
-            prefs2.launcherPopupOrder.setBlocking(
-                optionOrder.split("|")
-                    .joinToString("|") { item ->
-                        when (item) {
-                            "+edit_mode" -> "-edit_mode"
-                            "+widgets" -> "-widgets"
-                            else -> item
-                        }
-                    },
-            )
-        }
 
         val wallpaperResString =
             if (Utilities.existsStyleWallpapers(launcher)) R.string.styles_wallpaper_button_text else R.string.wallpapers
