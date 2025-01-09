@@ -38,7 +38,6 @@ class WallpaperService(val context: Context) : SafeCloseable {
 
     private suspend fun saveWallpaper(imageData: ByteArray) {
         val timestamp = System.currentTimeMillis()
-        val imagePath = saveImageToAppStorage(imageData)
 
         val checksum = calculateChecksum(imageData)
 
@@ -48,7 +47,7 @@ class WallpaperService(val context: Context) : SafeCloseable {
             Log.d("WallpaperService", "Wallpaper already exists with checksum: $checksum")
             return
         }
-
+        val imagePath = saveImageToAppStorage(imageData)
         if (existingWallpapers.size < 4) {
             val wallpaper = Wallpaper(imagePath = imagePath, rank = existingWallpapers.size, timestamp = timestamp, checksum = checksum)
             dao.insert(wallpaper)
