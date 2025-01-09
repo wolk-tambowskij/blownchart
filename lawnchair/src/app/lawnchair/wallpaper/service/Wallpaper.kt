@@ -9,4 +9,5 @@ data class Wallpaper(
     val imagePath: String,
     val rank: Int,
     val timestamp: Long,
+    val checksum: String? = null,
 )

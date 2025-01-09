@@ -26,6 +26,7 @@ import app.lawnchair.wallpaper.service.Wallpaper
 import com.android.launcher3.R
 import com.android.launcher3.util.Themes
 import com.android.launcher3.views.ActivityContext
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -129,13 +130,25 @@ class WallpaperCarouselView @JvmOverloads constructor(
             addView(cardView)
 
             CoroutineScope(Dispatchers.IO).launch {
-                val bitmap = BitmapFactory.decodeFile(wallpaper.imagePath)
-                withContext(Dispatchers.Main) {
-                    (cardView.getChildAt(0) as? ImageView)?.apply {
-                        setImageBitmap(bitmap)
+                val wallpaperFile = File(wallpaper.imagePath)
+                if (wallpaperFile.exists()) {
+                    val bitmap = BitmapFactory.decodeFile(wallpaper.imagePath)
+                    withContext(Dispatchers.Main) {
+                        (cardView.getChildAt(0) as? ImageView)?.apply {
+                            setImageBitmap(bitmap)
+                        }
+                        if (index == currentItemIndex) {
+                            addIconFrameToCenter(cardView)
+                        }
                     }
-                    if (index == currentItemIndex) {
-                        addIconFrameToCenter(cardView)
+                } else {
+                    Log.e("WallpaperCarouselView", "File not found: ${wallpaper.imagePath}")
+                    withContext(Dispatchers.Main) {
+                        (cardView.getChildAt(0) as? ImageView)?.apply {
+                            setImageDrawable(
+                                ContextCompat.getDrawable(context, R.drawable.ic_deepshortcut_placeholder),
+                            )
+                        }
                     }
                 }
             }
@@ -162,6 +175,8 @@ class WallpaperCarouselView @JvmOverloads constructor(
                 val bitmap = BitmapFactory.decodeFile(wallpaper.imagePath)
 
                 wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM)
+
+                viewModel.updateWallpaperRank(wallpaper)
 
                 withContext(Dispatchers.Main) {
                     currentCardView.removeView(loadingSpinner)

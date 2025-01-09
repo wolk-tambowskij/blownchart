@@ -17,6 +17,9 @@ interface WallpaperDao {
     @Query("UPDATE wallpapers SET rank = rank + 1 WHERE rank >= :rank")
     suspend fun updateRank(rank: Int)
 
+    @Query("UPDATE wallpapers SET rank = :rank, timestamp = :timestamp WHERE id = :id")
+    suspend fun updateWallpaper(id: Long, rank: Int, timestamp: Long)
+
     @Query("DELETE FROM wallpapers WHERE id = :id")
     suspend fun deleteWallpaper(id: Long)
 

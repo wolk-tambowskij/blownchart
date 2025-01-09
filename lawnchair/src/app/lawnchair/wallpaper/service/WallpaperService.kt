@@ -10,6 +10,7 @@ import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import java.io.File
 import java.io.FileOutputStream
+import java.security.MessageDigest
 import kotlinx.coroutines.runBlocking
 
 class WallpaperService(val context: Context) : SafeCloseable {
@@ -29,32 +30,57 @@ class WallpaperService(val context: Context) : SafeCloseable {
         }
     }
 
+    private fun calculateChecksum(imageData: ByteArray): String {
+        return MessageDigest.getInstance("MD5")
+            .digest(imageData)
+            .joinToString("") { "%02x".format(it) }
+    }
+
     private suspend fun saveWallpaper(imageData: ByteArray) {
         val timestamp = System.currentTimeMillis()
-
-        val topWallpapers = dao.getTopWallpapers()
-
         val imagePath = saveImageToAppStorage(imageData)
 
-        if (topWallpapers.size < 4) {
-            val wallpaper = Wallpaper(imagePath = imagePath, rank = topWallpapers.size, timestamp = timestamp)
+        val checksum = calculateChecksum(imageData)
+
+        val existingWallpapers = dao.getTopWallpapers()
+
+        if (existingWallpapers.any { it.checksum == checksum }) {
+            Log.d("WallpaperService", "Wallpaper already exists with checksum: $checksum")
+            return
+        }
+
+        if (existingWallpapers.size < 4) {
+            val wallpaper = Wallpaper(imagePath = imagePath, rank = existingWallpapers.size, timestamp = timestamp, checksum = checksum)
             dao.insert(wallpaper)
         } else {
-            val lowestRankedWallpaper = topWallpapers.minByOrNull { it.timestamp }
+            val lowestRankedWallpaper = existingWallpapers.minByOrNull { it.timestamp }
 
             if (lowestRankedWallpaper != null) {
                 dao.deleteWallpaper(lowestRankedWallpaper.id)
                 deleteWallpaperFile(lowestRankedWallpaper.imagePath)
             }
 
-            for (wallpaper in topWallpapers) {
+            for (wallpaper in existingWallpapers) {
                 if (wallpaper.rank >= (lowestRankedWallpaper?.rank ?: 0)) {
                     dao.updateRank(wallpaper.rank)
                 }
             }
 
-            val wallpaper = Wallpaper(imagePath = imagePath, rank = 0, timestamp = timestamp)
+            val wallpaper = Wallpaper(imagePath = imagePath, rank = 0, timestamp = timestamp, checksum = checksum)
             dao.insert(wallpaper)
+        }
+    }
+
+    suspend fun updateWallpaperRank(selectedWallpaper: Wallpaper) {
+        val topWallpapers = dao.getTopWallpapers()
+        val currentTime = System.currentTimeMillis()
+
+        dao.updateWallpaper(selectedWallpaper.id, rank = 0, timestamp = currentTime)
+
+        for (wallpaper in topWallpapers) {
+            if (wallpaper.id != selectedWallpaper.id) {
+                dao.updateRank(wallpaper.rank)
+            }
         }
     }
 
