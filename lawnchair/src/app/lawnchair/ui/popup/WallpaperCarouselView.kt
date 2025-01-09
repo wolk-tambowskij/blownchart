@@ -84,7 +84,8 @@ class WallpaperCarouselView @JvmOverloads constructor(
     @SuppressLint("ClickableViewAccessibility")
     private fun displayWallpapers(wallpapers: List<Wallpaper>) {
         removeAllViews()
-        val totalWidth = width.takeIf { it > 0 } ?: (deviceProfile.widthPx * 0.8).toInt()
+        val isLandscape = deviceProfile.isLandscape
+        val totalWidth = width.takeIf { it > 0 } ?: (deviceProfile.widthPx * if (isLandscape) 0.5 else 0.8).toInt()
 
         val firstItemWidth = totalWidth * 0.5
         val remainingWidth = totalWidth - firstItemWidth
@@ -155,6 +156,14 @@ class WallpaperCarouselView @JvmOverloads constructor(
         }
 
         loadingView.visibility = GONE
+        requestLayout()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (viewModel.wallpapers.value?.isNotEmpty() == true) {
+            displayWallpapers(viewModel.wallpapers.value!!)
+        }
     }
 
     private fun setWallpaper(wallpaper: Wallpaper) {
@@ -208,9 +217,11 @@ class WallpaperCarouselView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val valWidth = (deviceProfile.widthPx * 0.8).toInt()
+        val isLandscape = deviceProfile.isLandscape
+        val valWidth = if (isLandscape) (deviceProfile.widthPx * 0.5).toInt() else (deviceProfile.widthPx * 0.8).toInt()
         val width = MeasureSpec.makeMeasureSpec(valWidth, MeasureSpec.EXACTLY)
         super.onMeasure(width, heightMeasureSpec)
+        requestLayout()
     }
 
     private fun animateWidthTransition(
