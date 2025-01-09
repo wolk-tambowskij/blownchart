@@ -70,11 +70,11 @@ class WallpaperCarouselView @JvmOverloads constructor(
 
     private fun displayWallpapers(wallpapers: List<Wallpaper>) {
         removeAllViews()
-        val isLandscape = deviceProfile.isLandscape
+        val isLandscape = deviceProfile.isLandscape || deviceProfile.isTablet
         val totalWidth = width.takeIf { it > 0 } ?: (deviceProfile.widthPx * if (isLandscape) 0.5 else 0.8).toInt()
-        val firstItemWidth = totalWidth * 0.5
+        val firstItemWidth = totalWidth * 0.4
         val remainingWidth = totalWidth - firstItemWidth
-        val marginBetweenItems = totalWidth * 0.02
+        val marginBetweenItems = totalWidth * 0.03
         val itemWidth = (remainingWidth - (marginBetweenItems * (wallpapers.size - 1))) / (wallpapers.size - 1)
 
         wallpapers.forEachIndexed { index, wallpaper ->
@@ -208,7 +208,7 @@ class WallpaperCarouselView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val isLandscape = deviceProfile.isLandscape
+        val isLandscape = deviceProfile.isLandscape || deviceProfile.isTablet
         val valWidth = if (isLandscape) (deviceProfile.widthPx * 0.5).toInt() else (deviceProfile.widthPx * 0.8).toInt()
         val width = MeasureSpec.makeMeasureSpec(valWidth, MeasureSpec.EXACTLY)
         super.onMeasure(width, heightMeasureSpec)
