@@ -2,8 +2,10 @@ package app.lawnchair.allapps
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.drawable.RippleDrawable
 import android.provider.SearchRecentSuggestions
 import android.text.Selection
 import android.text.SpannableStringBuilder
@@ -15,6 +17,8 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewTreeObserver
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
@@ -87,7 +91,15 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     private var canShowHint = false
 
     private val bg = DrawableTokens.SearchInputFg.resolve(context)
-    private val bgAlphaAnimator = ValueAnimator.ofFloat(0f, 1f).apply { duration = 300 }
+    private val bgAlphaAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+        duration = 300
+        interpolator = DecelerateInterpolator()
+    }
+    private val rippleBackground = RippleDrawable(
+        ColorStateList.valueOf(Themes.getAttrColor(context, android.R.attr.colorControlHighlight)),
+        bg,
+        null,
+    )
     private var bgVisible = true
     private var bgAlpha = 1f
     private val suggestionsRecent = SearchRecentSuggestions(launcher, LawnchairRecentSuggestionProvider.AUTHORITY, LawnchairRecentSuggestionProvider.MODE)
@@ -122,11 +134,6 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         lensIcon.isVisible = shouldShowIcons && supportsLens && lensIntent != null
 
         with(input) {
-            if (prefs2.searchAlgorithm.firstBlocking() != LawnchairSearchAlgorithm.APP_SEARCH) {
-                setHint(R.string.all_apps_device_search_hint)
-            } else {
-                setHint(R.string.all_apps_search_bar_hint)
-            }
             addTextChangedListener {
                 actionButton.isVisible = !it.isNullOrEmpty()
                 micIcon.isVisible = shouldShowIcons && voiceIntent != null && it.isNullOrEmpty()
@@ -139,6 +146,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
             isVisible = false
             setOnClickListener {
                 input.reset()
+                updateHint()
             }
         }
 
@@ -147,20 +155,15 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
                 isVisible = true
 
                 val iconRes = if (themed) searchProvider.themedIcon else searchProvider.icon
-                if (shouldShowIcons) {
-                    setThemedIconResource(
-                        resId = iconRes,
-                        themed = themed || iconRes == R.drawable.ic_qsb_search,
-                        method = searchProvider.themingMethod,
-                    )
-                } else {
-                    // Always theme default search icon
-                    setThemedIconResource(
-                        resId = R.drawable.ic_qsb_search,
-                        themed = true,
-                        method = ThemingMethod.TINT,
-                    )
-                }
+                val resId = if (shouldShowIcons) iconRes else R.drawable.ic_qsb_search
+                val isThemed = themed || resId == R.drawable.ic_qsb_search
+                val method = if (shouldShowIcons) searchProvider.themingMethod else ThemingMethod.TINT
+
+                setThemedIconResource(
+                    resId = resId,
+                    themed = isThemed,
+                    method = method,
+                )
 
                 setOnClickListener {
                     val launcher = context.launcher
@@ -185,12 +188,39 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
             }
         }
 
-        if (prefs.searchResulRecentSuggestion.get()) {
-            input.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
-                if (!hasFocus) {
+        input.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                animate().alpha(1f)
+                    .setDuration(300)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+
+                if (prefs2.searchAlgorithm.firstBlocking() != LawnchairSearchAlgorithm.APP_SEARCH) {
+                    input.setHint(R.string.all_apps_device_search_hint)
+                } else {
+                    input.setHint(R.string.all_apps_search_bar_hint)
+                }
+
+                triggerRippleEffect(true)
+                setBackgroundVisibility(true, 1f)
+                animateHintVisibility(true)
+            } else {
+                triggerRippleEffect(false)
+                setBackgroundVisibility(false, 0f)
+                animateHintVisibility(false)
+                animate().alpha(0.8f)
+                    .setDuration(400)
+                    .setInterpolator(AccelerateDecelerateInterpolator())
+                    .start()
+                if (prefs.searchResulRecentSuggestion.get()) {
                     val query = editText.text.toString()
                     suggestionsRecent.saveRecentQuery(query, null)
                 }
+
+                focusedResultTitle = ""
+                input.setHint("")
+                hint.text = ""
+                input.reset()
             }
         }
 
@@ -201,17 +231,48 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
             afterTextChanged = {
                 updateHint()
                 if (input.text.toString() == "/lawnchairdebug") {
-                    val enableDebugMenu = PreferenceManager.getInstance(context).enableDebugMenu
+                    val enableDebugMenu = prefs.enableDebugMenu
                     enableDebugMenu.set(!enableDebugMenu.get())
                     launcher.stateManager.goToState(LauncherState.NORMAL)
                 }
             },
         )
 
-        val hide = PreferenceManager2.getInstance(context).hideAppDrawerSearchBar.firstBlocking()
+        val hide = prefs2.hideAppDrawerSearchBar.firstBlocking()
         if (hide) {
             isInvisible = true
             layoutParams.height = 0
+        }
+    }
+
+    private fun animateHintVisibility(visible: Boolean) {
+        if (visible) {
+            hint.alpha = 0f
+            hint.isVisible = true
+        }
+
+        hint.animate()
+            .alpha(if (visible) 1f else 0f)
+            .setDuration(300)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .withEndAction {
+                if (!visible) {
+                    hint.isVisible = false
+                }
+            }
+            .start()
+    }
+
+    private fun triggerRippleEffect(expand: Boolean) {
+        rippleBackground.setHotspot(width / 2f, height / 2f)
+        ValueAnimator.ofFloat(if (expand) 1f else 0f, if (expand) 0f else 1f).apply {
+            duration = 500
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener {
+                val alpha = it.animatedValue as Float
+                rippleBackground.alpha = (alpha * 255).toInt()
+            }
+            start()
         }
     }
 
