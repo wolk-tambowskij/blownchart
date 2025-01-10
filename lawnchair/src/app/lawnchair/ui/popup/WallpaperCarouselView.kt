@@ -1,5 +1,6 @@
 package app.lawnchair.ui.popup
 
+import android.animation.LayoutTransition
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.WallpaperManager
@@ -8,7 +9,9 @@ import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import android.util.Log
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -49,6 +52,13 @@ class WallpaperCarouselView @JvmOverloads constructor(
 
     init {
         orientation = HORIZONTAL
+        setLayoutTransition(
+            LayoutTransition().apply {
+                enableTransitionType(LayoutTransition.CHANGING)
+                setDuration(200L)
+            },
+        )
+
         addView(loadingView)
         val factory = WallpaperViewModelFactory(context)
         viewModel = ViewModelProvider(context as ViewModelStoreOwner, factory)[WallpaperViewModel::class.java]
@@ -137,12 +147,23 @@ class WallpaperCarouselView @JvmOverloads constructor(
                 val imageView = ImageView(context).apply {
                     setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_deepshortcut_placeholder))
                     scaleType = ImageView.ScaleType.CENTER_CROP
+                    alpha = 0f
                 }
                 cardView.addView(imageView)
 
                 if (bitmap != null) {
+                    imageView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+
                     imageView.setImageBitmap(bitmap)
-                    if (isCurrent) addIconFrameToCenter(cardView)
+                    imageView.animate()
+                        .alpha(1f)
+                        .setDuration(200L)
+                        .setInterpolator(AccelerateDecelerateInterpolator())
+                        .withEndAction {
+                            imageView.setLayerType(View.LAYER_TYPE_NONE, null)
+                            if (isCurrent) addIconFrameToCenter(cardView)
+                        }
+                        .start()
                 } else {
                     Log.e("WallpaperCarouselView", "File not found: ${wallpaper.imagePath}")
                     imageView.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_deepshortcut_placeholder))
