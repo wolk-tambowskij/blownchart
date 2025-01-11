@@ -26,6 +26,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.launcher
 import app.lawnchair.preferences.PreferenceManager
@@ -106,11 +107,20 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     private val prefs = PreferenceManager.getInstance(launcher)
     private val prefs2 = PreferenceManager2.getInstance(launcher)
 
+    private var initialPaddingLeft: Int = 0
+    private var initialPaddingRight: Int = 0
+
     override fun onFinishInflate() {
         super.onFinishInflate()
 
         val wrapper = ViewCompat.requireViewById<View>(this, R.id.search_wrapper)
         wrapper.background = bg
+        launcher.deviceProfile.let { dp ->
+            val padding = dp.desiredWorkspaceHorizontalMarginPx * 2 + dp.allAppsPadding.run { left + right * 2 }
+            initialPaddingLeft = padding
+            initialPaddingRight = padding
+            setPadding(padding, paddingTop, padding, paddingBottom)
+        }
         bgAlphaAnimator.addUpdateListener { updateBgAlpha() }
 
         hint = ViewCompat.requireViewById(this, R.id.hint)
@@ -187,14 +197,11 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
                 }
             }
         }
-
+        val currentPaddingLeft = initialPaddingLeft
+        val currentPaddingRight = initialPaddingRight
         input.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                animate().alpha(1f)
-                    .setDuration(300)
-                    .setInterpolator(DecelerateInterpolator())
-                    .start()
 
+            if (hasFocus) {
                 if (prefs2.searchAlgorithm.firstBlocking() != LawnchairSearchAlgorithm.APP_SEARCH) {
                     input.setHint(R.string.all_apps_device_search_hint)
                 } else {
@@ -202,25 +209,22 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
                 }
 
                 triggerRippleEffect(true)
-                setBackgroundVisibility(true, 1f)
+                setBackgroundVisibility(false, 0f)
                 animateHintVisibility(true)
+                animatePadding(currentPaddingLeft / 2, currentPaddingRight / 2)
             } else {
                 triggerRippleEffect(false)
-                setBackgroundVisibility(false, 0f)
+                setBackgroundVisibility(true, 1f)
                 animateHintVisibility(false)
-                animate().alpha(0.8f)
-                    .setDuration(400)
-                    .setInterpolator(AccelerateDecelerateInterpolator())
-                    .start()
                 if (prefs.searchResulRecentSuggestion.get()) {
                     val query = editText.text.toString()
                     suggestionsRecent.saveRecentQuery(query, null)
                 }
 
+                animatePadding(currentPaddingLeft, currentPaddingRight)
                 focusedResultTitle = ""
                 input.setHint("")
                 hint.text = ""
-                input.reset()
             }
         }
 
@@ -246,19 +250,20 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     }
 
     private fun animateHintVisibility(visible: Boolean) {
+        val targetAlpha = if (visible) 1f else 0f
+        val duration = if (visible) 300L else 200L
+
         if (visible) {
             hint.alpha = 0f
             hint.isVisible = true
         }
 
         hint.animate()
-            .alpha(if (visible) 1f else 0f)
-            .setDuration(300)
-            .setInterpolator(AccelerateDecelerateInterpolator())
+            .alpha(targetAlpha)
+            .setDuration(duration)
+            .setInterpolator(FastOutSlowInInterpolator())
             .withEndAction {
-                if (!visible) {
-                    hint.isVisible = false
-                }
+                if (!visible) hint.isVisible = false
             }
             .start()
     }
@@ -271,6 +276,23 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
             addUpdateListener {
                 val alpha = it.animatedValue as Float
                 rippleBackground.alpha = (alpha * 255).toInt()
+            }
+            start()
+        }
+    }
+
+    private fun animatePadding(newPaddingLeft: Int, newPaddingRight: Int) {
+        val currentPaddingLeft = paddingLeft
+        val currentPaddingRight = paddingRight
+
+        ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 300
+            interpolator = FastOutSlowInInterpolator()
+            addUpdateListener { animation ->
+                val fraction = animation.animatedFraction
+                val leftPadding = currentPaddingLeft + (newPaddingLeft - currentPaddingLeft) * fraction
+                val rightPadding = currentPaddingRight + (newPaddingRight - currentPaddingRight) * fraction
+                setPadding(leftPadding.toInt(), paddingTop, rightPadding.toInt(), paddingBottom)
             }
             start()
         }
@@ -384,16 +406,13 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     }
 
     override fun setInsets(insets: Rect) {
-        val lp = layoutParams as MarginLayoutParams
-        if (isInvisible) {
-            lp.topMargin = insets.top - allAppsSearchVerticalOffset
-            return
+        (layoutParams as MarginLayoutParams).apply {
+            topMargin = if (isInvisible) {
+                insets.top - allAppsSearchVerticalOffset
+            } else {
+                max(-allAppsSearchVerticalOffset, insets.top - qsbMarginTopAdjusting)
+            }
         }
-        lp.topMargin = max(-allAppsSearchVerticalOffset, insets.top - qsbMarginTopAdjusting)
-
-        val dp = launcher.deviceProfile
-        val horizontalPadding = dp.desiredWorkspaceHorizontalMarginPx + dp.desiredWorkspaceHorizontalMarginPx
-        setPadding(horizontalPadding, paddingTop, horizontalPadding, paddingBottom)
         requestLayout()
     }
 
