@@ -308,11 +308,17 @@ class LawnchairLauncher : QuickstepLauncher() {
     }
 
     override fun showDefaultOptions(x: Float, y: Float) {
-        show<LawnchairLauncher>(
-            this,
-            getPopupTarget(x, y),
-            OptionsPopupView.getOptions(this),
-        )
+        val showWallpaperCarousel = "+carousel" in preferenceManager2.launcherPopupOrder.firstBlocking()
+
+        if (showWallpaperCarousel) {
+            show<LawnchairLauncher>(
+                this,
+                getPopupTarget(x, y),
+                OptionsPopupView.getOptions(this),
+            )
+        } else {
+            super.showDefaultOptions(x, y)
+        }
     }
 
     private fun <T> show(
@@ -339,7 +345,7 @@ class LawnchairLauncher : QuickstepLauncher() {
             view.iconView.setBackgroundDrawable(item.icon)
             view.bubbleText.text = item.label
             view.setOnClickListener(popup)
-            view.onLongClickListener = popup
+//            view.onLongClickListener = popup
             popup.mItemMap[view] = item
         }
 
