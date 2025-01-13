@@ -2,10 +2,8 @@ package app.lawnchair.allapps
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Rect
-import android.graphics.drawable.RippleDrawable
 import android.provider.SearchRecentSuggestions
 import android.text.Selection
 import android.text.SpannableStringBuilder
@@ -17,7 +15,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewTreeObserver
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -45,6 +42,7 @@ import app.lawnchair.search.algorithms.LawnchairSearchAlgorithm
 import app.lawnchair.theme.drawable.DrawableTokens
 import app.lawnchair.util.viewAttachedScope
 import com.android.launcher3.Insettable
+import com.android.launcher3.InvariantDeviceProfile.OnIDPChangeListener
 import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
@@ -63,6 +61,7 @@ import kotlinx.coroutines.launch
 class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     FrameLayout(context, attrs),
     Insettable,
+    OnIDPChangeListener,
     SearchUiManager,
     SearchCallback<AdapterItem>,
     AllAppsStore.OnUpdateListener,
@@ -96,11 +95,6 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         duration = 300
         interpolator = DecelerateInterpolator()
     }
-    private val rippleBackground = RippleDrawable(
-        ColorStateList.valueOf(Themes.getAttrColor(context, android.R.attr.colorControlHighlight)),
-        bg,
-        null,
-    )
     private var bgVisible = true
     private var bgAlpha = 1f
     private val suggestionsRecent = SearchRecentSuggestions(launcher, LawnchairRecentSuggestionProvider.AUTHORITY, LawnchairRecentSuggestionProvider.MODE)
@@ -115,12 +109,8 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
 
         val wrapper = ViewCompat.requireViewById<View>(this, R.id.search_wrapper)
         wrapper.background = bg
-        launcher.deviceProfile.let { dp ->
-            val padding = dp.desiredWorkspaceHorizontalMarginPx * 2 + dp.allAppsPadding.run { left + right * 2 }
-            initialPaddingLeft = padding
-            initialPaddingRight = padding
-            setPadding(padding, paddingTop, padding, paddingBottom)
-        }
+        setupPadding()
+        launcher.deviceProfile.inv.addOnChangeListener(this)
         bgAlphaAnimator.addUpdateListener { updateBgAlpha() }
 
         hint = ViewCompat.requireViewById(this, R.id.hint)
@@ -208,12 +198,10 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
                     input.setHint(R.string.all_apps_search_bar_hint)
                 }
 
-                triggerRippleEffect(true)
                 setBackgroundVisibility(false, 0f)
                 animateHintVisibility(true)
                 animatePadding(currentPaddingLeft / 2, currentPaddingRight / 2)
             } else {
-                triggerRippleEffect(false)
                 setBackgroundVisibility(true, 1f)
                 animateHintVisibility(false)
                 if (prefs.searchResulRecentSuggestion.get()) {
@@ -249,6 +237,15 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         }
     }
 
+    private fun setupPadding() {
+        launcher.deviceProfile.let { dp ->
+            val padding = dp.getAllAppsIconStartMargin(context)
+            initialPaddingLeft = padding
+            initialPaddingRight = padding
+            setPadding(padding, paddingTop, padding, paddingBottom)
+        }
+    }
+
     private fun animateHintVisibility(visible: Boolean) {
         val targetAlpha = if (visible) 1f else 0f
         val duration = if (visible) 300L else 200L
@@ -266,19 +263,6 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
                 if (!visible) hint.isVisible = false
             }
             .start()
-    }
-
-    private fun triggerRippleEffect(expand: Boolean) {
-        rippleBackground.setHotspot(width / 2f, height / 2f)
-        ValueAnimator.ofFloat(if (expand) 1f else 0f, if (expand) 0f else 1f).apply {
-            duration = 500
-            interpolator = AccelerateDecelerateInterpolator()
-            addUpdateListener {
-                val alpha = it.animatedValue as Float
-                rippleBackground.alpha = (alpha * 255).toInt()
-            }
-            start()
-        }
     }
 
     private fun animatePadding(newPaddingLeft: Int, newPaddingRight: Int) {
@@ -446,5 +430,11 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     private fun updateBgAlpha() {
         val fraction = bgAlphaAnimator.animatedFraction
         bg.alpha = (Utilities.mapRange(fraction, 0f, bgAlpha) * 255).toInt()
+    }
+
+    override fun onIdpChanged(modelPropertiesChanged: Boolean) {
+        setupPadding()
+        invalidate()
+        requestLayout()
     }
 }
