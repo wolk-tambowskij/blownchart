@@ -70,7 +70,7 @@ fun PreferencesDashboard(
     ) {
         AnnouncementPreference()
 
-        if (BuildConfig.DEBUG) {
+        if (BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) {
             PreferencesDebugWarning()
             Spacer(modifier = Modifier.height(16.dp))
         }
