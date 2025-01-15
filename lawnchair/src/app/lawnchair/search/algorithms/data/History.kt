@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
 import app.lawnchair.search.LawnchairRecentSuggestionProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,7 +30,7 @@ suspend fun getRecentKeyword(context: Context, query: String, max: Int, callback
         withContext(Dispatchers.IO) {
             val contentResolver: ContentResolver = context.contentResolver
             val uri: Uri =
-                Uri.parse("content://${LawnchairRecentSuggestionProvider.AUTHORITY}/suggestions")
+                "content://${LawnchairRecentSuggestionProvider.AUTHORITY}/suggestions".toUri()
             val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
             val recentKeywords = mutableListOf<RecentKeyword>()
 

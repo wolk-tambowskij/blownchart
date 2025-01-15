@@ -97,17 +97,17 @@ class LawnchairSearchAdapterProvider(
     override fun getDecorator() = decorator
 
     companion object {
-        private const val SEARCH_RESULT_ICON = (1 shl 8) or AllAppsGridAdapter.VIEW_TYPE_ICON
-        private const val SEARCH_RESULT_ICON_ROW = 1 shl 9
-        private const val SEARCH_RESULT_SMALL_ICON_ROW = 1 shl 10
-        private const val SEARCH_RESULT_DIVIDER = 1 shl 11
-        private const val SEARCH_TEXT_HEADER = 1 shl 12
-        private const val SEARCH_PEOPLE_TILE = 1 shl 13
-        private const val SEARCH_RESULT_FILE_TILE = 1 shl 14
-        private const val SEARCH_RESULT_SUGGESTION_TILE = 1 shl 15
-        private const val SEARCH_RESULT_SETTINGS_TILE = 1 shl 16
-        private const val SEARCH_RESULT_RECENT_TILE = 1 shl 17
-        private const val SEARCH_RESULT_CALCULATOR = 1 shl 18
+        private const val SEARCH_RESULT_ICON = (1 shl 10) or AllAppsGridAdapter.VIEW_TYPE_ICON
+        private const val SEARCH_RESULT_ICON_ROW = 1 shl 11
+        private const val SEARCH_RESULT_SMALL_ICON_ROW = 1 shl 12
+        private const val SEARCH_RESULT_DIVIDER = 1 shl 13
+        private const val SEARCH_TEXT_HEADER = 1 shl 14
+        private const val SEARCH_PEOPLE_TILE = 1 shl 15
+        private const val SEARCH_RESULT_FILE_TILE = 1 shl 16
+        private const val SEARCH_RESULT_SUGGESTION_TILE = 1 shl 17
+        private const val SEARCH_RESULT_SETTINGS_TILE = 1 shl 18
+        private const val SEARCH_RESULT_RECENT_TILE = 1 shl 19
+        private const val SEARCH_RESULT_CALCULATOR = 1 shl 20
 
         val viewTypeMap = mapOf(
             LayoutType.ICON_SINGLE_VERTICAL_TEXT to SEARCH_RESULT_ICON,
