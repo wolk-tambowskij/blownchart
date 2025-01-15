@@ -20,8 +20,10 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Handler
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
@@ -85,8 +87,14 @@ fun categorizeApps(context: Context, appList: List<AppInfo?>?): Map<String, List
     val validAppList = appList?.filterNotNull() ?: emptyList()
     for (appInfo in validAppList) {
         val packageName = appInfo.targetPackage!!
-        val applicationInfo = packageInfoCache.getOrPut(packageName) {
-            context.packageManager.getApplicationInfo(packageName, 0)
+        val applicationInfo = try {
+            packageInfoCache.getOrPut(packageName) {
+                context.packageManager.getApplicationInfo(packageName, 0)
+            }
+        } catch (e: PackageManager.NameNotFoundException) {
+            Log.w("AppList", "categorizeApps: removing from cache ", e)
+            packageInfoCache.remove(packageName)
+            continue
         }
         val categoryTitle = ApplicationInfo.getCategoryTitle(context, applicationInfo.category) ?: context.resources.getString(R.string.others_category_label)
         val categoryList = categories.getOrPut(categoryTitle.toString()) { mutableListOf() }
