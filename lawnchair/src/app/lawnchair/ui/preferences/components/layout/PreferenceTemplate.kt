@@ -82,8 +82,8 @@ fun PreferenceTemplate(
             ) {
                 Column(Modifier.weight(1f)) {
                     CompositionLocalProvider(
-                        LocalContentColor provides MaterialTheme.colorScheme.onBackground,
-                        LocalTextStyle provides MaterialTheme.typography.bodyLarge,
+                        LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+                        LocalTextStyle provides MaterialTheme.typography.titleMedium,
                     ) {
                         title()
                     }

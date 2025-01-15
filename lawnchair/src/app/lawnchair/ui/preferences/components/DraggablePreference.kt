@@ -2,7 +2,7 @@ package app.lawnchair.ui.preferences.components
 
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
@@ -41,6 +41,7 @@ import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroupHeading
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.theme.preferenceGroupColor
 import app.lawnchair.ui.util.addIf
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
@@ -64,8 +65,8 @@ fun <T> DraggablePreferenceGroup(
     var localItems = items
     var isAnyDragging by remember { mutableStateOf(false) }
 
-    val elevation by animateDpAsState(
-        targetValue = if (!isAnyDragging) 1.dp else 0.dp,
+    val color by animateColorAsState(
+        targetValue = if (!isAnyDragging) preferenceGroupColor() else MaterialTheme.colorScheme.background,
         label = "card background animation",
     )
 
@@ -78,7 +79,7 @@ fun <T> DraggablePreferenceGroup(
         Surface(
             modifier = Modifier.padding(horizontal = 16.dp),
             shape = MaterialTheme.shapes.large,
-            tonalElevation = elevation,
+            color = color,
         ) {
             ReorderableColumn(
                 modifier = Modifier,
@@ -119,7 +120,9 @@ fun <T> DraggablePreferenceGroup(
                             }
                         }
                         AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                Modifier.padding(start = 50.dp, end = 16.dp),
+                            )
                         }
                     }
                 }

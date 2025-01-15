@@ -60,4 +60,7 @@ fun Context.getSystemAccent(darkTheme: Boolean): Int {
 }
 
 @Composable
+fun preferenceGroupColor() = (if (isSelectedThemeDark) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceBright)
+
+@Composable
 fun dividerColor() = MaterialTheme.colorScheme.outlineVariant
