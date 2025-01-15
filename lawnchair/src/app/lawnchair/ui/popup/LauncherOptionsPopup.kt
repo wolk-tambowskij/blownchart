@@ -34,6 +34,26 @@ object LauncherOptionsPopup {
         )
     }
 
+    fun restoreMissingPopupOptions(
+        launcher: Launcher,
+    ) {
+        val prefs2 = getInstance(launcher)
+
+        val currentOrder = prefs2.launcherPopupOrder.firstBlocking()
+
+        val defaultOptions = DEFAULT_ORDER.toLauncherOptions()
+        val currentOptions = currentOrder.toLauncherOptions()
+
+        // check for missing items in current options; if so, add them
+        val missingItems = defaultOptions.filter { defaultItem ->
+            defaultItem.identifier !in currentOptions.map { it.identifier }
+        }
+
+        prefs2.launcherPopupOrder.setBlocking(
+            (missingItems + currentOptions).toOptionOrderString(),
+        )
+    }
+
     /**
      * Returns the list of supported actions
      */
@@ -49,8 +69,6 @@ object LauncherOptionsPopup {
         val prefs2 = getInstance(launcher!!)
         val lockHomeScreen = prefs2.lockHomeScreen.firstBlocking()
         val optionOrder = prefs2.launcherPopupOrder.firstBlocking()
-
-        migrateLegacyPreferences(launcher)
 
         val wallpaperResString =
             if (Utilities.existsStyleWallpapers(launcher)) R.string.styles_wallpaper_button_text else R.string.wallpapers
@@ -154,7 +172,7 @@ object LauncherOptionsPopup {
         }
     }
 
-    private fun migrateLegacyPreferences(
+    fun migrateLegacyPreferences(
         launcher: Launcher,
     ) {
         val prefs2 = getInstance(launcher)

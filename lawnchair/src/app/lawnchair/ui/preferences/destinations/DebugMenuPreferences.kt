@@ -100,10 +100,10 @@ fun DebugMenuPreferences(
 }
 
 private val PreferenceManager2.debugFlags: List<Preference<Boolean, Boolean, Preferences.Key<Boolean>>>
-    get() = listOf(showComponentNames)
+    get() = listOf(showComponentNames, legacyPopupOptionsMigrated)
 
 private val PreferenceManager2.textFlags: List<Preference<String, String, Preferences.Key<String>>>
-    get() = listOf(additionalFonts)
+    get() = listOf(additionalFonts, launcherPopupOrder)
 
 private val PreferenceManager.debugFlags
     get() = listOf(ignoreFeedWhitelist)

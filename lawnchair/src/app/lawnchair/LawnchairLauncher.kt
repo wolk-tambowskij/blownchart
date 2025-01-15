@@ -45,6 +45,7 @@ import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.root.RootHelperManager
 import app.lawnchair.root.RootNotAvailableException
 import app.lawnchair.theme.ThemeProvider
+import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.ui.popup.LawnchairShortcut
 import app.lawnchair.util.getThemedIconPacksInstalled
 import app.lawnchair.util.unsafeLazy
@@ -220,6 +221,9 @@ class LawnchairLauncher : QuickstepLauncher() {
         preferenceManager2.backPressGestureHandler.onEach(launchIn = lifecycleScope) { handler ->
             hasBackGesture = handler !is GestureHandlerConfig.NoOp
         }
+
+        LauncherOptionsPopup.restoreMissingPopupOptions(launcher)
+        LauncherOptionsPopup.migrateLegacyPreferences(launcher)
 
         // Handle update from version 12 Alpha 4 to version 12 Alpha 5.
         if (
