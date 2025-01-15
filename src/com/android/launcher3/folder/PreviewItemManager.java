@@ -59,6 +59,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import app.lawnchair.preferences.PreferenceManager;
+
 /**
  * Manages the drawing and animations of {@link PreviewItemDrawingParams} for a
  * {@link FolderIcon}.
@@ -466,8 +468,8 @@ public class PreviewItemManager {
             p.drawable = AppPairIconGraphic.composeDrawable(api, appPairParams);
             p.drawable.setBounds(0, 0, mIconSize, mIconSize);
         } else if (item instanceof ItemInfoWithIcon withIcon){
-            p.drawable = withIcon.newIcon(mContext,
-                Themes.isThemedIconEnabled(mContext) ? FLAG_THEMED : 0);
+            var isThemed = PreferenceManager.getInstance(mContext).getDrawerThemedIcons().get();
+            p.drawable = withIcon.newIcon(mContext, isThemed);
             p.drawable.setBounds(0, 0, mIconSize, mIconSize);
         }
 
