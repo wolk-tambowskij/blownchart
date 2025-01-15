@@ -27,15 +27,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.lawnchair.preferences.preferenceManager
+import app.lawnchair.ui.preferences.components.layout.PreferenceGroupHeading
 import com.android.launcher3.R
 
 @Composable
-fun AppDrawerSettings(
+fun AppDrawerLayoutSettings(
     modifier: Modifier = Modifier,
 ) {
     val prefs = preferenceManager()
@@ -43,12 +46,15 @@ fun AppDrawerSettings(
     val resources = context.resources
     var selectedOption by remember { mutableStateOf(prefs.drawerList.get()) }
 
+    PreferenceGroupHeading(
+        stringResource(R.string.layout),
+    )
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
         ButtonSection(
             modifier = Modifier,
@@ -149,7 +155,8 @@ fun ButtonSection(
     Box(
         modifier = modifier
             .size(160.dp, 120.dp)
-            .background(backgroundColor, RoundedCornerShape(16.dp))
+            .clip(MaterialTheme.shapes.large)
+            .background(backgroundColor)
             .clickable { onClick() }
             .padding(12.dp),
     ) {
@@ -181,6 +188,6 @@ fun ButtonSection(
 @Composable
 private fun PreviewToggleSelectionUI() {
     Surface {
-        AppDrawerSettings()
+        AppDrawerLayoutSettings()
     }
 }
