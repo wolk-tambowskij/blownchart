@@ -469,7 +469,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     }
 
     public boolean shouldUseTheme() {
-        if (mDisplay == DISPLAY_ALL_APPS) {
+        if (mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_DRAWER_FOLDER) {
             return PreferenceManager.getInstance(getContext()).getDrawerThemedIcons().get();
         }
         return mDisplay == DISPLAY_WORKSPACE || mDisplay == DISPLAY_FOLDER || mDisplay == DISPLAY_TASKBAR;
