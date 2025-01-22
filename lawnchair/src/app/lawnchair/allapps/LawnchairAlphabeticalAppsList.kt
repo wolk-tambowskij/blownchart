@@ -78,6 +78,7 @@ class LawnchairAlphabeticalAppsList<T>(
         if (appList.isNullOrEmpty()) return startPosition
         val drawerListDefault = prefs.drawerList.get()
         var position = startPosition
+        val filteredList = mutableListOf<AppInfo>()
 
         if (!drawerListDefault) {
             val categorizedApps = categorizeApps(context, appList)
@@ -102,12 +103,14 @@ class LawnchairAlphabeticalAppsList<T>(
                     folder.contents.forEach { app ->
                         (appsStore.getApp(app.componentKey) as? AppInfo)?.let {
                             folderInfo.add(it)
+                            filteredList.add(it)
                         }
                     }
                 }
                 position++
             }
-            position = super.addAppsWithSections(appList, position)
+            val remainingApps = appList.filterNot { app -> filteredList.contains(app) }
+            position = super.addAppsWithSections(remainingApps, position)
         }
 
         return position
