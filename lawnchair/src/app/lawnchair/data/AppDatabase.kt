@@ -83,12 +83,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_FolderItems_folderId ON FolderItems(folderId)")
+            }
+        }
+
         val INSTANCE = MainThreadInitializedObject { context ->
             Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
                 "preferences",
-            ).addMigrations(MIGRATION_1_3).build()
+            ).addMigrations(MIGRATION_1_3).addMigrations(MIGRATION_2_3).build()
         }
     }
 }
