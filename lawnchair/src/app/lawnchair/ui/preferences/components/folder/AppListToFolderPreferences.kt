@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.LawnchairLauncher
@@ -24,14 +25,19 @@ import app.lawnchair.data.factory.ViewModelFactory
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.launcher
 import app.lawnchair.launcherNullable
+import app.lawnchair.preferences.getAdapter
+import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.ReloadHelper
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.AppItem
 import app.lawnchair.ui.preferences.components.AppItemPlaceholder
+import app.lawnchair.ui.preferences.components.controls.SwitchPreference
+import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
 import app.lawnchair.util.sortedBySelection
+import com.android.launcher3.R
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
 
@@ -44,6 +50,7 @@ fun AppListToFolderPreferences(
     if (folderInfoId == null) return
 
     val context = LocalContext.current
+    val prefs = preferenceManager()
     val launcher = context.launcherNullable ?: LawnchairLauncher.instance?.launcher
     if (launcher == null) return
 
@@ -113,6 +120,16 @@ fun AppListToFolderPreferences(
                             updatedSelectedApps.filterIsInstance<AppInfo>().toList(),
                         )
                         reloadHelper.reloadGrid()
+                    }
+
+                    item {
+                        ExpandAndShrink(visible = selectedAppsState.value.isNotEmpty()) {
+                            SwitchPreference(
+                                adapter = prefs.folderApps.getAdapter(),
+                                label = stringResource(id = R.string.apps_in_folder_label),
+                                description = stringResource(id = R.string.apps_in_folder_description),
+                            )
+                        }
                     }
 
                     preferenceGroupItems(apps, isFirstChild = true, dividerStartIndent = 40.dp) { _, app ->

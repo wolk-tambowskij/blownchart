@@ -41,6 +41,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
     private var viewModel: FolderViewModel
     private var folderList = mutableListOf<FolderInfo>()
+    private val filteredList = mutableListOf<AppInfo>()
 
     init {
         context.launcher.deviceProfile.inv.addOnChangeListener(this)
@@ -77,8 +78,8 @@ class LawnchairAlphabeticalAppsList<T>(
     override fun addAppsWithSections(appList: List<AppInfo?>?, startPosition: Int): Int {
         if (appList.isNullOrEmpty()) return startPosition
         val drawerListDefault = prefs.drawerList.get()
+        filteredList.clear()
         var position = startPosition
-        val filteredList = mutableListOf<AppInfo>()
 
         if (!drawerListDefault) {
             val categorizedApps = categorizeApps(context, appList)
@@ -103,13 +104,13 @@ class LawnchairAlphabeticalAppsList<T>(
                     folder.contents.forEach { app ->
                         (appsStore.getApp(app.componentKey) as? AppInfo)?.let {
                             folderInfo.add(it)
-                            filteredList.add(it)
+                            if (prefs.folderApps.get()) filteredList.add(it)
                         }
                     }
                 }
                 position++
             }
-            val remainingApps = appList.filterNot { app -> filteredList.contains(app) }
+            val remainingApps = appList.filterNot { app -> filteredList.contains(app) && prefs.folderApps.get() }
             position = super.addAppsWithSections(remainingApps, position)
         }
 
