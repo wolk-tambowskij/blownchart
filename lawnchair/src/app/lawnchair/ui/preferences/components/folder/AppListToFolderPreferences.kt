@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.LawnchairLauncher
+import app.lawnchair.data.Converters
 import app.lawnchair.data.factory.ViewModelFactory
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.launcher
@@ -62,6 +63,7 @@ fun AppListToFolderPreferences(
     val loading = folderInfo == null
 
     val selectedAppsState = remember { mutableStateOf(setOf<ItemInfo>()) }
+    val dbItems = viewModel.items.collectAsState()
 
     LaunchedEffect(folderInfoId) {
         viewModel.setFolderInfo(folderInfoId, false)
@@ -70,9 +72,12 @@ fun AppListToFolderPreferences(
     LaunchedEffect(folderInfo) {
         val folderContents = folderInfo?.contents?.toMutableSet() ?: mutableSetOf()
         selectedAppsState.value = folderContents
+        viewModel.setItems(folderInfoId)
     }
 
-    val apps = launcher.mAppsView.appsStore.apps.toList()
+    val apps = launcher.mAppsView.appsStore.apps
+        .toList()
+        .filterNot { app -> dbItems.value.contains(Converters().fromComponentKey(app.componentKey)) }
         .sortedBySelection(selectedAppsState.value)
 
     val state = rememberLazyListState()

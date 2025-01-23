@@ -31,6 +31,9 @@ class FolderViewModel(context: Context) : ViewModel() {
     private val _foldersMutable = MutableLiveData<List<FolderInfo>>()
     val foldersMutable: LiveData<List<FolderInfo>> = _foldersMutable
 
+    private val _items = MutableStateFlow<Set<String>>(setOf())
+    val items: StateFlow<Set<String>> = _items.asStateFlow()
+
     private val _folderInfo = MutableStateFlow<FolderInfo?>(null)
     val folderInfo = _folderInfo.asStateFlow()
     private var tempTitle: String = ""
@@ -51,6 +54,13 @@ class FolderViewModel(context: Context) : ViewModel() {
     fun refreshFolders() {
         viewModelScope.launch {
             loadFolders()
+        }
+    }
+
+    fun setItems(id: Int) {
+        viewModelScope.launch {
+            val items = repository.getItems(id)
+            _items.value = items
         }
     }
 
