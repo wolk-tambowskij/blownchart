@@ -85,7 +85,7 @@ class FolderService(val context: Context) : SafeCloseable {
         }
     }
 
-    suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.IO) {
+    suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.Main) {
         try {
             val folderEntities = folderDao.getAllFolders().firstOrNull() ?: emptyList()
             folderEntities.mapNotNull { folderEntity ->

@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class FolderViewModel(context: Context) : ViewModel() {
 
@@ -38,9 +40,13 @@ class FolderViewModel(context: Context) : ViewModel() {
     val folderInfo = _folderInfo.asStateFlow()
     private var tempTitle: String = ""
 
+    private val mutex = Mutex()
+
     init {
         viewModelScope.launch {
-            loadFolders()
+            mutex.withLock {
+                loadFolders()
+            }
         }
     }
 
@@ -53,7 +59,9 @@ class FolderViewModel(context: Context) : ViewModel() {
 
     fun refreshFolders() {
         viewModelScope.launch {
-            loadFolders()
+            mutex.withLock {
+                loadFolders()
+            }
         }
     }
 
@@ -82,22 +90,22 @@ class FolderViewModel(context: Context) : ViewModel() {
     fun updateFolderInfo(folderInfo: FolderInfo, hide: Boolean) {
         viewModelScope.launch {
             repository.updateFolderInfo(folderInfo, hide)
-            loadFolders()
         }
+        refreshFolders()
     }
 
     fun saveFolder(folderInfo: FolderInfo) {
         viewModelScope.launch {
             repository.saveFolderInfo(folderInfo)
-            loadFolders()
         }
+        refreshFolders()
     }
 
     fun deleteFolderInfo(id: Int) {
         viewModelScope.launch {
             repository.deleteFolderInfo(id)
-            loadFolders()
         }
+        refreshFolders()
     }
 
     fun updateFolderWithItems(id: Int, title: String, appInfos: List<AppInfo>) {

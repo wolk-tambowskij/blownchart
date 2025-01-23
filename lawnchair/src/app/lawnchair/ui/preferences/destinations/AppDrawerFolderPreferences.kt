@@ -103,6 +103,8 @@ fun DrawerFolderPreferences(
         viewModel.setAction(Action.DEFAULT)
     }
 
+    viewModel.refreshFolders()
+
     LoadingScreen(obj = folders, modifier = modifier.fillMaxWidth()) { items ->
         PreferenceLayoutLazyColumn(
             modifier = Modifier.fillMaxSize(),
