@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.ui.preferences.destinations.Action
+import com.android.launcher3.R
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,7 @@ class FolderViewModel(context: Context) : ViewModel() {
     private val _folders = MutableStateFlow<List<FolderInfo>>(emptyList())
     val folders: StateFlow<List<FolderInfo>> = _folders.asStateFlow()
 
-    private val _currentTitle = MutableStateFlow("My Folder")
+    private val _currentTitle = MutableStateFlow(context.resources.getString(R.string.my_folder_label))
     val currentTitle: StateFlow<String> = _currentTitle.asStateFlow()
 
     private val _action = MutableStateFlow(Action.DEFAULT)
