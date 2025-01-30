@@ -34,21 +34,20 @@ class FlowerpotApps(private val context: Context, private val pot: Flowerpot) {
         categorizedApps.clear()
 
         val validAppList = appList?.filterNotNull() ?: emptyList()
-
         val categoryTitle = pot.displayName
 
-        val categorizedInThisPot = mutableSetOf<String>()
+        val appInfoMap = validAppList
+            .mapNotNull { it.targetPackage?.let { packageName -> packageName to it } }
+            .toMap()
 
-        validAppList
-            .mapNotNull { it.targetPackage }
-            .filter { packageName ->
-                categorizedInThisPot.add(packageName) &&
-                    (packageName in intentMatches || pot.rules.contains(Rules.Package(packageName)))
-            }
-            .forEach { packageName ->
-                categorizedApps.getOrPut(categoryTitle) { mutableListOf() }
-                    .add(validAppList.first { it.targetPackage == packageName })
-            }
+        val validPackages = appInfoMap.keys.filter { packageName ->
+            packageName in intentMatches || pot.rules.contains(Rules.Package(packageName))
+        }
+
+        validPackages.forEach { packageName ->
+            categorizedApps.getOrPut(categoryTitle) { mutableListOf() }
+                .add(appInfoMap[packageName]!!)
+        }
     }
 
     private fun populateIntentMatches() {
