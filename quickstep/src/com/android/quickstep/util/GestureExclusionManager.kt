@@ -36,24 +36,30 @@ class GestureExclusionManager(private val windowManager: IWindowManager) {
 
     @VisibleForTesting
     val exclusionListener = object : ISystemGestureExclusionListener.Stub() {
-            @BinderThread
-            override fun onSystemGestureExclusionChanged(
-                displayId: Int,
-                exclusionRegion: Region?,
-                unrestrictedOrNull: Region?
-            ) {
-                if (displayId != DEFAULT_DISPLAY) {
-                    return
-                }
-                Executors.MAIN_EXECUTOR.execute {
-                    lastExclusionRegion = exclusionRegion
-                    lastUnrestrictedOrNull = unrestrictedOrNull
-                    listeners.forEach {
-                        it.onGestureExclusionChanged(exclusionRegion, unrestrictedOrNull)
-                    }
+        @BinderThread
+        override fun onSystemGestureExclusionChanged(
+            displayId: Int,
+            exclusionRegion: Region?,
+            unrestrictedOrNull: Region?
+        ) {
+            if (displayId != DEFAULT_DISPLAY) {
+                return
+            }
+            Executors.MAIN_EXECUTOR.execute {
+                lastExclusionRegion = exclusionRegion
+                lastUnrestrictedOrNull = unrestrictedOrNull
+                listeners.forEach {
+                    it.onGestureExclusionChanged(exclusionRegion, unrestrictedOrNull)
                 }
             }
         }
+        fun onSystemGestureExclusionChanged(
+            displayId: Int,
+            exclusionRegion: Region?
+        ) {
+            onSystemGestureExclusionChanged(displayId, exclusionRegion, null)
+        }
+    }
 
     /** Adds a listener for receiving gesture exclusion regions */
     fun addListener(listener: ExclusionListener) {
