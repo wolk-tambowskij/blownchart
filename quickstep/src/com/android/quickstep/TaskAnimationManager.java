@@ -105,8 +105,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
      */
     public void preloadRecentsAnimation(Intent intent) {
         // Pass null animation handler to indicate this start is for preloading
-        UI_HELPER_EXECUTOR.execute(() -> ActivityManagerWrapper.getInstance()
-                .startRecentsActivity(intent, 0, null, null, null));
+        UI_HELPER_EXECUTOR.execute(() -> ActivityManagerWrapper.getInstance().preloadRecentsActivity(intent));
     }
 
     boolean shouldIgnoreMotionEvents() {

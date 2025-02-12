@@ -96,6 +96,7 @@ import com.android.launcher3.statemanager.StatefulActivity;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks;
+import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.testing.shared.TestProtocol;
@@ -1013,6 +1014,7 @@ public class TouchInteractionService extends Service {
 
     private InputConsumer newConsumer(
             GestureState previousGestureState, GestureState newGestureState, MotionEvent event) {
+        TaskbarActivityContext tac = mTaskbarManager.getCurrentActivityContext();
         AnimatedFloat progressProxy = mSwipeUpProxyProvider.apply(mGestureState);
         if (progressProxy != null) {
             InputConsumer consumer = new ProgressDelegateInputConsumer(
@@ -1077,7 +1079,6 @@ public class TouchInteractionService extends Service {
             }
 
             // If Taskbar is present, we listen for swipe or cursor hover events to unstash it.
-            TaskbarActivityContext tac = mTaskbarManager.getCurrentActivityContext();
             if (tac != null && !(base instanceof AssistantInputConsumer)) {
                 // Present always on large screen or on small screen w/ flag
                 boolean useTaskbarConsumer = tac.getDeviceProfile().isTaskbarPresent
@@ -1108,7 +1109,8 @@ public class TouchInteractionService extends Service {
             NavHandle navHandle = tac != null ? tac.getNavHandle()
                     : SystemUiProxy.INSTANCE.get(this);
             if (canStartSystemGesture && !previousGestureState.isRecentsAnimationRunning()
-                    && navHandle.canNavHandleBeLongPressed()) {
+                    && navHandle.canNavHandleBeLongPressed()
+                    && !ignoreThreeFingerTrackpadForNavHandleLongPress(mGestureState)) {
                 reasonString.append(NEWLINE_PREFIX)
                         .append(reasonPrefix)
                         .append(SUBSTRING_PREFIX)
@@ -1140,7 +1142,7 @@ public class TouchInteractionService extends Service {
                         getBaseContext(), mDeviceState, mInputMonitorCompat);
             }
 
-            if (ENABLE_TRACKPAD_GESTURE.get() && mGestureState.isTrackpadGesture()
+            if (mGestureState.isTrackpadGesture()
                     && canStartSystemGesture && !previousGestureState.isRecentsAnimationRunning()) {
                 reasonString = newCompoundString(reasonPrefix)
                         .append(SUBSTRING_PREFIX)
@@ -1202,6 +1204,10 @@ public class TouchInteractionService extends Service {
 
     private CompoundString newCompoundString(String substring) {
         return new CompoundString(NEWLINE_PREFIX).append(substring);
+    }
+
+    private boolean ignoreThreeFingerTrackpadForNavHandleLongPress(GestureState gestureState) {
+        return gestureState.isThreeFingerTrackpadGesture();
     }
 
     private void logInputConsumerSelectionReason(
@@ -1538,7 +1544,6 @@ public class TouchInteractionService extends Service {
         pw.println("\tmConsumer=" + mConsumer.getName());
         ActiveGestureLog.INSTANCE.dump("", pw);
         RecentsModel.INSTANCE.get(this).dump("", pw);
-        TopTaskTracker.INSTANCE.get(this).dump("", pw);
         if (mTaskAnimationManager != null) {
             mTaskAnimationManager.dump("", pw);
         }

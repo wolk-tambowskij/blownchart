@@ -27,6 +27,7 @@ import android.app.ActivityManager;
 import android.app.KeyguardManager;
 import android.app.TaskInfo;
 import android.content.ComponentName;
+import android.content.pm.ParceledListSlice;
 import android.os.Process;
 import android.os.RemoteException;
 import android.util.SparseBooleanArray;
@@ -331,11 +332,19 @@ public class RecentTasksList {
     @VisibleForTesting
     TaskLoadResult loadTasksInBackground(int numTasks, int requestId, boolean loadKeysOnly) {
         int currentUserId = Process.myUserHandle().getIdentifier();
-        ArrayList<GroupedRecentTaskInfo> rawTasks = mSysUiProxy.getRecentTasks(numTasks, currentUserId);
-        // The raw tasks are given in most-recent to least-recent order, we need to
-        // reverse it
-        Collections.reverse(rawTasks);
+        List<ActivityManager.RecentTaskInfo> recentTasks;
 
+        try {
+            ParceledListSlice<ActivityManager.RecentTaskInfo> parceledList =
+                    ActivityManager.getService().getRecentTasks(
+                            numTasks, ActivityManager.RECENT_IGNORE_UNAVAILABLE, currentUserId
+                    );
+            recentTasks = (parceledList != null) ? parceledList.getList() : new ArrayList<>();
+        } catch (RemoteException e) {
+            return new TaskLoadResult(requestId, loadKeysOnly, 0);
+        }
+
+        Collections.reverse(recentTasks);
         SparseBooleanArray tmpLockedUsers = new SparseBooleanArray() {
             @Override
             public boolean get(int key) {
@@ -347,57 +356,26 @@ public class RecentTasksList {
             }
         };
 
-        TaskLoadResult allTasks = new TaskLoadResult(requestId, loadKeysOnly, rawTasks.size());
-
+        TaskLoadResult allTasks = new TaskLoadResult(requestId, loadKeysOnly, recentTasks.size());
         int numVisibleTasks = 0;
-        for (GroupedRecentTaskInfo rawTask : rawTasks) {
-            if (rawTask.getType() == TYPE_FREEFORM) {
-                // TYPE_FREEFORM tasks is only created when enableDesktopWindowingMode() is
-                // true,
-                // leftover TYPE_FREEFORM tasks created when flag was on should be ignored.
-                if (enableDesktopWindowingMode()) {
-                    GroupTask desktopTask = createDesktopTask(rawTask);
-                    allTasks.add(desktopTask);
-                }
-                continue;
-            }
-            ActivityManager.RecentTaskInfo taskInfo1 = rawTask.getTaskInfo1();
-            ActivityManager.RecentTaskInfo taskInfo2 = rawTask.getTaskInfo2();
-            Task.TaskKey task1Key = new Task.TaskKey(taskInfo1);
-            Task task1 = loadKeysOnly
-                    ? new Task(task1Key)
-                    : Task.from(task1Key, taskInfo1,
-                            tmpLockedUsers.get(task1Key.userId) /* isLocked */);
-            task1.setLastSnapshotData(taskInfo1);
-            Task task2 = null;
-            if (taskInfo2 != null) {
-                // Is split task
-                Task.TaskKey task2Key = new Task.TaskKey(taskInfo2);
-                task2 = loadKeysOnly
-                        ? new Task(task2Key)
-                        : Task.from(task2Key, taskInfo2,
-                                tmpLockedUsers.get(task2Key.userId) /* isLocked */);
-                task2.setLastSnapshotData(taskInfo2);
-            } else if (Utilities.ATLEAST_S) {
-                // Is fullscreen task
-                if (numVisibleTasks > 0) {
-                    boolean isExcluded = (taskInfo1.baseIntent.getFlags()
-                            & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) != 0;
-                    if (isExcluded) {
-                        // If there are already visible tasks, then ignore the excluded tasks and
-                        // don't add them to the returned list
-                        continue;
-                    }
-                }
-            }
+
+        for (ActivityManager.RecentTaskInfo taskInfo : recentTasks) {
+            Task.TaskKey taskKey = new Task.TaskKey(taskInfo);
+            Task task = loadKeysOnly
+                    ? new Task(taskKey)
+                    : Task.from(taskKey, taskInfo, tmpLockedUsers.get(taskKey.userId));
+            task.setLastSnapshotData(taskInfo);
+
             if (Utilities.ATLEAST_S) {
-                if (taskInfo1.isVisible) {
+                if (taskInfo.isVisible) {
                     numVisibleTasks++;
                 }
+                if (numVisibleTasks > 0 && (taskInfo.baseIntent.getFlags() & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) != 0) {
+                    continue;
+                }
             }
-            final SplitConfigurationOptions.SplitBounds launcherSplitBounds = convertShellSplitBoundsToLauncher(
-                    rawTask.getSplitBounds());
-            allTasks.add(new GroupTask(task1, task2, launcherSplitBounds));
+
+            allTasks.add(new GroupTask(task, null, null));
         }
 
         return allTasks;

@@ -2565,12 +2565,9 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     /**
-     * Finds the first view matching the ordered operators across the given
-     * viewgroups in order.
-     * 
+     * Finds the first view matching the ordered operators across the given viewgroups in order.
      * @param containers List of ViewGroups to scan, in order of preference.
-     * @param operators  List of operators, in order starting from best matching
-     *                   operator.
+     * @param operators List of operators, in order starting from best matching operator.
      */
     @Nullable
     private static View getFirstMatch(Iterable<ViewGroup> containers,
@@ -2598,8 +2595,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     /**
-     * Returns the first view matching the operator in the given ViewGroups, or null
-     * if none.
+     * Returns the first view matching the operator in the given ViewGroups, or null if none.
      * Forward iteration matters.
      */
     @Nullable
@@ -2607,6 +2603,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         final int itemCount = container.getChildCount();
         for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
             View item = container.getChildAt(itemIdx);
+            if (item.getVisibility() != View.VISIBLE) {
+                continue;
+            }
             if (item instanceof ViewGroup viewGroup) {
                 View view = mapOverViewGroup(viewGroup, op);
                 if (view != null) {

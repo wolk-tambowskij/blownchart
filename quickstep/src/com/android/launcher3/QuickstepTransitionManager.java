@@ -197,8 +197,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
     public static final long APP_LAUNCH_DURATION = 500;
 
-    private static final long APP_LAUNCH_ALPHA_DURATION = 50;
-    private static final long APP_LAUNCH_ALPHA_START_DELAY = 25;
+    public static final long APP_LAUNCH_ALPHA_DURATION = 50;
+    public static final long APP_LAUNCH_ALPHA_START_DELAY = 25;
 
     public static final int ANIMATION_NAV_FADE_IN_DURATION = 266;
     public static final int ANIMATION_NAV_FADE_OUT_DURATION = 133;
@@ -222,8 +222,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     // is solved.
     private static final int TASKBAR_TO_HOME_DURATION_FAST = 300;
     private static final int TASKBAR_TO_HOME_DURATION_SLOW = 1000;
-    protected static final int CONTENT_SCALE_DURATION = 350;
-    protected static final int CONTENT_SCRIM_DURATION = 350;
+    public static final int CONTENT_SCALE_DURATION = 350;
+    public static final int CONTENT_SCRIM_DURATION = 350;
 
     private static final int MAX_NUM_TASKS = 5;
 
@@ -319,6 +319,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     @Override
     public void onDeviceProfileChanged(DeviceProfile dp) {
         mDeviceProfile = dp;
+        var item = new RemoteAnimationTarget[0];
     }
 
     /**
@@ -1303,7 +1304,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         return unlockAnimator;
     }
 
-    private static int getRotationChange(RemoteAnimationTarget[] appTargets) {
+    public static int getRotationChange(RemoteAnimationTarget[] appTargets) {
         int rotationChange = 0;
         for (RemoteAnimationTarget target : appTargets) {
             // LC: https://github.com/LawnchairLauncher/lawnchair/pull/3776
@@ -2033,16 +2034,16 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 target, currentRect, toLauncher, resultRect);
     }
 
-    private static class RemoteAnimationCoordinateTransfer {
+    public static class RemoteAnimationCoordinateTransfer {
         private final QuickstepLauncher mLauncher;
         private final Rect mDisplayRect = new Rect();
         private final Rect mTmpResult = new Rect();
 
-        RemoteAnimationCoordinateTransfer(QuickstepLauncher launcher) {
+        public RemoteAnimationCoordinateTransfer(QuickstepLauncher launcher) {
             mLauncher = launcher;
         }
 
-        void transferRectToTargetCoordinate(RemoteAnimationTarget target, RectF currentRect,
+        public void transferRectToTargetCoordinate(RemoteAnimationTarget target, RectF currentRect,
                                             boolean toLauncher, RectF resultRect) {
             final int taskRotation = target.windowConfiguration.getRotation();
             final DeviceProfile profile = mLauncher.getDeviceProfile();
@@ -2070,7 +2071,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     /**
      * RectFSpringAnim update listener to be used for app to home animation.
      */
-    private class SpringAnimRunner implements RectFSpringAnim.OnUpdateListener {
+    public class SpringAnimRunner implements RectFSpringAnim.OnUpdateListener {
         private final RemoteAnimationTarget[] mAppTargets;
         private final Matrix mMatrix = new Matrix();
         private final Point mTmpPos = new Point();
@@ -2095,7 +2096,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
          * @param closingWindowOriginalRect Original unscaled window rect
          * @param startWindowCornerRadius   corner radius of window at the start position
          */
-        SpringAnimRunner(RemoteAnimationTarget[] appTargets, RectF targetRect,
+        public SpringAnimRunner(RemoteAnimationTarget[] appTargets, RectF targetRect,
                          Rect closingWindowStartRect, Rect closingWindowOriginalRect,
                          float startWindowCornerRadius) {
             mAppTargets = appTargets;
@@ -2196,8 +2197,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         }
     }
 
-    private static class LaunchDepthController extends DepthController {
-        LaunchDepthController(QuickstepLauncher launcher) {
+    public static class LaunchDepthController extends DepthController {
+        public LaunchDepthController(QuickstepLauncher launcher) {
             super(launcher);
             try {
                 setCrossWindowBlursEnabled(

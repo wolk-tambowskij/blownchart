@@ -46,7 +46,6 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
 import android.view.IRecentsAnimationController;
-import android.view.IRecentsAnimationRunner;
 import android.view.RemoteAnimationTarget;
 import android.window.TaskSnapshot;
 
@@ -54,10 +53,14 @@ import com.android.internal.app.IVoiceInteractionManagerService;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
 import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.compatlib.RecentsAnimationRunnerCompat;
+import app.lawnchair.compatlib.eleven.ActivityManagerCompatVR;
 
 public class ActivityManagerWrapper {
 
@@ -222,18 +225,17 @@ public class ActivityManagerWrapper {
     public boolean startRecentsActivity(
             Intent intent, long eventTime, RecentsAnimationListener animationHandler) {
         try {
-            IRecentsAnimationRunner runner = null;
+            RecentsAnimationRunnerCompat runner = null;
             if (animationHandler != null) {
-                runner = new IRecentsAnimationRunner.Stub() {
+                runner = new RecentsAnimationRunnerCompat() {
                     @Override
                     public void onAnimationStart(IRecentsAnimationController controller,
-                            RemoteAnimationTarget[] apps, RemoteAnimationTarget[] wallpapers,
-                            Rect homeContentInsets, Rect minimizedHomeBounds,
-                            Bundle extras) {
+                                                 RemoteAnimationTarget[] apps, RemoteAnimationTarget[] wallpapers,
+                                                 Rect homeContentInsets, Rect minimizedHomeBounds) {
                         final RecentsAnimationControllerCompat controllerCompat =
                                 new RecentsAnimationControllerCompat(controller);
                         animationHandler.onAnimationStart(controllerCompat, apps,
-                                wallpapers, homeContentInsets, minimizedHomeBounds, extras);
+                                wallpapers, homeContentInsets, minimizedHomeBounds, new Bundle());
                     }
 
                     @Override
@@ -242,13 +244,41 @@ public class ActivityManagerWrapper {
                                 ThumbnailData.wrap(taskIds, taskSnapshots));
                     }
 
+
+                    /**
+                     * compat for android 12/11/10
+                     */
+                    public void onAnimationCanceled(Object taskSnapshot) {
+                        if (LawnchairQuickstepCompat.ATLEAST_S) {
+                            animationHandler.onAnimationCanceled(
+                                    ThumbnailData.wrap(new int[]{0}, new TaskSnapshot[]{(TaskSnapshot) taskSnapshot}));
+                        } else if (LawnchairQuickstepCompat.ATLEAST_R) {
+                            ActivityManagerCompatVR compat = (ActivityManagerCompatVR) LawnchairQuickstepCompat.getActivityManagerCompat();
+                            ActivityManagerCompatVR.ThumbnailData data = compat.convertTaskSnapshotToThumbnailData(taskSnapshot);
+                            HashMap<Integer, ThumbnailData> thumbnailDatas = new HashMap<>();
+                            if (data != null) {
+                                thumbnailDatas.put(0, new ThumbnailData());
+                            }
+                            animationHandler.onAnimationCanceled(thumbnailDatas);
+                        } else {
+                            animationHandler.onAnimationCanceled(new HashMap<>());
+                        }
+                    }
+
+                    /**
+                     * compat for android 12/11
+                     */
+                    public void onTaskAppeared(RemoteAnimationTarget app) {
+                        animationHandler.onTasksAppeared(new RemoteAnimationTarget[]{app});
+                    }
+
                     @Override
                     public void onTasksAppeared(RemoteAnimationTarget[] apps) {
                         animationHandler.onTasksAppeared(apps);
                     }
                 };
             }
-            getService().startRecentsActivity(intent, eventTime, runner);
+            LawnchairQuickstepCompat.getActivityManagerCompat().startRecentsActivity(intent, eventTime, runner);
             return true;
         } catch (Exception e) {
             return false;
@@ -271,6 +301,24 @@ public class ActivityManagerWrapper {
      */
     public boolean startActivityFromRecents(Task.TaskKey taskKey, ActivityOptions options) {
         return startActivityFromRecents(taskKey.id, options);
+    }
+
+    /**
+     * Preloads the recents activity. The caller should manage the thread on which this is called.
+     */
+    public void preloadRecentsActivity(Intent intent) {
+        try {
+            Class<?> activityTaskManagerClass = Class.forName("android.app.ActivityTaskManager");
+            Method getServiceMethod = activityTaskManagerClass.getMethod("getService");
+            Object activityTaskManagerService = getServiceMethod.invoke(null);
+            Method preloadRecentsActivityMethod = activityTaskManagerService.getClass()
+                    .getMethod("preloadRecentsActivity", Intent.class);
+
+            preloadRecentsActivityMethod.invoke(activityTaskManagerService, intent);
+        } catch (Throwable e) {
+            Log.w(TAG, "Failed to preload recents activity", e);
+            startRecentsActivity(intent, 0, null, null, null);
+        }
     }
 
     /**
