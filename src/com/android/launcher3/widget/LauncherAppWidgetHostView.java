@@ -379,6 +379,11 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
         return false;
     }
 
+    @Override
+    public void onColorsChanged(SparseIntArray colors) {
+        post(() -> setColorResources(colors));
+    }
+
     /**
      * Listener interface to be called when {@code CellLayout} is about to layout this child view
      */

@@ -451,9 +451,7 @@ public class LauncherPreviewRenderer extends ContextWrapper
                 mContext, info.appWidgetId, providerInfo);
 
         if (mWallpaperColorResources != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                view.setColorResources(mWallpaperColorResources);
-            }
+            view.setColorResources(mWallpaperColorResources);
         }
 
         view.setTag(info);
@@ -614,6 +612,11 @@ public class LauncherPreviewRenderer extends ContextWrapper
         @Override
         protected boolean shouldAllowDirectClick() {
             return false;
+        }
+
+        @Override
+        public void onColorsChanged(SparseIntArray colors) {
+            post(() -> setColorResources(colors));
         }
     }
 

@@ -37,6 +37,7 @@ import android.view.Display;
 import android.view.SurfaceControlViewHost;
 import android.view.SurfaceControlViewHost.SurfacePackage;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
 import androidx.annotation.NonNull;
@@ -48,6 +49,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherSettings;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.graphics.LauncherPreviewRenderer.PreviewContext;
 import com.android.launcher3.model.BaseLauncherBinder;
@@ -66,7 +68,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import app.lawnchair.AccentColorExtractor;
 
 /** Render preview using surface view. */
 @SuppressWarnings("NewApi")
@@ -218,7 +219,11 @@ public class PreviewSurfaceRenderer {
             return new ContextThemeWrapper(context,
                     Themes.getActivityThemeRes(context));
         }
-        AccentColorExtractor.newInstance(context)
+        if (Utilities.ATLEAST_R) {
+            context = context.createWindowContext(
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, null);
+        }
+        LocalColorExtractor.newInstance(mContext)
                 .applyColorsOverride(context, mWallpaperColors);
         return new ContextThemeWrapper(context,
                 Themes.getActivityThemeRes(context, mWallpaperColors.getColorHints()));

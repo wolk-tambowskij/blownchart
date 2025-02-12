@@ -18,11 +18,8 @@ package app.lawnchair;
 
 import android.app.WallpaperColors;
 import android.content.Context;
-import android.graphics.Rect;
-import android.graphics.RectF;
 import android.os.Build;
 import android.util.SparseIntArray;
-import android.view.View;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Keep;
@@ -42,10 +39,17 @@ import dev.kdrag0n.monet.theme.ColorScheme;
 public class AccentColorExtractor extends LocalColorExtractor implements ThemeProvider.ColorSchemeChangeListener {
 
     private final ThemeProvider mThemeProvider;
+    private Listener mListener;
 
     @Keep
     public AccentColorExtractor(Context context) {
         mThemeProvider = ThemeProvider.INSTANCE.get(context);
+    }
+
+    @Override
+    public void setListener(@Nullable Listener listener) {
+        mListener = listener;
+        notifyListener();
     }
 
     @Nullable
@@ -71,7 +75,15 @@ public class AccentColorExtractor extends LocalColorExtractor implements ThemePr
     }
 
     @Override
-    public void onColorSchemeChanged() {}
+    public void onColorSchemeChanged() {
+        notifyListener();
+    }
+
+    protected void notifyListener() {
+        if (mListener != null) {
+            mListener.onColorsChanged(generateColorsOverride(mThemeProvider.getColorScheme()));
+        }
+    }
 
     // Shade number -> color resource ID maps
     private static final SparseIntArray ACCENT1_RES = new SparseIntArray(13);
