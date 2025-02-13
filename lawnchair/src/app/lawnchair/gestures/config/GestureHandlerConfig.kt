@@ -7,6 +7,7 @@ import app.lawnchair.gestures.handlers.OpenAppDrawerGestureHandler
 import app.lawnchair.gestures.handlers.OpenAppGestureHandler
 import app.lawnchair.gestures.handlers.OpenAppSearchGestureHandler
 import app.lawnchair.gestures.handlers.OpenAppTarget
+import app.lawnchair.gestures.handlers.OpenAssistantHandler
 import app.lawnchair.gestures.handlers.OpenNotificationsHandler
 import app.lawnchair.gestures.handlers.OpenSearchGestureHandler
 import app.lawnchair.gestures.handlers.RecentsGestureHandler
@@ -60,6 +61,10 @@ sealed class GestureHandlerConfig {
     @Serializable
     @SerialName("openSearch")
     data object OpenSearch : Simple(R.string.gesture_handler_open_search, ::OpenSearchGestureHandler)
+
+    @Serializable
+    @SerialName("openAssistant")
+    data object OpenAssistant : Simple(R.string.gesture_handler_open_assistant, ::OpenAssistantHandler)
 
     @Serializable
     @SerialName("openApp")

@@ -30,6 +30,7 @@ sealed class GestureHandlerOption(
     data object OpenAppDrawer : Simple(GestureHandlerConfig.OpenAppDrawer)
     data object OpenAppSearch : Simple(GestureHandlerConfig.OpenAppSearch)
     data object OpenSearch : Simple(GestureHandlerConfig.OpenSearch)
+    data object OpenAssistant : Simple(GestureHandlerConfig.OpenAssistant)
 
     data object OpenApp : GestureHandlerOption(
         R.string.gesture_handler_open_app_option,
