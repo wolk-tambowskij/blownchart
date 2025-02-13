@@ -21,6 +21,7 @@ import app.lawnchair.views.overlay.FullScreenOverlayMode
 import kotlinx.coroutines.launch
 
 val overlayOptions = listOf(
+    FullScreenOverlayMode.NONE,
     FullScreenOverlayMode.SUCK_IN,
     FullScreenOverlayMode.FADE_IN,
 )

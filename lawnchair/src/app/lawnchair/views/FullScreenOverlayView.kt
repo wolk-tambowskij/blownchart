@@ -214,5 +214,9 @@ fun Activity.showFullScreenOverlay(
                 onOverlayReady()
             }
         }
+        FullScreenOverlayMode.NONE -> {
+            targetRootView?.removeView(overlayView)
+            onOverlayReady()
+        }
     }
 }
