@@ -34,6 +34,7 @@ import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.FeedPreference
 import app.lawnchair.ui.preferences.components.GestureHandlerPreference
 import app.lawnchair.ui.preferences.components.NavigationActionPreference
+import app.lawnchair.ui.preferences.components.OverlayHandlerPreference
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
@@ -92,6 +93,13 @@ fun HomeScreenPreferences(
             ExpandAndShrink(visible = feedAvailable && enableFeedAdapter.state.value) {
                 FeedPreference()
             }
+        }
+        PreferenceGroup(heading = stringResource(R.string.overlay_label)) {
+            val overlayAdapter = prefs2.closingAppOverlay.getAdapter()
+            OverlayHandlerPreference(
+                adapter = overlayAdapter,
+                label = stringResource(id = R.string.app_closing_animation),
+            )
         }
         PreferenceGroup(heading = stringResource(id = R.string.wallpaper)) {
             SwitchPreference(

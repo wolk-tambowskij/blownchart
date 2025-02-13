@@ -96,6 +96,9 @@
     <!-- which web search provider to use by default -->
     <string name="config_default_web_suggestion_provider" translatable="false">google</string>
 
+    <!-- which overlay to use by default -->
+    <string name="config_default_overlay" translatable="false">suck_in</string>
+
     <bool name="config_default_show_hotseat">true</bool>
     <bool name="config_default_always_reload_icons">true</bool>
     <bool name="config_default_dark_status_bar">false</bool>
@@ -127,7 +130,7 @@
     <bool name="config_default_show_icon_labels_in_drawer">true</bool>
     <bool name="config_default_enable_fuzzy_search">false</bool>
     <bool name="config_default_enable_smartspace">true</bool>
-    <bool name="config_default_enable_feed">true</bool>
+    <bool name="config_default_enable_feed">false</bool>
     <bool name="config_default_enable_icon_selection">false</bool>
     <bool name="config_default_show_component_names">false</bool>
     <bool name="config_default_smartspace_show_date">true</bool>

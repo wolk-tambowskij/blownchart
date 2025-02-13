@@ -28,6 +28,7 @@ import android.util.Pair
 import android.view.Display
 import android.view.View
 import android.view.ViewTreeObserver
+import android.window.SplashScreen
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowInsetsCompat
@@ -51,6 +52,7 @@ import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.ui.popup.LawnchairShortcut
 import app.lawnchair.util.getThemedIconPacksInstalled
 import app.lawnchair.util.unsafeLazy
+import app.lawnchair.views.LawnchairFloatingSurfaceView
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.BubbleTextView
@@ -75,7 +77,6 @@ import com.android.launcher3.util.SystemUiController.UI_STATE_BASE_WINDOW
 import com.android.launcher3.util.Themes
 import com.android.launcher3.util.TouchController
 import com.android.launcher3.views.ActivityContext
-import com.android.launcher3.views.FloatingSurfaceView
 import com.android.launcher3.views.OptionsPopupView
 import com.android.launcher3.views.OptionsPopupView.OptionItem
 import com.android.launcher3.widget.LauncherWidgetHolder
@@ -300,7 +301,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                     false,
                     AbstractFloatingView.TYPE_ICON_SURFACE,
                 )
-                FloatingSurfaceView.show(this, gnc)
+                LawnchairFloatingSurfaceView.show(this, gnc)
             }
         }
     }
@@ -349,7 +350,7 @@ class LawnchairLauncher : QuickstepLauncher() {
             view.iconView.setBackgroundDrawable(item.icon)
             view.bubbleText.text = item.label
             view.setOnClickListener(popup)
-//            view.onLongClickListener = popup
+            view.onLongClickListener = popup
             popup.mItemMap[view] = item
         }
 
@@ -424,6 +425,9 @@ class LawnchairLauncher : QuickstepLauncher() {
                 height,
             ),
         )
+        if (Utilities.ATLEAST_T) {
+            options.splashScreenStyle = SplashScreen.SPLASH_SCREEN_STYLE_ICON
+        }
         options.launchDisplayId = if (v.display != null) v.display.displayId else Display.DEFAULT_DISPLAY
         val callback = RunnableList()
         return ActivityOptionsWrapper(options, callback)

@@ -45,6 +45,7 @@ import app.lawnchair.theme.color.ColorStyle
 import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.ui.preferences.components.HiddenAppsInSearch
 import app.lawnchair.util.kotlinxJson
+import app.lawnchair.views.overlay.FullScreenOverlayMode
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
 import com.android.launcher3.LauncherAppState
@@ -458,6 +459,14 @@ class PreferenceManager2 private constructor(private val context: Context) :
     val enableFuzzySearch = preference(
         key = booleanPreferencesKey(name = "enable_fuzzy_search"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_enable_fuzzy_search),
+    )
+
+    val closingAppOverlay = preference(
+        key = stringPreferencesKey(name = "closing_app_overlay"),
+        defaultValue = FullScreenOverlayMode.fromValue(context.resources.getString(R.string.config_default_overlay)),
+        parse = { FullScreenOverlayMode.fromValue(it) },
+        save = { it.value },
+        onSet = { reloadHelper.reloadGrid() },
     )
 
     val matchHotseatQsbStyle = preference(
