@@ -757,10 +757,12 @@ public class CellLayout extends ViewGroup {
                                        CellLayoutLayoutParams params, boolean markCells) {
         final CellLayoutLayoutParams lp = params;
 
-        // Hotseat icons - remove text
-        if (child instanceof BubbleTextView) {
-            BubbleTextView bubbleChild = (BubbleTextView) child;
-            bubbleChild.setTextVisibility(PreferenceExtensionsKt.firstBlocking(pref.getEnableLabelInDock()));
+        // Hotseat icons - modified by lawnchair
+        if (child instanceof BubbleTextView bubbleChild) {
+            boolean enableLabel = mContainerType == HOTSEAT
+                    ? PreferenceExtensionsKt.firstBlocking(pref.getEnableLabelInDock())
+                    : true;
+            bubbleChild.setTextVisibility(enableLabel);
         }
 
         child.setScaleX(DEFAULT_SCALE);

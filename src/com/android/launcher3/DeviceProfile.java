@@ -938,7 +938,7 @@ public class DeviceProfile {
 
         hotseatCellHeightPx = getIconSizeWithOverlap(hotseatIconSizePx * 2) - hotseatIconSizePx / 2;
         hotseatCellHeightPx += isLabelInDock ? iconTextHeight : 0;
-        hotseatQsbSpace += isLabelInDock ? iconTextHeight : 0;
+        hotseatQsbSpace += isLabelInDock ? (iconTextHeight / 2) : 0;
 
         var space = Math.abs(hotseatCellHeightPx / 2) - 16;
 
