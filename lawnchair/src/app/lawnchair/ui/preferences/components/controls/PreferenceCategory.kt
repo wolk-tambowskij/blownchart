@@ -55,7 +55,7 @@ fun PreferenceCategory(
         title = {
             Text(
                 text = label,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             )
         },
         description = {

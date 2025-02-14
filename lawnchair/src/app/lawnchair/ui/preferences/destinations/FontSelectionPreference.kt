@@ -298,7 +298,7 @@ private fun VariantDropdown(
 
         TextButton(
             onClick = { showVariants = true },
-            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onBackground),
+            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
             contentPadding = VariantButtonContentPadding,
         ) {
             AndroidText(

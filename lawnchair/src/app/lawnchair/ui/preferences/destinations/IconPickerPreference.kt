@@ -164,7 +164,7 @@ fun IconPickerGrid(
                         text = category.title,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background)
+                            .background(MaterialTheme.colorScheme.surface)
                             .padding(16.dp),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,

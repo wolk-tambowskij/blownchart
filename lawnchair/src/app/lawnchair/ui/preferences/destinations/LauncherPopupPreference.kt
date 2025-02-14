@@ -45,6 +45,7 @@ import app.lawnchair.ui.preferences.components.DraggableSwitchPreference
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroupHeading
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.ui.theme.isSelectedThemeDark
 import com.android.launcher3.R
 
 @Composable
@@ -135,7 +136,7 @@ private fun LauncherPopupPreview(optionsList: List<LauncherOptionPopupItem>) {
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
                 .clip(MaterialTheme.shapes.large),
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            color = if (isSelectedThemeDark) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceDim,
         ) {
             val enabledItems = optionsList.filter { it.isEnabled }
             Column(

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.lawnchair.ui.theme.preferenceGroupColor
 
 @Composable
 fun ButtonSection(
@@ -31,7 +32,7 @@ fun ButtonSection(
     gridLayout: @Composable () -> Unit,
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else preferenceGroupColor(),
         animationSpec = tween(durationMillis = 300),
     )
 

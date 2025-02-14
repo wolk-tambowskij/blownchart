@@ -61,7 +61,7 @@ fun Chip(
 ) {
     val shape = RoundedCornerShape(8.dp)
     val textColor = lerp(
-        MaterialTheme.colorScheme.onBackground,
+        MaterialTheme.colorScheme.onSurface,
         MaterialTheme.colorScheme.primary,
         selectedProgress,
     )

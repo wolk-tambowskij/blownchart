@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -56,9 +54,7 @@ fun PreferenceSearchScaffold(
     Scaffold(
         modifier = modifier,
         topBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.background,
-            ) {
+            Surface {
                 SearchBar(
                     value,
                     onValueChange,
@@ -66,7 +62,6 @@ fun PreferenceSearchScaffold(
                     placeholder = placeholder,
                     actions = actions,
                 )
-                Spacer(modifier = Modifier.requiredHeight(16.dp))
             }
         },
         bottomBar = { BottomSpacer() },
@@ -89,13 +84,13 @@ private fun SearchBar(
         modifier = modifier
             .zIndex(1f)
             .statusBarsPadding()
-            .padding(top = 8.dp)
+            .padding(vertical = 8.dp)
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .height(56.dp)
             .background(
                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                shape = RoundedCornerShape(100),
+                shape = CircleShape,
             ),
     ) {
         ClickableIcon(

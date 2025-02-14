@@ -98,10 +98,10 @@ fun SliderPreference(
             ) {
                 Text(
                     text = label,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 CompositionLocalProvider(
-                    LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+                    LocalContentColor provides MaterialTheme.colorScheme.onSurface,
                 ) {
                     val value = snapSliderValue(valueRange.start, sliderValue, step)
                     Text(

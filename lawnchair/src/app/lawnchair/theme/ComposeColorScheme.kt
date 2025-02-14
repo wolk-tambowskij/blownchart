@@ -79,17 +79,17 @@ private fun delinearized(rgbComponent: Float): Int {
 
 @Composable
 fun dev.kdrag0n.monet.theme.ColorScheme.toComposeColorScheme(isDark: Boolean): ColorScheme = remember(this, isDark) {
-    val neutralVariant4 = neutralVariant(40).setLuminance(4f)
-    val neutralVariant6 = neutralVariant(40).setLuminance(6f)
-    val neutralVariant12 = neutralVariant(40).setLuminance(12f)
-    val neutralVariant17 = neutralVariant(40).setLuminance(17f)
-    val neutralVariant22 = neutralVariant(40).setLuminance(22f)
-    val neutralVariant24 = neutralVariant(40).setLuminance(24f)
-    val neutralVariant87 = neutralVariant(40).setLuminance(87f)
-    val neutralVariant92 = neutralVariant(40).setLuminance(92f)
-    val neutralVariant94 = neutralVariant(40).setLuminance(94f)
-    val neutralVariant96 = neutralVariant(40).setLuminance(96f)
-    val neutralVariant98 = neutralVariant(40).setLuminance(98f)
+    val neutral4 = neutral(40).setLuminance(4f)
+    val neutral6 = neutral(40).setLuminance(6f)
+    val neutral12 = neutral(40).setLuminance(12f)
+    val neutral17 = neutral(40).setLuminance(17f)
+    val neutral22 = neutral(40).setLuminance(22f)
+    val neutral24 = neutral(40).setLuminance(24f)
+    val neutral87 = neutral(40).setLuminance(87f)
+    val neutral92 = neutral(40).setLuminance(92f)
+    val neutral94 = neutral(40).setLuminance(94f)
+    val neutral96 = neutral(40).setLuminance(96f)
+    val neutral98 = neutral(40).setLuminance(98f)
 
     if (isDark) {
         darkColorScheme(
@@ -104,9 +104,9 @@ fun dev.kdrag0n.monet.theme.ColorScheme.toComposeColorScheme(isDark: Boolean): C
             onSecondaryContainer = secondary(90),
             tertiary = tertiary(80),
             onTertiary = tertiary(20),
-            background = neutralVariant6,
+            background = neutral6,
             onBackground = neutral(90),
-            surface = neutralVariant6,
+            surface = neutral6,
             onSurface = neutral(90),
             surfaceVariant = neutralVariant(30),
             onSurfaceVariant = neutralVariant(80),
@@ -115,14 +115,13 @@ fun dev.kdrag0n.monet.theme.ColorScheme.toComposeColorScheme(isDark: Boolean): C
             outline = neutralVariant(60),
             outlineVariant = neutralVariant(30),
             scrim = neutral(0),
-
-            surfaceBright = neutralVariant24,
-            surfaceDim = neutralVariant6,
-            surfaceContainerHighest = neutralVariant22,
-            surfaceContainerHigh = neutralVariant17,
-            surfaceContainer = neutralVariant12,
+            surfaceBright = neutral24,
+            surfaceDim = neutral6,
+            surfaceContainerHighest = neutral22,
+            surfaceContainerHigh = neutral17,
+            surfaceContainer = neutral12,
             surfaceContainerLow = neutralVariant(10),
-            surfaceContainerLowest = neutralVariant4,
+            surfaceContainerLowest = neutral4,
             surfaceTint = primary(80),
         )
     } else {
@@ -140,9 +139,9 @@ fun dev.kdrag0n.monet.theme.ColorScheme.toComposeColorScheme(isDark: Boolean): C
             onTertiary = tertiary(100),
             tertiaryContainer = tertiary(90),
             onTertiaryContainer = tertiary(10),
-            background = neutral(95),
+            background = neutral94,
             onBackground = neutralVariant(10),
-            surface = neutral(95),
+            surface = neutral94,
             onSurface = neutralVariant(10),
             surfaceVariant = neutralVariant(90),
             onSurfaceVariant = neutralVariant(30),
@@ -151,14 +150,13 @@ fun dev.kdrag0n.monet.theme.ColorScheme.toComposeColorScheme(isDark: Boolean): C
             outline = neutralVariant(50),
             outlineVariant = neutralVariant(80),
             scrim = neutral(0),
-
-            surfaceBright = neutralVariant98,
-            surfaceDim = neutralVariant87,
-            surfaceContainerHighest = neutralVariant(90),
-            surfaceContainerHigh = neutralVariant92,
-            surfaceContainer = neutralVariant94,
-            surfaceContainerLow = neutralVariant96,
-            surfaceContainerLowest = neutralVariant(100),
+            surfaceBright = neutral98,
+            surfaceDim = neutral87,
+            surfaceContainerHighest = neutral(90),
+            surfaceContainerHigh = neutral92,
+            surfaceContainer = neutral98,
+            surfaceContainerLow = neutral96,
+            surfaceContainerLowest = neutral(100),
             surfaceTint = primary(40),
         )
     }

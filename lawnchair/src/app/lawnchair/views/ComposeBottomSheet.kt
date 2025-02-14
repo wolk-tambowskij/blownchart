@@ -220,7 +220,6 @@ class ComposeBottomSheet<T>(context: Context) : AbstractSlideInView<T>(context, 
                     .widthIn(max = 640.dp)
                     .fillMaxWidth(),
                 shape = backgroundShape,
-                color = MaterialTheme.colorScheme.background,
 
             ) {
                 Box(

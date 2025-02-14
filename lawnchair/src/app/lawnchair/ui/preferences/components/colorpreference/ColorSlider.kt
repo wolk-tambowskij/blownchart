@@ -58,7 +58,7 @@ fun RgbColorSlider(
             ) {
                 Text(text = label)
                 CompositionLocalProvider(
-                    LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+                    LocalContentColor provides MaterialTheme.colorScheme.onSurface,
                 ) {
                     val valueText = snapSliderValue(rgbRange.start, value.toFloat(), step)
                         .roundToInt().toString()
@@ -136,7 +136,7 @@ fun HsbColorSlider(
             ) {
                 Text(text = label)
                 CompositionLocalProvider(
-                    LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+                    LocalContentColor provides MaterialTheme.colorScheme.onSurface,
                 ) {
                     val valueText = snapSliderValue(range.start, value, step)
                     Text(

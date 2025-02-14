@@ -66,7 +66,7 @@ fun <T> DraggablePreferenceGroup(
     var isAnyDragging by remember { mutableStateOf(false) }
 
     val color by animateColorAsState(
-        targetValue = if (!isAnyDragging) preferenceGroupColor() else MaterialTheme.colorScheme.background,
+        targetValue = if (!isAnyDragging) preferenceGroupColor() else MaterialTheme.colorScheme.surface,
         label = "card background animation",
     )
 

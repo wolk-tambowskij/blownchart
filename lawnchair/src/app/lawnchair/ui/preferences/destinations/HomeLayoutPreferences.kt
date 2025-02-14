@@ -64,7 +64,7 @@ fun HomeLayoutSettings(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {

@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.theme.preferenceGroupColor
 import kotlin.math.abs
 import kotlinx.coroutines.launch
 
@@ -60,7 +61,7 @@ fun TwoTabPreferenceLayout(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainer),
+                .background(preferenceGroupColor()),
         ) {
             Tab(
                 label = firstPageLabel,
@@ -108,7 +109,7 @@ private fun RowScope.Tab(
     val selectedProgress = 1f - abs(currentOffset - page).coerceIn(0f, 1f)
     val shape = CircleShape
     val textColor = lerp(
-        MaterialTheme.colorScheme.onBackground,
+        MaterialTheme.colorScheme.onSurface,
         MaterialTheme.colorScheme.onPrimaryContainer,
         selectedProgress,
     )

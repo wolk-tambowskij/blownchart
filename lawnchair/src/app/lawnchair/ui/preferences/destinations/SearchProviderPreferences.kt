@@ -216,7 +216,7 @@ private fun SponsorDisclaimer(
         modifier = modifier,
     ) {
         CompositionLocalProvider(
-            LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+            LocalContentColor provides MaterialTheme.colorScheme.onSurface,
             LocalTextStyle provides MaterialTheme.typography.bodyLarge,
         ) {
             Text(
