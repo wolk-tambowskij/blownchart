@@ -644,6 +644,12 @@ class PreferenceManager2 private constructor(private val context: Context) :
         onSet = { reloadHelper.reloadIcons() },
     )
 
+    val enableLabelInDock = preference(
+        key = booleanPreferencesKey(name = "enable_label_dock"),
+        defaultValue = false,
+        onSet = { reloadHelper.reloadGrid() },
+    )
+
     val doubleTapGestureHandler = serializablePreference<GestureHandlerConfig>(
         key = stringPreferencesKey("double_tap_gesture_handler"),
         defaultValue = GestureHandlerConfig.Sleep,

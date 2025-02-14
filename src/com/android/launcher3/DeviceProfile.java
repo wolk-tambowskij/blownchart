@@ -933,7 +933,12 @@ public class DeviceProfile {
     private void updateHotseatSizes(int hotseatIconSizePx) {
         // Ensure there is enough space for folder icons, which have a slightly larger
         // radius.
+        int iconTextHeight = Utilities.calculateTextHeight(iconTextSizePx);
+        var isLabelInDock = PreferenceExtensionsKt.firstBlocking(preferenceManager2.getEnableLabelInDock());
+
         hotseatCellHeightPx = getIconSizeWithOverlap(hotseatIconSizePx * 2) - hotseatIconSizePx / 2;
+        hotseatCellHeightPx += isLabelInDock ? iconTextHeight : 0;
+        hotseatQsbSpace += isLabelInDock ? iconTextHeight : 0;
 
         var space = Math.abs(hotseatCellHeightPx / 2) - 16;
 

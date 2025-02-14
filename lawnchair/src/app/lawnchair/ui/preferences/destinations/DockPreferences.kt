@@ -134,6 +134,10 @@ fun HotseatBackgroundSettings(prefs: PreferenceManager, prefs2: PreferenceManage
 
 @Composable
 fun GridSettings(prefs: PreferenceManager, prefs2: PreferenceManager2) {
+    SwitchPreference(
+        adapter = prefs2.enableLabelInDock.getAdapter(),
+        label = stringResource(id = R.string.show_labels),
+    )
     SliderPreference(
         label = stringResource(id = R.string.dock_icons),
         adapter = prefs.hotseatColumns.getAdapter(),
@@ -171,6 +175,7 @@ fun ColumnScope.DockPreferencesPreview(modifier: Modifier = Modifier) {
             prefs.hotseatQsbStrokeWidth.getAdapter(),
             prefs2.hotseatBottomFactor.getAdapter(),
             prefs2.strokeColorStyle.getAdapter(),
+            prefs2.enableLabelInDock.getAdapter(),
             prefs.hotseatBG.getAdapter(),
             prefs.hotseatBGHorizontalInsetLeft.getAdapter(),
             prefs.hotseatBGVerticalInsetTop.getAdapter(),

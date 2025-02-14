@@ -87,6 +87,7 @@ import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.ShortcutUtil;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.FloatingIconViewCompanion;
+import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -95,6 +96,7 @@ import java.util.Locale;
 import app.lawnchair.LawnchairApp;
 import app.lawnchair.font.FontManager;
 import app.lawnchair.preferences.PreferenceManager;
+import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.util.LawnchairUtilsKt;
 
 /**
@@ -224,6 +226,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     private boolean mEnableIconUpdateAnimation = false;
 
+    private final PreferenceManager2 pref2;
+
     public BubbleTextView(Context context) {
         this(context, null, 0);
     }
@@ -236,6 +240,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         super(context, attrs, defStyle);
         mActivity = ActivityContext.lookupContext(context);
         FastBitmapDrawable.setFlagHoverEnabled(LawnchairApp.isRecentsEnabled() && enableCursorHoverStates());
+        pref2 = PreferenceManager2.getInstance(context);
 
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.BubbleTextView, defStyle, 0);
@@ -844,8 +849,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         // Text should be visible everywhere but the hotseat.
         Object tag = getParent() instanceof FolderIcon ? ((View) getParent()).getTag() : getTag();
         ItemInfo info = tag instanceof ItemInfo ? (ItemInfo) tag : null;
-        return info == null || (info.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT
-                && info.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION);
+        return info == null || ((info.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT
+                && info.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION)
+                && !PreferenceExtensionsKt.firstBlocking(pref2.getEnableLabelInDock()));
     }
 
     public void setTextVisibility(boolean visible) {
