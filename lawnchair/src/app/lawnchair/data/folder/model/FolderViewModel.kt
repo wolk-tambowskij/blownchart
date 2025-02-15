@@ -1,14 +1,11 @@
 ﻿package app.lawnchair.data.folder.model
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.lawnchair.data.folder.service.FolderService
-import app.lawnchair.ui.preferences.destinations.Action
-import com.android.launcher3.R
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,12 +22,6 @@ class FolderViewModel(context: Context) : ViewModel() {
     private val _folders = MutableStateFlow<List<FolderInfo>>(emptyList())
     val folders: StateFlow<List<FolderInfo>> = _folders.asStateFlow()
 
-    private val _currentTitle = MutableStateFlow(context.resources.getString(R.string.my_folder_label))
-    val currentTitle: StateFlow<String> = _currentTitle.asStateFlow()
-
-    private val _action = MutableStateFlow(Action.DEFAULT)
-    val action: StateFlow<Action> = _action.asStateFlow()
-
     private val _foldersMutable = MutableLiveData<List<FolderInfo>>()
     val foldersMutable: LiveData<List<FolderInfo>> = _foldersMutable
 
@@ -39,7 +30,6 @@ class FolderViewModel(context: Context) : ViewModel() {
 
     private val _folderInfo = MutableStateFlow<FolderInfo?>(null)
     val folderInfo = _folderInfo.asStateFlow()
-    private var tempTitle: String = ""
 
     private val mutex = Mutex()
 
@@ -48,13 +38,6 @@ class FolderViewModel(context: Context) : ViewModel() {
             mutex.withLock {
                 loadFolders()
             }
-        }
-    }
-
-    fun setAction(newAction: Action) {
-        if (_action.value != newAction) {
-            Log.d("FolderPreferences", "Transitioning action from ${action.value} to $newAction")
-            _action.value = newAction
         }
     }
 
@@ -70,15 +53,6 @@ class FolderViewModel(context: Context) : ViewModel() {
         viewModelScope.launch {
             val items = repository.getItems(id)
             _items.value = items
-        }
-    }
-
-    fun updateCurrentTitle(title: String) {
-        if (action.value == Action.EDIT) {
-            tempTitle = title
-            _currentTitle.value = title
-        } else if (action.value != Action.SETTLE) {
-            _currentTitle.value = title
         }
     }
 
@@ -115,7 +89,7 @@ class FolderViewModel(context: Context) : ViewModel() {
         }
     }
 
-    suspend fun loadFolders() {
+    private suspend fun loadFolders() {
         val folders = repository.getAllFolders()
         _folders.value = folders
         _foldersMutable.postValue(folders)

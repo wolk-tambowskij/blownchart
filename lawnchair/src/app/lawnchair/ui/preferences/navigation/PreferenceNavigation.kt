@@ -19,14 +19,13 @@ import app.lawnchair.ui.preferences.about.AboutRoutes
 import app.lawnchair.ui.preferences.about.acknowledgements.Acknowledgements
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreferenceModelList
 import app.lawnchair.ui.preferences.components.colorpreference.ColorSelection
-import app.lawnchair.ui.preferences.components.folder.AppListToFolderPreferences
+import app.lawnchair.ui.preferences.destinations.AppDrawerFoldersPreference
 import app.lawnchair.ui.preferences.destinations.AppDrawerPreferences
 import app.lawnchair.ui.preferences.destinations.AppDrawerRoutes
 import app.lawnchair.ui.preferences.destinations.CustomIconShapePreference
 import app.lawnchair.ui.preferences.destinations.DebugMenuPreferences
 import app.lawnchair.ui.preferences.destinations.DockPreferences
 import app.lawnchair.ui.preferences.destinations.DockRoutes
-import app.lawnchair.ui.preferences.destinations.DrawerFolderPreferences
 import app.lawnchair.ui.preferences.destinations.DummyPreference
 import app.lawnchair.ui.preferences.destinations.ExperimentalFeaturesPreferences
 import app.lawnchair.ui.preferences.destinations.FolderPreferences
@@ -48,6 +47,7 @@ import app.lawnchair.ui.preferences.destinations.PreferencesDashboard
 import app.lawnchair.ui.preferences.destinations.QuickstepPreferences
 import app.lawnchair.ui.preferences.destinations.SearchPreferences
 import app.lawnchair.ui.preferences.destinations.SearchProviderPreferences
+import app.lawnchair.ui.preferences.destinations.SelectAppsForDrawerFolder
 import app.lawnchair.ui.preferences.destinations.SelectIconPreference
 import app.lawnchair.ui.preferences.destinations.SmartspacePreferences
 import com.android.launcher3.util.ComponentKey
@@ -121,7 +121,7 @@ fun InnerNavigation(
             composable(route = "main") { AppDrawerPreferences() }
             composable(route = AppDrawerRoutes.HIDDEN_APPS) { HiddenAppsPreferences() }
         }
-        composable(route = Routes.APP_DRAWER_FOLDER) { DrawerFolderPreferences() }
+        composable(route = Routes.APP_DRAWER_FOLDER) { AppDrawerFoldersPreference() }
 
         composable(
             route = "${Routes.SEARCH}/{selectedId}",
@@ -177,7 +177,7 @@ fun InnerNavigation(
         ) { backStackEntry ->
             val args = backStackEntry.arguments!!
             val folderInfoId = args.getInt("id")
-            AppListToFolderPreferences(folderInfoId)
+            SelectAppsForDrawerFolder(folderInfoId)
         }
 
         composable(route = Routes.EXPERIMENTAL_FEATURES) { ExperimentalFeaturesPreferences() }

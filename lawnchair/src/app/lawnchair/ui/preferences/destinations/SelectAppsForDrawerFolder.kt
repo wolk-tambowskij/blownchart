@@ -1,8 +1,5 @@
-﻿@file:Suppress("SYNTHETIC_PROPERTY_WITHOUT_JAVA_ORIGIN")
+﻿package app.lawnchair.ui.preferences.destinations
 
-package app.lawnchair.ui.preferences.components.folder
-
-import android.annotation.SuppressLint
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -15,78 +12,73 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.lawnchair.LawnchairLauncher
-import app.lawnchair.data.Converters
 import app.lawnchair.data.factory.ViewModelFactory
 import app.lawnchair.data.folder.model.FolderViewModel
-import app.lawnchair.launcher
-import app.lawnchair.launcherNullable
-import app.lawnchair.preferences.getAdapter
-import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.ReloadHelper
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.AppItem
 import app.lawnchair.ui.preferences.components.AppItemPlaceholder
-import app.lawnchair.ui.preferences.components.controls.SwitchPreference
-import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
-import app.lawnchair.util.sortedBySelection
+import app.lawnchair.util.App
+import app.lawnchair.util.appComparator
+import app.lawnchair.util.appsState
 import com.android.launcher3.R
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
+import java.util.Comparator.comparing
 
-@SuppressLint("MutableCollectionMutableState")
 @Composable
-fun AppListToFolderPreferences(
+fun drawerFoldersComparator(hiddenApps: Set<String>): Comparator<App> = remember {
+    comparing<App, Int> {
+        if (hiddenApps.contains(it.key.toString())) 0 else 1
+    }.then(appComparator)
+}
+
+@Composable
+fun SelectAppsForDrawerFolder(
     folderInfoId: Int?,
     modifier: Modifier = Modifier,
+    viewModel: FolderViewModel = viewModel(factory = ViewModelFactory(LocalContext.current) { FolderViewModel(it) }),
 ) {
     if (folderInfoId == null) return
 
     val context = LocalContext.current
-    val prefs = preferenceManager()
-    val launcher = context.launcherNullable ?: LawnchairLauncher.instance?.launcher
-    if (launcher == null) return
-
-    val reloadHelper = ReloadHelper(launcher)
-
-    val viewModel: FolderViewModel = viewModel(factory = ViewModelFactory(launcher) { FolderViewModel(it) })
+    val reloadHelper = ReloadHelper(context)
 
     val folderInfo by viewModel.folderInfo.collectAsState()
-    val loading = folderInfo == null
 
-    val selectedAppsState = remember { mutableStateOf(setOf<ItemInfo>()) }
-    val dbItems = viewModel.items.collectAsState()
+    var selectedApps by remember { mutableStateOf(setOf<ItemInfo>()) }
 
     LaunchedEffect(folderInfoId) {
         viewModel.setFolderInfo(folderInfoId, false)
     }
 
     LaunchedEffect(folderInfo) {
-        val folderContents = folderInfo?.contents?.toMutableSet() ?: mutableSetOf()
-        selectedAppsState.value = folderContents
+        val folderContents = folderInfo?.getContents()?.toMutableSet() ?: mutableSetOf()
+        selectedApps = folderContents
         viewModel.setItems(folderInfoId)
     }
 
-    val apps = launcher.mAppsView.appsStore.apps
-        .toList()
-        .filterNot { app -> dbItems.value.contains(Converters().fromComponentKey(app.componentKey)) }
-        .sortedBySelection(selectedAppsState.value)
+    val dbItems by viewModel.items.collectAsState()
+    val apps by appsState(
+        comparator = drawerFoldersComparator(dbItems),
+    )
 
-    val state = rememberLazyListState()
-
+    val loading = (folderInfo == null) && apps.isEmpty()
     val label = if (loading) {
-        "Loading..."
+        stringResource(R.string.loading)
     } else {
-        folderInfo?.title.toString() + " (" + selectedAppsState.value.size + ")"
+        folderInfo?.title.toString() + " (" + selectedApps.size + ")"
     }
+
     PreferenceScaffold(
         label = label,
         modifier = modifier,
@@ -94,7 +86,7 @@ fun AppListToFolderPreferences(
     ) {
         Crossfade(targetState = loading, label = "") { isLoading ->
             if (isLoading) {
-                PreferenceLazyColumn(it, enabled = false, state = state) {
+                PreferenceLazyColumn(it, enabled = false, state = rememberLazyListState()) {
                     preferenceGroupItems(
                         count = 20,
                         isFirstChild = true,
@@ -106,48 +98,42 @@ fun AppListToFolderPreferences(
                     }
                 }
             } else {
-                PreferenceLazyColumn(it, state = state) {
-                    val updateFolderApp = { app: AppInfo ->
-                        val updatedSelectedApps = selectedAppsState.value.toMutableSet().apply {
-                            val isChecked = any { it is AppInfo && it.targetPackage == app.targetPackage }
+                PreferenceLazyColumn(it, state = rememberLazyListState()) {
+                    val updateFolderApp = { app: App ->
+                        val newSet = selectedApps.toMutableSet().apply {
+                            val isChecked = any { it is AppInfo && it.targetPackage == app.key.componentName.packageName }
                             if (isChecked) {
-                                removeIf { it is AppInfo && it.targetPackage == app.targetPackage }
+                                removeIf { it is AppInfo && it.targetPackage == app.key.componentName.packageName }
                             } else {
-                                add(app)
+                                add(
+                                    app.toAppInfo(context),
+                                )
                             }
                         }
 
-                        selectedAppsState.value = updatedSelectedApps
+                        selectedApps = newSet
 
                         viewModel.updateFolderWithItems(
                             folderInfoId,
                             folderInfo?.title.toString(),
-                            updatedSelectedApps.filterIsInstance<AppInfo>().toList(),
+                            newSet.filterIsInstance<AppInfo>().toList(),
                         )
+                        viewModel.refreshFolders()
                         reloadHelper.reloadGrid()
-                    }
-
-                    item {
-                        ExpandAndShrink(visible = selectedAppsState.value.isNotEmpty()) {
-                            SwitchPreference(
-                                adapter = prefs.folderApps.getAdapter(),
-                                label = stringResource(id = R.string.apps_in_folder_label),
-                                description = stringResource(id = R.string.apps_in_folder_description),
-                            )
-                        }
                     }
 
                     preferenceGroupItems(apps, isFirstChild = true, dividerStartIndent = 40.dp) { _, app ->
                         key(app.toString()) {
-                            AppItem(app, onClick = { updateFolderApp(app) }) {
+                            AppItem(
+                                app,
+                                onClick = updateFolderApp,
+                            ) {
                                 Checkbox(
-                                    checked = selectedAppsState.value.any {
+                                    checked = selectedApps.any {
                                         val appInfo = it as? AppInfo
-                                        appInfo?.targetPackage == app.targetPackage
+                                        appInfo?.targetPackage == app.key.componentName.packageName
                                     },
-                                    onCheckedChange = { isChecked ->
-                                        updateFolderApp(app)
-                                    },
+                                    onCheckedChange = null,
                                 )
                             }
                         }

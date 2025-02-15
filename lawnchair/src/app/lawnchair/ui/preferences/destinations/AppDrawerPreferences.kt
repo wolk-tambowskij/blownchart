@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.preferenceManager2
@@ -72,82 +73,10 @@ fun AppDrawerPreferences(
         modifier = modifier,
     ) {
         val drawerListAdapter = prefs.drawerList.getAdapter()
-        SwitchPreferenceWithPreview(
-            label = stringResource(id = R.string.layout),
-            checked = !drawerListAdapter.state.value,
-            onCheckedChange = { drawerListAdapter.onChange(!it) },
-            disabledLabel = stringResource(id = R.string.feed_default),
-            disabledContent = {
-                Box(
-                    modifier = Modifier
-                        .height(24.dp)
-                        .fillMaxWidth(0.8f)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            RoundedCornerShape(16.dp),
-                        ),
-                )
-
-                Column(modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(
-                        modifier = Modifier,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        repeat(4) {
-                            Box(
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceVariant,
-                                        CircleShape,
-                                    ),
-                            )
-                        }
-                    }
-                }
-            },
-            enabledLabel = stringResource(id = R.string.caddy_beta),
-            enabledContent = {
-                Box(
-                    modifier = Modifier
-                        .height(24.dp)
-                        .fillMaxWidth(0.8f)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            RoundedCornerShape(16.dp),
-                        ),
-                )
-                Row(modifier = Modifier, horizontalArrangement = Arrangement.SpaceBetween) {
-                    repeat(2) {
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column(modifier = Modifier) {
-                            repeat(2) {
-                                Row(
-                                    modifier = Modifier,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    repeat(2) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .background(
-                                                    MaterialTheme.colorScheme.surfaceVariant,
-                                                    CircleShape,
-                                                ),
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                    }
-                }
-            },
-        )
+        DrawerLayoutPreference(drawerListAdapter)
         ExpandAndShrink(visible = drawerListAdapter.state.value) {
             DividerColumn {
-                AppDrawerFolderPreferences()
+                AppDrawerFolderPreferenceItem()
             }
         }
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
@@ -236,4 +165,81 @@ fun AppDrawerPreferences(
             }
         }
     }
+}
+
+@Composable
+private fun DrawerLayoutPreference(drawerListAdapter: PreferenceAdapter<Boolean>) {
+    SwitchPreferenceWithPreview(
+        label = stringResource(id = R.string.layout),
+        checked = !drawerListAdapter.state.value,
+        onCheckedChange = { drawerListAdapter.onChange(!it) },
+        disabledLabel = stringResource(id = R.string.feed_default),
+        disabledContent = {
+            Box(
+                modifier = Modifier
+                    .height(24.dp)
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        RoundedCornerShape(16.dp),
+                    ),
+            )
+
+            Column(modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(
+                    modifier = Modifier,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    repeat(4) {
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    CircleShape,
+                                ),
+                        )
+                    }
+                }
+            }
+        },
+        enabledLabel = stringResource(id = R.string.caddy_beta),
+        enabledContent = {
+            Box(
+                modifier = Modifier
+                    .height(24.dp)
+                    .fillMaxWidth(0.8f)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        RoundedCornerShape(16.dp),
+                    ),
+            )
+            Row(modifier = Modifier, horizontalArrangement = Arrangement.SpaceBetween) {
+                repeat(2) {
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier) {
+                        repeat(2) {
+                            Row(
+                                modifier = Modifier,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                repeat(2) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .background(
+                                                MaterialTheme.colorScheme.surfaceVariant,
+                                                CircleShape,
+                                            ),
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                }
+            }
+        },
+    )
 }
