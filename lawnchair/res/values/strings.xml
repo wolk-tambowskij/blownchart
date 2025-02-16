@@ -45,6 +45,10 @@
     <string name="action_paste">Paste</string>
     <string name="action_done">Done</string>
 
+    <string name="select_all">Select all</string>
+    <string name="deselect_all">Deselect all</string>
+    <string name="inverse_selection">Inverse selection</string>
+
     <string name="loading">Loading…</string>
 
     <string name="download_update">Download update</string>

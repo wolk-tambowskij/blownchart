@@ -18,9 +18,12 @@ package app.lawnchair.ui.preferences.destinations
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -29,9 +32,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences2.preferenceManager2
+import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.AppItem
 import app.lawnchair.ui.preferences.components.AppItemPlaceholder
+import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
@@ -57,6 +62,17 @@ fun HiddenAppsPreferences(
     val state = rememberLazyListState()
     PreferenceScaffold(
         label = pageTitle,
+        actions = {
+            if (apps.isNotEmpty()) {
+                ListSortingOptions(
+                    originalList = apps,
+                    filteredList = hiddenApps,
+                    onUpdateList = {
+                        adapter.onChange(it)
+                    },
+                )
+            }
+        },
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
@@ -103,6 +119,64 @@ fun HiddenAppsPreferences(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ListSortingOptions(
+    originalList: List<App>,
+    filteredList: Set<String>,
+    onUpdateList: (Set<String>) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OverflowMenu(modifier) {
+        DropdownMenuItem(
+            onClick = {
+                val inverseSelection = originalList
+                    .map { it.key.toString() }
+                    .filter { !filteredList.contains(it) }
+                    .toSet()
+                onUpdateList(inverseSelection)
+                hideMenu()
+            },
+            text = {
+                Text(stringResource(R.string.inverse_selection))
+            },
+        )
+        val originalKeys = originalList
+            .map { it.key.toString() }
+            .toSet()
+        val selectedAll = originalKeys == filteredList
+        DropdownMenuItem(
+            onClick = {
+                onUpdateList(
+                    if (selectedAll) {
+                        emptySet()
+                    } else {
+                        originalList
+                            .map { it.key.toString() }
+                            .toSet()
+                    },
+                )
+                hideMenu()
+            },
+            text = {
+                Text(
+                    stringResource(if (selectedAll) R.string.deselect_all else R.string.select_all),
+                )
+            },
+        )
+        PreferenceDivider(modifier = Modifier.padding(vertical = 8.dp))
+        DropdownMenuItem(
+            onClick = {
+                onUpdateList(
+                    emptySet(),
+                )
+            },
+            text = {
+                Text(stringResource(R.string.action_reset))
+            },
+        )
     }
 }
 
