@@ -56,18 +56,15 @@ fun AppDrawerFolderPreferenceItem(
 ) {
     val navController = LocalNavController.current
 
-    val onFolderSettingsClick: () -> Unit = {
-        navController.navigate(route = Routes.APP_DRAWER_FOLDER)
-    }
-
     PreferenceGroup(
-        heading = stringResource(id = R.string.app_drawer_folder),
         modifier = modifier,
     ) {
         ClickablePreference(
-            label = stringResource(R.string.app_drawer_folder_settings),
+            label = stringResource(R.string.app_drawer_folder),
             modifier = Modifier,
-            onClick = onFolderSettingsClick,
+            onClick = {
+                navController.navigate(route = Routes.APP_DRAWER_FOLDER)
+            },
         )
     }
 }
@@ -176,7 +173,7 @@ fun AppDrawerFoldersPreference(
                         title = {},
                         description = {
                             Text(
-                                text = stringResource(R.string.action_create),
+                                text = stringResource(R.string.add_folder),
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
                         },

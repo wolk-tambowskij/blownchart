@@ -40,7 +40,6 @@ import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
-import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
@@ -86,7 +85,6 @@ fun HomeScreenPreferences(
                 adapter = prefs2.doubleTapGestureHandler.getAdapter(),
                 label = stringResource(id = R.string.gesture_double_tap),
             )
-            HomeScreenTextColorPreference()
         }
         PreferenceGroup(heading = stringResource(id = R.string.minus_one)) {
             val feedAvailable = OverlayCallbackImpl.minusOneAvailable(LocalContext.current)
@@ -101,10 +99,10 @@ fun HomeScreenPreferences(
                 FeedPreference()
             }
         }
-        PreferenceGroup(heading = stringResource(R.string.overlay_label)) {
-            val overlayAdapter = prefs2.closingAppOverlay.getAdapter()
+        PreferenceGroup(heading = stringResource(R.string.style)) {
+            HomeScreenTextColorPreference()
             OverlayHandlerPreference(
-                adapter = overlayAdapter,
+                adapter = prefs2.closingAppOverlay.getAdapter(),
                 label = stringResource(id = R.string.app_closing_animation),
             )
         }
@@ -133,18 +131,16 @@ fun HomeScreenPreferences(
                 destination = HomeScreenRoutes.GRID,
                 subtitle = stringResource(id = R.string.x_by_y, columns, rows),
             )
-            DividerColumn {
-                SwitchPreference(
-                    adapter = lockHomeScreenAdapter,
-                    label = stringResource(id = R.string.home_screen_lock),
-                    description = stringResource(id = R.string.home_screen_lock_description),
-                )
-                SwitchPreference(
-                    adapter = prefs2.enableDotPagination.getAdapter(),
-                    label = stringResource(id = R.string.show_dot_pagination_label),
-                    description = stringResource(id = R.string.show_dot_pagination_description),
-                )
-            }
+            SwitchPreference(
+                adapter = lockHomeScreenAdapter,
+                label = stringResource(id = R.string.home_screen_lock),
+                description = stringResource(id = R.string.home_screen_lock_description),
+            )
+            SwitchPreference(
+                adapter = prefs2.enableDotPagination.getAdapter(),
+                label = stringResource(id = R.string.show_dot_pagination_label),
+                description = stringResource(id = R.string.show_dot_pagination_description),
+            )
         }
         PreferenceGroup(heading = stringResource(id = R.string.popup_menu)) {
             SwitchPreference(

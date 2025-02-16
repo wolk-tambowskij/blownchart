@@ -3,6 +3,8 @@ package app.lawnchair.ui.preferences.destinations
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.movableContentOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -16,21 +18,37 @@ import app.lawnchair.ui.preferences.components.search.DrawerSearchPreference
 import app.lawnchair.ui.preferences.navigation.Routes
 import com.android.launcher3.R
 
+enum class SearchRoute {
+    DOCK_SEARCH,
+    DRAWER_SEARCH,
+}
+
 @Composable
 fun SearchBarPreference(
-    id: Int,
+    id: SearchRoute,
     modifier: Modifier = Modifier,
+    showLabel: Boolean = true,
 ) {
     val navController = LocalNavController.current
-    PreferenceGroup(
-        heading = stringResource(id = R.string.search_bar_label),
-    ) {
-        ClickablePreference(
-            label = stringResource(R.string.search_bar_settings),
-            modifier = modifier,
-        ) {
-            navController.navigate(route = "${Routes.SEARCH}/$id")
+    val preference = remember {
+        movableContentOf {
+            ClickablePreference(
+                label = stringResource(R.string.search_bar_settings),
+                modifier = modifier,
+            ) {
+                navController.navigate(route = "${Routes.SEARCH}/${id.ordinal}")
+            }
         }
+    }
+
+    if (showLabel) {
+        PreferenceGroup(
+            heading = stringResource(id = R.string.search_bar_label),
+        ) {
+            preference()
+        }
+    } else {
+        preference()
     }
 }
 

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.lawnchair.hotseat.DisabledHotseat
 import app.lawnchair.hotseat.HotseatMode
 import app.lawnchair.hotseat.LawnchairHotseat
 import app.lawnchair.preferences.PreferenceAdapter
@@ -28,7 +29,6 @@ import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
-import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
@@ -50,19 +50,24 @@ fun DockSearchPreference(
     val qsbAlphaAdapter = prefs.hotseatQsbAlpha.getAdapter()
     val qsbHotseatStrokeWidth = prefs.hotseatQsbStrokeWidth.getAdapter()
 
-    Crossfade(isHotseatEnabled.state.value, label = "transition", modifier = modifier) {
-        if (it) {
+    Crossfade(isHotseatEnabled.state.value, label = "transition", modifier = modifier) { hotseatEnabled ->
+        val isLawnchairHotseat = hotseatModeAdapter.state.value == LawnchairHotseat
+        if (hotseatEnabled) {
             Column {
-                DockPreferencesPreview()
-                PreferenceGroup(
-                    heading = stringResource(R.string.search_bar_settings),
-                ) {
+                PreferenceGroup {
                     HotseatModePreference(
                         adapter = hotseatModeAdapter,
                     )
-                    ExpandAndShrink(visible = hotseatModeAdapter.state.value == LawnchairHotseat) {
-                        DividerColumn {
-                            val hotseatQsbProviderAdapter by preferenceManager2().hotseatQsbProvider.getAdapter()
+                }
+                ExpandAndShrink(visible = hotseatModeAdapter.state.value != DisabledHotseat) {
+                    DockPreferencesPreview()
+                }
+                ExpandAndShrink(visible = isLawnchairHotseat) {
+                    Column {
+                        val hotseatQsbProviderAdapter by preferenceManager2().hotseatQsbProvider.getAdapter()
+                        PreferenceGroup(
+                            heading = stringResource(R.string.search_bar_settings),
+                        ) {
                             NavigationActionPreference(
                                 label = stringResource(R.string.search_provider),
                                 destination = DockRoutes.SEARCH_PROVIDER,
@@ -72,6 +77,10 @@ fun DockSearchPreference(
                                         .name,
                                 ),
                             )
+                        }
+                        PreferenceGroup(
+                            heading = stringResource(R.string.style),
+                        ) {
                             SwitchPreference(
                                 adapter = themeQsbAdapter,
                                 label = stringResource(id = R.string.apply_accent_color_label),

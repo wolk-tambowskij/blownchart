@@ -75,11 +75,19 @@ fun AppDrawerPreferences(
         val drawerListAdapter = prefs.drawerList.getAdapter()
         DrawerLayoutPreference(drawerListAdapter)
         ExpandAndShrink(visible = drawerListAdapter.state.value) {
-            DividerColumn {
-                AppDrawerFolderPreferenceItem()
-            }
+            AppDrawerFolderPreferenceItem()
         }
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
+            val hiddenApps = prefs2.hiddenApps.getAdapter().state.value
+            NavigationActionPreference(
+                label = stringResource(id = R.string.hidden_apps_label),
+                subtitle = resources.getQuantityString(R.plurals.apps_count, hiddenApps.size, hiddenApps.size),
+                destination = AppDrawerRoutes.HIDDEN_APPS,
+            )
+            SearchBarPreference(SearchRoute.DRAWER_SEARCH, showLabel = false)
+            SuggestionsPreference()
+        }
+        PreferenceGroup(heading = stringResource(R.string.style)) {
             ColorPreference(preference = prefs2.appDrawerBackgroundColor)
             SliderPreference(
                 label = stringResource(id = R.string.background_opacity),
@@ -87,30 +95,6 @@ fun AppDrawerPreferences(
                 step = 0.1f,
                 valueRange = 0F..1F,
                 showAsPercentage = true,
-            )
-            SwitchPreference(
-                label = stringResource(id = R.string.pref_all_apps_bulk_icon_loading_title),
-                description = stringResource(id = R.string.pref_all_apps_bulk_icon_loading_description),
-                adapter = prefs.allAppBulkIconLoading.getAdapter(),
-            )
-            SwitchPreference(
-                label = stringResource(id = R.string.pref_all_apps_remember_position_title),
-                description = stringResource(id = R.string.pref_all_apps_remember_position_description),
-                adapter = prefs2.rememberPosition.getAdapter(),
-            )
-            SwitchPreference(
-                label = stringResource(id = R.string.pref_all_apps_show_scrollbar_title),
-                adapter = prefs2.showScrollbar.getAdapter(),
-            )
-            SuggestionsPreference()
-        }
-        SearchBarPreference(1)
-        PreferenceGroup(heading = stringResource(id = R.string.hidden_apps_label)) {
-            val hiddenApps = prefs2.hiddenApps.getAdapter().state.value
-            NavigationActionPreference(
-                label = stringResource(id = R.string.hidden_apps_label),
-                subtitle = resources.getQuantityString(R.plurals.apps_count, hiddenApps.size, hiddenApps.size),
-                destination = AppDrawerRoutes.HIDDEN_APPS,
             )
         }
         PreferenceGroup(heading = stringResource(id = R.string.grid)) {
@@ -163,6 +147,22 @@ fun AppDrawerPreferences(
                     )
                 }
             }
+        }
+        PreferenceGroup(heading = stringResource(id = R.string.advanced)) {
+            SwitchPreference(
+                label = stringResource(id = R.string.pref_all_apps_bulk_icon_loading_title),
+                description = stringResource(id = R.string.pref_all_apps_bulk_icon_loading_description),
+                adapter = prefs.allAppBulkIconLoading.getAdapter(),
+            )
+            SwitchPreference(
+                label = stringResource(id = R.string.pref_all_apps_remember_position_title),
+                description = stringResource(id = R.string.pref_all_apps_remember_position_description),
+                adapter = prefs2.rememberPosition.getAdapter(),
+            )
+            SwitchPreference(
+                label = stringResource(id = R.string.pref_all_apps_show_scrollbar_title),
+                adapter = prefs2.showScrollbar.getAdapter(),
+            )
         }
     }
 }
