@@ -36,6 +36,8 @@ class FolderViewModel(
     init {
         refreshFolders()
         viewModelScope.launch {
+            // TODO: move back to preferences
+            reloadHelper.reloadGrid()
         }
     }
 
@@ -44,7 +46,6 @@ class FolderViewModel(
             mutex.withLock {
                 loadFolders()
             }
-            reloadHelper.reloadGrid()
         }
     }
 
