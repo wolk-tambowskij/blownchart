@@ -47,6 +47,10 @@
 
     <string name="loading">Loading…</string>
 
+    <string name="download_update">Download update</string>
+    <string name="install_update">Install update</string>
+    <string name="pro_updated">You\'re up-to-date!</string>
+
     <string name="managed_by_lawnchair">Managed by Lawnchair</string>
 
     <!-- When mentioning settings UI -->

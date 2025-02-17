@@ -37,30 +37,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import app.lawnchair.api.gh.api
 import app.lawnchair.ui.placeholder.PlaceholderHighlight
 import app.lawnchair.ui.placeholder.fade
 import app.lawnchair.ui.placeholder.placeholder
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.util.kotlinxJson
 import coil.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
-import okhttp3.MediaType.Companion.toMediaType
-import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Path
 
 suspend fun checkUserContribution(userName: String): String {
-    val retrofit = Retrofit.Builder()
-        .baseUrl("https://api.github.com/")
-        .addConverterFactory(kotlinxJson.asConverterFactory("application/json".toMediaType()))
-        .build()
-
-    val api = retrofit.create(GitHubApi::class.java)
-
     return withContext(Dispatchers.IO) {
         try {
             val events = api.getRepositoryEvents("LawnchairLauncher", "lawnchair")
@@ -130,23 +117,3 @@ fun ContributorRow(
         },
     )
 }
-
-interface GitHubApi {
-    @GET("repos/{owner}/{repo}/events")
-    suspend fun getRepositoryEvents(
-        @Path("owner") owner: String,
-        @Path("repo") repo: String,
-    ): List<GitHubEvent>
-}
-
-@Serializable
-data class GitHubEvent(
-    val type: String,
-    val actor: Actor,
-    val created_at: String,
-)
-
-@Serializable
-data class Actor(
-    val login: String,
-)

@@ -43,11 +43,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.components.CheckUpdate
 import app.lawnchair.ui.preferences.components.NavigationActionPreference
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.util.checkAndRequestFilesPermission
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 
@@ -252,6 +255,15 @@ fun About(
                     },
                 ),
             )
+            if (BuildConfig.APPLICATION_ID.contains("nightly") &&
+                checkAndRequestFilesPermission(
+                    context,
+                    preferenceManager(),
+                )
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+                CheckUpdate()
+            }
             Spacer(modifier = Modifier.requiredHeight(16.dp))
             Row(
                 modifier = Modifier
