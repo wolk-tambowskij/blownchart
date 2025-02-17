@@ -52,7 +52,7 @@ fun CheckUpdate(
     var isDownloading by remember { mutableStateOf(false) }
     var downloadedFile by remember { mutableStateOf<File?>(null) }
 
-    val currentVersionNumber = "15.Dev.(#2033)" // Hardcoded for testing
+    val currentVersionNumber = BuildConfig.VERSION_DISPLAY_NAME
         .substringAfterLast("#")
         .toIntOrNull() ?: 0
 
