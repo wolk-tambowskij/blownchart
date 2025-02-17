@@ -31,7 +31,7 @@ fun OverflowMenu(
         DropdownMenu(
             expanded = showMenu.value,
             onDismissRequest = { showMenu.value = false },
-            offset = DpOffset(x = 8.dp, y = (-32).dp),
+            offset = DpOffset(x = (-2).dp, y = (-48).dp),
         ) {
             block(overflowMenuScope)
         }

@@ -98,11 +98,11 @@ class LawnchairAlphabeticalAppsList<T>(
             }
         } else {
             folderList.forEach { folder ->
-                if (folder.contents.size > 1) {
+                if (folder.getContents().size > 1) {
                     val folderInfo = FolderInfo()
                     folderInfo.title = folder.title
                     mAdapterItems.add(AdapterItem.asFolder(folderInfo))
-                    folder.contents.forEach { app ->
+                    folder.getContents().forEach { app ->
                         (appsStore.getApp(app.componentKey) as? AppInfo)?.let {
                             folderInfo.add(it)
                             if (prefs.folderApps.get()) filteredList.add(it)

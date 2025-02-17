@@ -123,7 +123,7 @@ fun HiddenAppsPreferences(
 }
 
 @Composable
-fun ListSortingOptions(
+private fun ListSortingOptions(
     originalList: List<App>,
     filteredList: Set<String>,
     onUpdateList: (Set<String>) -> Unit,

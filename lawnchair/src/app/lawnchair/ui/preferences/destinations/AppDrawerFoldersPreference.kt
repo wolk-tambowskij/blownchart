@@ -34,7 +34,6 @@ import app.lawnchair.data.factory.ViewModelFactory
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
-import app.lawnchair.preferences2.ReloadHelper
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
@@ -47,6 +46,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
 import app.lawnchair.ui.preferences.navigation.Routes
 import app.lawnchair.ui.util.bottomSheetHandler
+import app.lawnchair.util.appsState
 import com.android.launcher3.R
 import com.android.launcher3.model.data.FolderInfo
 
@@ -72,15 +72,9 @@ fun AppDrawerFolderPreferenceItem(
 @Composable
 fun AppDrawerFoldersPreference(
     modifier: Modifier = Modifier,
-    viewModel: FolderViewModel = viewModel(
-        factory = ViewModelFactory(
-            LocalContext.current,
-        ) { FolderViewModel(it) },
-    ),
+    viewModel: FolderViewModel = viewModel(factory = ViewModelFactory(LocalContext.current) { FolderViewModel(it) }),
 ) {
     val navController = LocalNavController.current
-    val reloadHelper = ReloadHelper(LocalContext.current)
-
     val folders by viewModel.folders.collectAsStateWithLifecycle()
 
     LaunchedEffect(folders) {
@@ -96,9 +90,9 @@ fun AppDrawerFoldersPreference(
             }
             viewModel.saveFolder(newInfo)
             viewModel.refreshFolders()
-            reloadHelper.reloadGrid()
         },
         onEditFolderItems = {
+            viewModel.setFolderInfo(it, false)
             navController.navigate("${Routes.APP_LIST_TO_FOLDER}/$it")
         },
         onCreateAndEditFolderItems = { folderInfo, label ->
@@ -107,9 +101,9 @@ fun AppDrawerFoldersPreference(
                 title = label
             }
             viewModel.saveFolder(newInfo)
+            viewModel.setFolderInfo(newInfo.id, false)
             navController.navigate("${Routes.APP_LIST_TO_FOLDER}/${newInfo.id}")
             viewModel.refreshFolders()
-            reloadHelper.reloadGrid()
         },
         onRenameFolder = { folderInfo, it ->
             folderInfo.apply {
@@ -117,12 +111,10 @@ fun AppDrawerFoldersPreference(
                 viewModel.updateFolderInfo(this, false)
             }
             viewModel.refreshFolders()
-            reloadHelper.reloadGrid()
         },
         onDeleteFolder = {
-            viewModel.deleteFolderInfo(it.id)
+            viewModel.deleteFolder(it.id)
             viewModel.refreshFolders()
-            reloadHelper.reloadGrid()
         },
         onRefreshList = {
             viewModel.refreshFolders()
@@ -142,11 +134,12 @@ fun AppDrawerFoldersPreference(
     modifier: Modifier = Modifier,
 ) {
     val bottomSheetHandler = bottomSheetHandler
+    val apps by appsState()
 
     LoadingScreen(
-        obj = folders,
+        isLoading = apps.isEmpty(),
         modifier = modifier.fillMaxWidth(),
-    ) { folderList ->
+    ) {
         PreferenceLayoutLazyColumn(
             label = stringResource(id = R.string.app_drawer_folder),
             backArrowVisible = true,
@@ -199,7 +192,7 @@ fun AppDrawerFoldersPreference(
                 }
             }
             preferenceGroupItems(
-                folderList,
+                folders,
                 isFirstChild = true,
             ) { _, folderInfo ->
                 FolderItem(

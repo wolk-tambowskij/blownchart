@@ -1,13 +1,20 @@
 ﻿package app.lawnchair.ui.preferences.destinations
 
+import android.content.Context
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -17,30 +24,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.data.factory.ViewModelFactory
 import app.lawnchair.data.folder.model.FolderViewModel
-import app.lawnchair.preferences2.ReloadHelper
+import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.AppItem
 import app.lawnchair.ui.preferences.components.AppItemPlaceholder
+import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
 import app.lawnchair.util.App
-import app.lawnchair.util.appComparator
 import app.lawnchair.util.appsState
 import com.android.launcher3.R
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
-import java.util.Comparator.comparing
-
-@Composable
-fun drawerFoldersComparator(hiddenApps: Set<String>): Comparator<App> = remember {
-    comparing<App, Int> {
-        if (hiddenApps.contains(it.key.toString())) 0 else 1
-    }.then(appComparator)
-}
 
 @Composable
 fun SelectAppsForDrawerFolder(
@@ -48,40 +48,74 @@ fun SelectAppsForDrawerFolder(
     modifier: Modifier = Modifier,
     viewModel: FolderViewModel = viewModel(factory = ViewModelFactory(LocalContext.current) { FolderViewModel(it) }),
 ) {
-    if (folderInfoId == null) return
+    if (folderInfoId == null) {
+        val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+        backDispatcher?.onBackPressed()
+        return
+    }
 
     val context = LocalContext.current
-    val reloadHelper = ReloadHelper(context)
 
-    val folderInfo by viewModel.folderInfo.collectAsState()
+    val folders by viewModel.folders.collectAsStateWithLifecycle()
+    val folderInfo by viewModel.folderInfo.collectAsStateWithLifecycle()
+    var allFolderPackages by remember { mutableStateOf(emptySet<String>()) }
+    var selectedAppsInFolder by remember { mutableStateOf(setOf<ItemInfo>()) }
+    var filterNonUniqueItems by remember { mutableStateOf(true) }
 
-    var selectedApps by remember { mutableStateOf(setOf<ItemInfo>()) }
+    LaunchedEffect(folders) {
+        allFolderPackages = folders.flatMap { it.getContents() }
+            .mapNotNull { it.targetPackage }
+            .toSet()
+    }
+
+    LaunchedEffect(folderInfo) {
+        selectedAppsInFolder = folderInfo?.getContents()?.toMutableSet() ?: emptySet()
+    }
 
     LaunchedEffect(folderInfoId) {
         viewModel.setFolderInfo(folderInfoId, false)
     }
 
-    LaunchedEffect(folderInfo) {
-        val folderContents = folderInfo?.getContents()?.toMutableSet() ?: mutableSetOf()
-        selectedApps = folderContents
-        viewModel.setItems(folderInfoId)
+    val apps by appsState()
+    val filteredApps = apps.filter { app ->
+        if (filterNonUniqueItems) {
+            !allFolderPackages.contains(app.key.componentName.packageName) || selectedAppsInFolder.map { it.targetPackage }.contains(app.key.componentName.packageName)
+        } else {
+            true
+        }
     }
 
-    val dbItems by viewModel.items.collectAsState()
-    val apps by appsState(
-        comparator = drawerFoldersComparator(dbItems),
-    )
-
-    val loading = (folderInfo == null) && apps.isEmpty()
-    val label = if (loading) {
-        stringResource(R.string.loading)
-    } else {
-        folderInfo?.title.toString() + " (" + selectedApps.size + ")"
-    }
+    val loading = folderInfo == null && apps.isEmpty()
 
     PreferenceScaffold(
-        label = label,
+        label = if (loading) {
+            stringResource(R.string.loading)
+        } else {
+            stringResource(R.string.x_with_y_count, folderInfo?.title.toString(), selectedAppsInFolder.size)
+        },
         modifier = modifier,
+        actions = {
+            if (!loading) {
+                ListSortingOptions(
+                    originalList = apps,
+                    filteredList = selectedAppsInFolder,
+                    onUpdateList = { newSet ->
+                        selectedAppsInFolder = newSet
+
+                        viewModel.updateFolder(
+                            folderInfoId,
+                            folderInfo?.title.toString(),
+                            newSet.toList(),
+                        )
+                        viewModel.refreshFolders()
+                    },
+                    filterUniqueItems = filterNonUniqueItems,
+                    onToggleFilterUniqueItems = {
+                        filterNonUniqueItems = it
+                    },
+                )
+            }
+        },
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
         Crossfade(targetState = loading, label = "") { isLoading ->
@@ -99,37 +133,34 @@ fun SelectAppsForDrawerFolder(
                 }
             } else {
                 PreferenceLazyColumn(it, state = rememberLazyListState()) {
-                    val updateFolderApp = { app: App ->
-                        val newSet = selectedApps.toMutableSet().apply {
-                            val isChecked = any { it is AppInfo && it.targetPackage == app.key.componentName.packageName }
-                            if (isChecked) {
-                                removeIf { it is AppInfo && it.targetPackage == app.key.componentName.packageName }
-                            } else {
-                                add(
-                                    app.toAppInfo(context),
-                                )
-                            }
-                        }
-
-                        selectedApps = newSet
-
-                        viewModel.updateFolderWithItems(
-                            folderInfoId,
-                            folderInfo?.title.toString(),
-                            newSet.filterIsInstance<AppInfo>().toList(),
-                        )
-                        viewModel.refreshFolders()
-                        reloadHelper.reloadGrid()
-                    }
-
-                    preferenceGroupItems(apps, isFirstChild = true, dividerStartIndent = 40.dp) { _, app ->
+                    preferenceGroupItems(
+                        filteredApps,
+                        isFirstChild = true,
+                        dividerStartIndent = 40.dp,
+                    ) { _, app ->
                         key(app.toString()) {
                             AppItem(
                                 app,
-                                onClick = updateFolderApp,
+                                onClick = {
+                                    updateFolderItems(
+                                        app = it,
+                                        items = selectedAppsInFolder,
+                                        context = context,
+                                        onSetChange = { newSet ->
+                                            selectedAppsInFolder = newSet
+
+                                            viewModel.updateFolder(
+                                                folderInfoId,
+                                                folderInfo?.title.toString(),
+                                                newSet.filterIsInstance<AppInfo>().toList(),
+                                            )
+                                            viewModel.refreshFolders()
+                                        },
+                                    )
+                                },
                             ) {
                                 Checkbox(
-                                    checked = selectedApps.any {
+                                    checked = selectedAppsInFolder.any {
                                         val appInfo = it as? AppInfo
                                         appInfo?.targetPackage == app.key.componentName.packageName
                                     },
@@ -142,4 +173,110 @@ fun SelectAppsForDrawerFolder(
             }
         }
     }
+}
+
+@Composable
+private fun ListSortingOptions(
+    originalList: List<App>,
+    filteredList: Set<ItemInfo>,
+    onUpdateList: (Set<AppInfo>) -> Unit,
+    filterUniqueItems: Boolean,
+    onToggleFilterUniqueItems: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    OverflowMenu(modifier) {
+        val originalListPackageNames = originalList
+            .map { it.key.componentName.packageName }
+        DropdownMenuItem(
+            onClick = {
+                val inverseSelectionPackageNames = originalListPackageNames
+                    .filter { items ->
+                        !filteredList.map { it.targetPackage }.contains(items)
+                    }
+                    .toSet()
+
+                val inverseSelection = originalList
+                    .filter {
+                        inverseSelectionPackageNames.contains(it.key.componentName.packageName)
+                    }
+                    .map {
+                        it.toAppInfo(context)
+                    }
+                    .toSet()
+
+                onUpdateList(inverseSelection)
+                hideMenu()
+            },
+            text = {
+                Text(stringResource(R.string.inverse_selection))
+            },
+        )
+
+        val selectedAll = originalListPackageNames == filteredList.map { it.targetPackage }
+        DropdownMenuItem(
+            onClick = {
+                onUpdateList(
+                    if (selectedAll) {
+                        emptySet()
+                    } else {
+                        originalList.map { app ->
+                            app.toAppInfo(context)
+                        }.toSet()
+                    },
+                )
+                hideMenu()
+            },
+            text = {
+                Text(
+                    stringResource(if (selectedAll) R.string.deselect_all else R.string.select_all),
+                )
+            },
+        )
+        DropdownMenuItem(
+            onClick = {
+                onToggleFilterUniqueItems(!filterUniqueItems)
+                hideMenu()
+            },
+            trailingIcon = {
+                if (filterUniqueItems) {
+                    Icon(Icons.Rounded.Check, contentDescription = null)
+                }
+            },
+            text = {
+                Text(stringResource(R.string.folders_filter_duplicates))
+            },
+        )
+        PreferenceDivider(modifier = Modifier.padding(vertical = 8.dp))
+        DropdownMenuItem(
+            onClick = {
+                onUpdateList(
+                    emptySet(),
+                )
+            },
+            text = {
+                Text(stringResource(R.string.action_reset))
+            },
+        )
+    }
+}
+
+fun updateFolderItems(
+    app: App,
+    items: Set<ItemInfo>,
+    context: Context,
+    onSetChange: (Set<ItemInfo>) -> Unit,
+) {
+    val newSet = items.toMutableSet().apply {
+        val isChecked = any { it is AppInfo && it.targetPackage == app.key.componentName.packageName }
+        if (isChecked) {
+            removeIf { it is AppInfo && it.targetPackage == app.key.componentName.packageName }
+        } else {
+            add(
+                app.toAppInfo(context),
+            )
+        }
+    }
+
+    onSetChange(newSet)
 }
