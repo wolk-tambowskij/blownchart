@@ -37,7 +37,7 @@ class FolderViewModel(
         refreshFolders()
         viewModelScope.launch {
             // TODO: move back to preferences
-            reloadHelper.reloadGrid()
+            // reloadHelper.reloadGrid()
         }
     }
 
