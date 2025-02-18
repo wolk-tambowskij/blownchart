@@ -160,7 +160,7 @@ fun SelectAppsForDrawerFolder(
                                 Checkbox(
                                     checked = selectedAppsInFolder.any {
                                         val appInfo = it as? AppInfo
-                                        appInfo?.targetPackage == app.key.componentName.packageName
+                                        appInfo?.targetPackage == app.key.componentName.packageName && appInfo.user == app.key.user
                                     },
                                     onCheckedChange = null,
                                 )
@@ -266,9 +266,9 @@ fun updateFolderItems(
     onSetChange: (Set<ItemInfo>) -> Unit,
 ) {
     val newSet = items.toMutableSet().apply {
-        val isChecked = any { it is AppInfo && it.targetPackage == app.key.componentName.packageName }
+        val isChecked = any { it is AppInfo && it.targetPackage == app.key.componentName.packageName && it.user == app.key.user }
         if (isChecked) {
-            removeIf { it is AppInfo && it.targetPackage == app.key.componentName.packageName }
+            removeIf { it is AppInfo && it.targetPackage == app.key.componentName.packageName && it.user == app.key.user }
         } else {
             add(
                 app.toAppInfo(context),
