@@ -76,15 +76,6 @@ class FolderService(val context: Context) : SafeCloseable {
         return null
     }
 
-    suspend fun getItems(id: Int): Set<String> = withContext(Dispatchers.IO) {
-        return@withContext try {
-            folderDao.getItems(id).mapNotNull { it.componentKey }.toSet()
-        } catch (e: Exception) {
-            Log.e("FolderService", "Failed to get all items", e)
-            setOf()
-        }
-    }
-
     suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.Main) {
         try {
             val folderEntities = folderDao.getAllFolders().firstOrNull() ?: emptyList()

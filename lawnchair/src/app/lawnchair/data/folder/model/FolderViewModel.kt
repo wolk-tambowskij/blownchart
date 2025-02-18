@@ -35,32 +35,28 @@ class FolderViewModel(
 
     init {
         refreshFolders()
-        viewModelScope.launch {
-            // TODO: move back to preferences
-            // reloadHelper.reloadGrid()
-        }
     }
 
-    fun refreshFolders() {
+    fun refreshFolders(isReloadGrid: Boolean = false) {
         viewModelScope.launch {
             mutex.withLock {
                 loadFolders()
             }
         }
+        if (isReloadGrid) reloadHelper.reloadGrid()
     }
 
     fun setFolderInfo(folderInfoId: Int, hasId: Boolean) {
         viewModelScope.launch {
             _folderInfo.value = repository.getFolderInfo(folderInfoId, hasId)
         }
-        refreshFolders()
     }
 
     fun updateFolderInfo(folderInfo: FolderInfo, hide: Boolean) {
         viewModelScope.launch {
             repository.updateFolderInfo(folderInfo, hide)
         }
-        refreshFolders()
+        refreshFolders(true)
     }
 
     fun saveFolder(folderInfo: FolderInfo) {
@@ -74,14 +70,14 @@ class FolderViewModel(
         viewModelScope.launch {
             repository.updateFolderWithItems(id, title, appInfo)
         }
-        refreshFolders()
+        refreshFolders(true)
     }
 
     fun deleteFolder(id: Int) {
         viewModelScope.launch {
             repository.deleteFolderInfo(id)
         }
-        refreshFolders()
+        refreshFolders(true)
     }
 
     private suspend fun loadFolders() {

@@ -107,7 +107,6 @@ fun SelectAppsForDrawerFolder(
                             folderInfo?.title.toString(),
                             newSet.toList(),
                         )
-                        viewModel.refreshFolders()
                     },
                     filterUniqueItems = filterNonUniqueItems,
                     onToggleFilterUniqueItems = {
@@ -154,7 +153,6 @@ fun SelectAppsForDrawerFolder(
                                                 folderInfo?.title.toString(),
                                                 newSet.filterIsInstance<AppInfo>().toList(),
                                             )
-                                            viewModel.refreshFolders()
                                         },
                                     )
                                 },

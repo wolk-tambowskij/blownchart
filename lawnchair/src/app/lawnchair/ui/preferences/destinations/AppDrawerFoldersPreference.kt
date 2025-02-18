@@ -89,32 +89,19 @@ fun AppDrawerFoldersPreference(
                 title = label
             }
             viewModel.saveFolder(newInfo)
-            viewModel.refreshFolders()
         },
         onEditFolderItems = {
             viewModel.setFolderInfo(it, false)
             navController.navigate("${Routes.APP_LIST_TO_FOLDER}/$it")
-        },
-        onCreateAndEditFolderItems = { folderInfo, label ->
-            // TODO implement proper method
-            val newInfo = folderInfo.apply {
-                title = label
-            }
-            viewModel.saveFolder(newInfo)
-            viewModel.setFolderInfo(newInfo.id, false)
-            navController.navigate("${Routes.APP_LIST_TO_FOLDER}/${newInfo.id}")
-            viewModel.refreshFolders()
         },
         onRenameFolder = { folderInfo, it ->
             folderInfo.apply {
                 title = it
                 viewModel.updateFolderInfo(this, false)
             }
-            viewModel.refreshFolders()
         },
         onDeleteFolder = {
             viewModel.deleteFolder(it.id)
-            viewModel.refreshFolders()
         },
         onRefreshList = {
             viewModel.refreshFolders()
@@ -127,7 +114,6 @@ fun AppDrawerFoldersPreference(
     folders: List<FolderInfo>,
     onCreateFolder: (FolderInfo, String) -> Unit,
     onEditFolderItems: (Int) -> Unit,
-    onCreateAndEditFolderItems: (FolderInfo, String) -> Unit,
     onRenameFolder: (FolderInfo, String) -> Unit,
     onDeleteFolder: (FolderInfo) -> Unit,
     onRefreshList: () -> Unit,
