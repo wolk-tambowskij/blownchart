@@ -70,7 +70,7 @@ class LawnchairFloatingSurfaceView @JvmOverloads constructor(
 
     init {
         mSurfaceView.setLayerType(LAYER_TYPE_HARDWARE, null)
-        mSurfaceView.setZOrderOnTop(false)
+        mSurfaceView.setZOrderOnTop(true)
 
         mSurfaceView.holder.setFormat(PixelFormat.TRANSLUCENT)
         mSurfaceView.holder.addCallback(this)
@@ -419,9 +419,7 @@ class LawnchairFloatingSurfaceView @JvmOverloads constructor(
             launcher.dragLayer.addView(view)
             anim.start()
             view.getIcon()?.let {
-                launcher.showFullScreenOverlay(endView = it) {
-                    view.mSurfaceView.setZOrderOnTop(true)
-                }
+                launcher.showFullScreenOverlay(endView = it) {}
             }
         }
     }
