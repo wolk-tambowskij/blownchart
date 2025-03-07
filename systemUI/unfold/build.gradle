@@ -5,6 +5,7 @@ plugins {
 }
 
 android {
+    buildToolsVersion "35.0.1"
     namespace "com.android.systemui.unfold"
     buildFeatures {
         aidl true
