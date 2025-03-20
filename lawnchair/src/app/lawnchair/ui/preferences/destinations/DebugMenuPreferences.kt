@@ -68,7 +68,7 @@ fun DebugMenuPreferences(
                     label = "Reset live information",
                     onClick = {
                         runBlocking {
-                            liveInfoManager.liveInformation.set(LiveInformation.default)
+                            liveInfoManager.liveInformation.set(LiveInformation())
                             liveInfoManager.dismissedAnnouncementIds.set(emptySet())
                         }
                     },
