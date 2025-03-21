@@ -1,4 +1,4 @@
-import app.cash.licensee.LicenseeTask
+import app.cash.licensee.SpdxId
 import com.android.build.gradle.api.AndroidBasePlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -13,7 +13,7 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version "2.1.10"
     id "com.google.devtools.ksp" version "2.1.10-1.0.31"
     id 'com.google.protobuf' version "0.9.4"
-    id 'app.cash.licensee' version "1.12.0"
+    id 'app.cash.licensee' version "1.13.0"
     id 'dev.rikka.tools.refine' version "4.4.0"
     id 'org.gradle.android.cache-fix' version '3.0.1'
     id 'com.diffplug.spotless' version '7.0.2'
@@ -322,23 +322,6 @@ android {
     }
 }
 
-androidComponents {
-    onVariants(selector().all()) { variant ->
-        def capName = variant.name.capitalize()
-        def licenseeTask = tasks.named("licenseeAndroid$capName", LicenseeTask)
-        def copyArtifactsTask = tasks.register("copy${capName}Artifacts", Copy) {
-            dependsOn(licenseeTask)
-            from(licenseeTask.map { it.jsonOutput })
-            // Copy artifacts.json to a new directory.
-            into(layout.buildDirectory.dir("generated/dependencyAssets/${variant.name}"))
-        }
-        variant.sources.assets?.addGeneratedSourceDirectory(licenseeTask) {
-            // Avoid using LicenseeTask::outputDir as it contains extra files that we don't need.
-            objects.directoryProperty().fileProvider(copyArtifactsTask.map { it.destinationDir })
-        }
-    }
-}
-
 composeCompiler {
     stabilityConfigurationFile = layout.projectDirectory.file("compose_compiler_config.conf")
     reportsDestination = layout.buildDirectory.dir("compose_build_reports")
@@ -448,7 +431,7 @@ dependencies {
     }
 
     implementation 'io.github.hokofly:hoko-blur:1.5.3'
-    
+
     implementation "androidx.window:window:1.3.0"
 }
 
@@ -478,12 +461,14 @@ spotless {
 }
 
 licensee {
-    allow("Apache-2.0")
-    allow("BSD-3-Clause")
-    allow("GPL-2.0-or-later")
+    allow(SpdxId.Apache_20)
+    allow(SpdxId.BSD_3_Clause)
+    allow(SpdxId.GPL_20_or_later)
     allowDependency("com.github.topjohnwu.libsu", "core", "6.0.0")
     allowDependency("com.github.topjohnwu.libsu", "service", "6.0.0")
     allowUrl("https://github.com/patrykmichalik/opto/blob/master/LICENSE")
     allowUrl("https://github.com/RikkaApps/HiddenApiRefinePlugin/blob/main/LICENSE")
     allowUrl("https://opensource.org/licenses/mit-license.php")
+
+    bundleAndroidAsset = true
 }
