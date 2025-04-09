@@ -1,16 +1,17 @@
 {
-    labels: [
-        'dependencies',
-    ],
+    $schema: 'https://docs.renovatebot.com/renovate-schema.json',
     extends: [
         'config:recommended',
     ],
+    labels: [
+        'dependencies',
+    ],
     packageRules: [
         {
-            groupName: 'Kotlin and KSP',
+            groupName: 'Kotlin, Compose, and KSP',
             matchPackageNames: [
                 'com.google.devtools.ksp{/,}**',
-                '/org.jetbrains.kotlin.*/',
+                'org.jetbrains.kotlin:kotlin{/,}**',
             ],
         },
         {
