@@ -52,7 +52,7 @@ This branch houses the codebase of Lawnchair 15, which is currently in developme
       <img alt="Get it on Obtainium" src="docs/assets/badge-obtainium.png" height="60">
     </picture>
   </a>
-    <a href="https://github.com/LawnchairLauncher/lawnchair/releases/latest">
+    <a href="https://github.com/LawnchairLauncher/lawnchair/releases">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="docs/assets/badge-github.png" height="60">
       <img alt="Get it on GitHub" src="docs/assets/badge-github.png" height="60">
