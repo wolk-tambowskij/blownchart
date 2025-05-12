@@ -1,10 +1,12 @@
 package app.lawnchair.ui.preferences.components.search
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -79,6 +81,7 @@ fun <T> ListPreferenceChips(
                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
                     .padding(top = 8.dp),
             ) {
                 entries.forEach { item ->
