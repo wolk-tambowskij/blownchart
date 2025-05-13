@@ -355,7 +355,7 @@ data object DuckDuckGo : WebSearchProvider() {
         }
     }
 
-    override fun getSearchUrl(query: String) = "https://duckduckgo.com/$query&cat=web"
+    override fun getSearchUrl(query: String) = "https://duckduckgo.com/search?q=$query"
 
     override fun toString() = "duckduckgo"
 }
