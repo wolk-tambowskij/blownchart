@@ -503,6 +503,16 @@ class PreferenceManager2 private constructor(private val context: Context) :
         onSet = { reloadHelper.recreate() },
     )
 
+    val webSuggestionProviderUrl = preference(
+        key = stringPreferencesKey(name = "web_suggestion_provider_url"),
+        defaultValue = "https://google.com/search?q=%s",
+    )
+
+    val webSuggestionProviderSuggestionsUrl = preference(
+        key = stringPreferencesKey(name = "web_suggestions_provider_suggestions_url"),
+        defaultValue = "https://google.com/complete/search?client=chrome&q=%s",
+    )
+
     val maxAppSearchResultCount = preference(
         key = intPreferencesKey(name = "max_search_result_count"),
         defaultValue = resourceProvider.getInt(R.dimen.config_default_search_max_result_count),
