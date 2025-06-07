@@ -20,7 +20,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
@@ -214,7 +213,6 @@ object AboutRoutes {
     const val LICENSES = "licenses"
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun About(
     modifier: Modifier = Modifier,
