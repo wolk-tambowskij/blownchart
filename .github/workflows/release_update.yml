@@ -23,6 +23,9 @@ on:
 jobs:
   build-release-apk:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,6 +50,10 @@ jobs:
         run: ./gradlew assembleLawnWithQuickstepGithubRelease
       - name: Rename artifact
         run: mv build/outputs/apk/**/**/*.apk "${{ github.event.inputs.artifactName }}"
+      - name: Attest
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: ${{ github.event.inputs.artifactName }}
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
