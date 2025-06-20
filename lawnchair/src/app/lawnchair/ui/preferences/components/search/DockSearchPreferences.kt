@@ -33,7 +33,7 @@ import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.destinations.DockPreferencesPreview
-import app.lawnchair.ui.preferences.destinations.DockRoutes
+import app.lawnchair.ui.preferences.navigation.DockSearchProvider
 import com.android.launcher3.R
 
 @Composable
@@ -70,7 +70,7 @@ fun DockSearchPreference(
                         ) {
                             NavigationActionPreference(
                                 label = stringResource(R.string.search_provider),
-                                destination = DockRoutes.SEARCH_PROVIDER,
+                                destination = DockSearchProvider,
                                 subtitle = stringResource(
                                     id = QsbSearchProvider.values()
                                         .first { it == hotseatQsbProviderAdapter }

@@ -44,7 +44,8 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroupHeading
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayoutLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
-import app.lawnchair.ui.preferences.navigation.Routes
+import app.lawnchair.ui.preferences.navigation.AppDrawerAppListToFolder
+import app.lawnchair.ui.preferences.navigation.AppDrawerFolder
 import app.lawnchair.ui.util.bottomSheetHandler
 import app.lawnchair.util.appsState
 import com.android.launcher3.R
@@ -63,7 +64,7 @@ fun AppDrawerFolderPreferenceItem(
             label = stringResource(R.string.app_drawer_folder),
             modifier = Modifier,
             onClick = {
-                navController.navigate(route = Routes.APP_DRAWER_FOLDER)
+                navController.navigate(route = AppDrawerFolder)
             },
         )
     }
@@ -92,7 +93,7 @@ fun AppDrawerFoldersPreference(
         },
         onEditFolderItems = {
             viewModel.setFolderInfo(it, false)
-            navController.navigate("${Routes.APP_LIST_TO_FOLDER}/$it")
+            navController.navigate(AppDrawerAppListToFolder(it))
         },
         onRenameFolder = { folderInfo, it ->
             folderInfo.apply {

@@ -39,6 +39,7 @@ import app.lawnchair.preferences.observeAsState
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.OverflowMenu
+import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.AnnouncementPreference
 import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
 import app.lawnchair.ui.preferences.components.controls.WarningPreference
@@ -48,7 +49,20 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
-import app.lawnchair.ui.preferences.navigation.Routes
+import app.lawnchair.ui.preferences.navigation.About
+import app.lawnchair.ui.preferences.navigation.AppDrawer
+import app.lawnchair.ui.preferences.navigation.CreateBackup
+import app.lawnchair.ui.preferences.navigation.DebugMenu
+import app.lawnchair.ui.preferences.navigation.Dock
+import app.lawnchair.ui.preferences.navigation.ExperimentalFeatures
+import app.lawnchair.ui.preferences.navigation.Folders
+import app.lawnchair.ui.preferences.navigation.General
+import app.lawnchair.ui.preferences.navigation.Gestures
+import app.lawnchair.ui.preferences.navigation.HomeScreen
+import app.lawnchair.ui.preferences.navigation.PreferenceRootRoute
+import app.lawnchair.ui.preferences.navigation.Quickstep
+import app.lawnchair.ui.preferences.navigation.Search
+import app.lawnchair.ui.preferences.navigation.Smartspace
 import app.lawnchair.ui.theme.isSelectedThemeDark
 import app.lawnchair.ui.theme.preferenceGroupColor
 import app.lawnchair.ui.util.addIf
@@ -59,8 +73,8 @@ import com.android.launcher3.R
 
 @Composable
 fun PreferencesDashboard(
-    currentRoute: String,
-    onNavigate: (String) -> Unit,
+    currentRoute: PreferenceRootRoute,
+    onNavigate: (PreferenceRootRoute) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -91,32 +105,32 @@ fun PreferencesDashboard(
                 label = stringResource(R.string.general_label),
                 description = stringResource(R.string.general_description),
                 iconResource = R.drawable.ic_general,
-                onNavigate = { onNavigate(Routes.GENERAL) },
-                isSelected = currentRoute.contains(Routes.GENERAL),
+                onNavigate = { onNavigate(General) },
+                isSelected = currentRoute is General,
             )
 
             PreferenceCategory(
                 label = stringResource(R.string.home_screen_label),
                 description = stringResource(R.string.home_screen_description),
                 iconResource = R.drawable.ic_home_screen,
-                onNavigate = { onNavigate(Routes.HOME_SCREEN) },
-                isSelected = currentRoute.contains(Routes.HOME_SCREEN),
+                onNavigate = { onNavigate(HomeScreen) },
+                isSelected = currentRoute is HomeScreen,
             )
 
             PreferenceCategory(
                 label = stringResource(id = R.string.smartspace_widget),
                 description = stringResource(R.string.smartspace_widget_description),
                 iconResource = R.drawable.ic_smartspace,
-                onNavigate = { onNavigate(Routes.SMARTSPACE) },
-                isSelected = currentRoute.contains(Routes.SMARTSPACE),
+                onNavigate = { onNavigate(Smartspace) },
+                isSelected = currentRoute is Smartspace,
             )
 
             PreferenceCategory(
                 label = stringResource(R.string.dock_label),
                 description = stringResource(R.string.dock_description),
                 iconResource = R.drawable.ic_dock,
-                onNavigate = { onNavigate(Routes.DOCK) },
-                isSelected = currentRoute.contains(Routes.DOCK),
+                onNavigate = { onNavigate(Dock) },
+                isSelected = currentRoute is Dock,
             )
 
             val deckLayout = pref2.deckLayout.getAdapter()
@@ -125,8 +139,8 @@ fun PreferencesDashboard(
                     label = stringResource(R.string.app_drawer_label),
                     description = stringResource(R.string.app_drawer_description),
                     iconResource = R.drawable.ic_app_drawer,
-                    onNavigate = { onNavigate(Routes.APP_DRAWER) },
-                    isSelected = currentRoute.contains(Routes.APP_DRAWER),
+                    onNavigate = { onNavigate(AppDrawer) },
+                    isSelected = currentRoute is AppDrawer,
                 )
             }
 
@@ -134,24 +148,24 @@ fun PreferencesDashboard(
                 label = stringResource(R.string.search_bar_label),
                 description = stringResource(R.string.drawer_search_description),
                 iconResource = R.drawable.ic_search,
-                onNavigate = { onNavigate("${Routes.SEARCH}/0") },
-                isSelected = currentRoute.contains(Routes.SEARCH),
+                onNavigate = { onNavigate(Search()) },
+                isSelected = currentRoute is Search,
             )
 
             PreferenceCategory(
                 label = stringResource(R.string.folders_label),
                 description = stringResource(R.string.folders_description),
                 iconResource = R.drawable.ic_folder,
-                onNavigate = { onNavigate(Routes.FOLDERS) },
-                isSelected = currentRoute.contains(Routes.FOLDERS),
+                onNavigate = { onNavigate(Folders) },
+                isSelected = currentRoute is Folders,
             )
 
             PreferenceCategory(
                 label = stringResource(id = R.string.gestures_label),
                 description = stringResource(R.string.gestures_description),
                 iconResource = R.drawable.ic_gestures,
-                onNavigate = { onNavigate(Routes.GESTURES) },
-                isSelected = currentRoute.contains(Routes.GESTURES),
+                onNavigate = { onNavigate(Gestures) },
+                isSelected = currentRoute is Gestures,
             )
 
             if (LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG) {
@@ -159,8 +173,8 @@ fun PreferencesDashboard(
                     label = stringResource(id = R.string.quickstep_label),
                     description = stringResource(id = R.string.quickstep_description),
                     iconResource = R.drawable.ic_quickstep,
-                    onNavigate = { onNavigate(Routes.QUICKSTEP) },
-                    isSelected = currentRoute.contains(Routes.QUICKSTEP),
+                    onNavigate = { onNavigate(Quickstep) },
+                    isSelected = currentRoute is Quickstep,
                 )
             }
 
@@ -168,8 +182,8 @@ fun PreferencesDashboard(
                 label = stringResource(R.string.about_label),
                 description = "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}",
                 iconResource = R.drawable.ic_about,
-                onNavigate = { onNavigate(Routes.ABOUT) },
-                isSelected = currentRoute.contains(Routes.ABOUT),
+                onNavigate = { onNavigate(About) },
+                isSelected = currentRoute is About,
             )
         }
     }
@@ -200,32 +214,32 @@ fun PreferenceCategoryGroup(
 
 @Composable
 fun RowScope.PreferencesOverflowMenu(
-    currentRoute: String,
-    onNavigate: (String) -> Unit,
+    currentRoute: PreferenceRootRoute,
+    onNavigate: (PreferenceRootRoute) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val enableDebug by preferenceManager().enableDebugMenu.observeAsState()
     val highlightColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
     val highlightShape = MaterialTheme.shapes.large
 
-    val experimentalFeaturesRoute = Routes.EXPERIMENTAL_FEATURES
     if (enableDebug) {
-        val resolvedRoute = Routes.DEBUG_MENU
         ClickableIcon(
             imageVector = Icons.Rounded.Build,
-            onClick = { onNavigate(resolvedRoute) },
-            modifier = Modifier.addIf(currentRoute.contains(resolvedRoute)) {
+            onClick = { onNavigate(DebugMenu) },
+            modifier = Modifier.addIf(currentRoute == DebugMenu) {
                 Modifier
                     .clip(highlightShape)
                     .background(highlightColor)
             },
         )
     }
+    val navController = LocalNavController.current
+    val openCreateBackup = { navController.navigate(CreateBackup) }
     val openRestoreBackup = restoreBackupOpener()
     OverflowMenu(
         modifier = modifier.addIf(
-            listOf(Routes.CREATE_BACKUP, Routes.RESTORE_BACKUP, experimentalFeaturesRoute).any {
-                currentRoute.contains(it)
+            listOf(ExperimentalFeatures).any {
+                currentRoute == it
             },
         ) {
             Modifier
@@ -247,14 +261,14 @@ fun RowScope.PreferencesOverflowMenu(
             Text(text = stringResource(id = R.string.debug_restart_launcher))
         })
         DropdownMenuItem(onClick = {
-            onNavigate(experimentalFeaturesRoute)
+            onNavigate(ExperimentalFeatures)
             hideMenu()
         }, text = {
             Text(text = stringResource(id = R.string.experimental_features_label))
         })
         PreferenceDivider(modifier = Modifier.padding(vertical = 8.dp))
         DropdownMenuItem(onClick = {
-            onNavigate(Routes.CREATE_BACKUP)
+            openCreateBackup()
             hideMenu()
         }, text = {
             Text(text = stringResource(id = R.string.create_backup))

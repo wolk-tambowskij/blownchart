@@ -3,7 +3,6 @@ package app.lawnchair.backup.ui
 import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -36,12 +35,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import app.lawnchair.backup.LawnchairBackup
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.LocalNavController
@@ -49,7 +48,7 @@ import app.lawnchair.ui.preferences.components.DummyLauncherBox
 import app.lawnchair.ui.preferences.components.controls.FlagSwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
-import app.lawnchair.ui.preferences.navigation.Routes
+import app.lawnchair.ui.preferences.navigation.RestoreBackup
 import app.lawnchair.util.BackHandler
 import app.lawnchair.util.hasFlag
 import app.lawnchair.util.restartLauncher
@@ -57,18 +56,13 @@ import com.android.launcher3.R
 import java.util.Base64
 import kotlinx.coroutines.launch
 
-fun NavGraphBuilder.restoreBackupGraph(route: String) {
-    composable(
-        route = "$route/{base64Uri}",
-        arguments = listOf(
-            navArgument("base64Uri") { type = NavType.StringType },
-        ),
-    ) { backStackEntry ->
-        val args = backStackEntry.arguments!!
+fun NavGraphBuilder.restoreBackupGraph() {
+    composable<RestoreBackup> { backStackEntry ->
+        val route: RestoreBackup = backStackEntry.toRoute()
         val backupUri = remember {
-            val base64Uri = args.getString("base64Uri")!!
+            val base64Uri = route.base64Uri
             val backupUriString = String(Base64.getDecoder().decode(base64Uri))
-            Uri.parse(backupUriString)
+            backupUriString.toUri()
         }
         val viewModel: RestoreBackupViewModel = viewModel()
         DisposableEffect(key1 = null) {
@@ -223,7 +217,7 @@ fun restoreBackupOpener(): () -> Unit {
         val uri = it.data?.data ?: return@rememberLauncherForActivityResult
 
         val base64Uri = Base64.getEncoder().encodeToString(uri.toString().toByteArray())
-        navController.navigate("${Routes.RESTORE_BACKUP}/$base64Uri")
+        navController.navigate(RestoreBackup(base64Uri))
     }
 
     return {

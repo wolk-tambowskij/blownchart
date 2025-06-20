@@ -12,7 +12,7 @@ import app.lawnchair.launcher
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.preferences2.subscribeBlocking
 import app.lawnchair.ui.preferences.PreferenceActivity
-import app.lawnchair.ui.preferences.navigation.Routes
+import app.lawnchair.ui.preferences.navigation.Smartspace
 import com.android.launcher3.R
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.views.OptionsPopupView
@@ -152,7 +152,7 @@ class SmartspacerView(context: Context, attrs: AttributeSet?) : BcSmartspaceView
         R.drawable.ic_setting,
         StatsLogManager.LauncherEvent.IGNORE,
     ) {
-        context.startActivity(PreferenceActivity.createIntent(context, Routes.SMARTSPACE))
+        context.startActivity(PreferenceActivity.createIntent(context, Smartspace))
         true
     }
 }

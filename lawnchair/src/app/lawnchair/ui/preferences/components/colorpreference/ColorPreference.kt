@@ -28,12 +28,12 @@ import app.lawnchair.preferences.getAdapter
 import app.lawnchair.theme.color.ColorOption
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.navigation.ColorSelection as ColorSelectionRoute
 import com.patrykmichalik.opto.domain.Preference
 
 /**
- * A a custom implementation of [PreferenceTemplate] for [ColorOption] preferences.
+ * A custom implementation of [PreferenceTemplate] for [ColorOption] preferences.
  *
- * @see colorSelectionGraph
  * @see ColorSelection
  */
 @Composable
@@ -53,6 +53,6 @@ fun ColorPreference(
         description = {
             Text(text = adapter.state.value.colorPreferenceEntry.label())
         },
-        modifier = modifier.clickable { navController.navigate(route = "colorSelection/${model.prefObject.key.name}") },
+        modifier = modifier.clickable { navController.navigate(route = ColorSelectionRoute(model.prefObject.key.name)) },
     )
 }

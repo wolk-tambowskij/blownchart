@@ -19,7 +19,7 @@ import app.lawnchair.ui.preferences.components.AppItem
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayoutLazyColumn
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
-import app.lawnchair.ui.preferences.navigation.Routes
+import app.lawnchair.ui.preferences.navigation.IconPicker
 import app.lawnchair.ui.util.OnResult
 import app.lawnchair.util.requireSystemService
 import com.android.launcher3.LauncherAppState
@@ -85,9 +85,9 @@ fun SelectIconPreference(componentKey: ComponentKey) {
                 icon = remember(iconPack) { iconPack.icon.toBitmap() },
                 onClick = {
                     if (iconPack.packageName.isEmpty()) {
-                        navController.navigate(Routes.ICON_PICKER)
+                        navController.navigate(IconPicker())
                     } else {
-                        navController.navigate("${Routes.ICON_PICKER}/${iconPack.packageName}")
+                        navController.navigate(IconPicker(iconPack.packageName))
                     }
                 },
             )

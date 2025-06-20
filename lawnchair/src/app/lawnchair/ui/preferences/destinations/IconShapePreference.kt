@@ -58,11 +58,8 @@ import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.navigation.GeneralCustomIconShapeCreator
 import com.android.launcher3.R
-
-object IconShapeRoutes {
-    const val CUSTOM_ICON_SHAPE_CREATOR = "customIconShapeCreator"
-}
 
 /**
  * @return The list of all [IconShape]s each wrapped inside a [ListPreferenceEntry].
@@ -173,7 +170,7 @@ private fun ModifyCustomIconShapePreference(
     modifier: Modifier = Modifier,
 ) {
     val navController = LocalNavController.current
-    val route = IconShapeRoutes.CUSTOM_ICON_SHAPE_CREATOR
+    val route = GeneralCustomIconShapeCreator
 
     val created = customIconShape != null
 

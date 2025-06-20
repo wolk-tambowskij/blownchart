@@ -45,6 +45,7 @@ import app.lawnchair.ui.preferences.components.DraggableSwitchPreference
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroupHeading
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.ui.preferences.navigation.HomeScreenPopupEditor
 import app.lawnchair.ui.theme.isSelectedThemeDark
 import com.android.launcher3.R
 
@@ -57,7 +58,7 @@ fun LauncherPopupPreferenceItem(
         modifier = modifier,
         label = stringResource(R.string.edit_menu_items),
         onClick = {
-            navController.navigate(HomeScreenRoutes.POPUP_EDITOR)
+            navController.navigate(HomeScreenPopupEditor)
         },
     )
 }

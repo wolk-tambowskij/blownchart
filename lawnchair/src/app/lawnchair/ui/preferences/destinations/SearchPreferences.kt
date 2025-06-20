@@ -15,7 +15,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.TwoTabPreferenceLayout
 import app.lawnchair.ui.preferences.components.search.DockSearchPreference
 import app.lawnchair.ui.preferences.components.search.DrawerSearchPreference
-import app.lawnchair.ui.preferences.navigation.Routes
+import app.lawnchair.ui.preferences.navigation.Search
 import com.android.launcher3.R
 
 enum class SearchRoute {
@@ -36,7 +36,7 @@ fun SearchBarPreference(
                 label = stringResource(R.string.search_bar_settings),
                 modifier = modifier,
             ) {
-                navController.navigate(route = "${Routes.SEARCH}/${id.ordinal}")
+                navController.navigate(route = Search(id))
             }
         }
     }
@@ -55,12 +55,12 @@ fun SearchBarPreference(
 @Composable
 fun SearchPreferences(
     modifier: Modifier = Modifier,
-    currentTab: Int = 0,
+    currentTab: SearchRoute = SearchRoute.DOCK_SEARCH,
 ) {
     TwoTabPreferenceLayout(
         label = stringResource(id = R.string.search_bar_label),
         backArrowVisible = !LocalIsExpandedScreen.current,
-        defaultPage = currentTab,
+        defaultPage = currentTab.ordinal,
         firstPageLabel = stringResource(id = R.string.dock_label),
         firstPageContent = {
             DockSearchPreference()

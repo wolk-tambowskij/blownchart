@@ -8,6 +8,7 @@ import app.lawnchair.preferences.BasePreferenceManager
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.navigation.GeneralFontSelection
 
 @Composable
 fun FontPreference(
@@ -27,6 +28,6 @@ fun FontPreference(
             )
         },
         modifier = modifier
-            .clickable { navController.navigate(route = "fontSelection/${fontPref.key}") },
+            .clickable { navController.navigate(route = GeneralFontSelection(fontPref.key)) },
     )
 }

@@ -12,7 +12,7 @@ import app.lawnchair.LawnchairLauncher
 import app.lawnchair.launcher
 import app.lawnchair.launcherNullable
 import app.lawnchair.ui.preferences.PreferenceActivity
-import app.lawnchair.ui.preferences.navigation.Routes
+import app.lawnchair.ui.preferences.navigation.Smartspace
 import com.android.launcher3.CheckLongPressHelper
 import com.android.launcher3.R
 import com.android.launcher3.logging.StatsLogManager
@@ -57,7 +57,7 @@ class SmartspaceViewContainer @JvmOverloads constructor(
         R.drawable.ic_setting,
         StatsLogManager.LauncherEvent.IGNORE,
     ) {
-        context.startActivity(PreferenceActivity.createIntent(context, Routes.SMARTSPACE))
+        context.startActivity(PreferenceActivity.createIntent(context, Smartspace))
         true
     }
 

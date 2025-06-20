@@ -49,13 +49,10 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.notificationDotsEnabled
 import app.lawnchair.ui.preferences.components.notificationServiceEnabled
+import app.lawnchair.ui.preferences.navigation.GeneralIconPack
+import app.lawnchair.ui.preferences.navigation.GeneralIconShape
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
-
-object GeneralRoutes {
-    const val ICON_PACK = "iconPack"
-    const val ICON_SHAPE = "iconShape"
-}
 
 @Composable
 fun GeneralPreferences() {
@@ -132,7 +129,7 @@ fun GeneralPreferences() {
         ) {
             NavigationActionPreference(
                 label = stringResource(id = R.string.icon_style_label),
-                destination = GeneralRoutes.ICON_PACK,
+                destination = GeneralIconPack,
                 subtitle = iconStyleSubtitle,
             )
             ExpandAndShrink(visible = themedIconsEnabled) {
@@ -144,7 +141,7 @@ fun GeneralPreferences() {
             }
             NavigationActionPreference(
                 label = stringResource(id = R.string.icon_shape_label),
-                destination = GeneralRoutes.ICON_SHAPE,
+                destination = GeneralIconShape,
                 subtitle = iconShapeSubtitle,
                 endWidget = {
                     IconShapePreview(iconShape = iconShapeAdapter.state.value)

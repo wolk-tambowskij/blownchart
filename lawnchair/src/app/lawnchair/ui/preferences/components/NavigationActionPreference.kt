@@ -22,11 +22,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 
 @Composable
 fun NavigationActionPreference(
     label: String,
-    destination: String,
+    destination: PreferenceRoute,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     endWidget: (@Composable () -> Unit)? = null,

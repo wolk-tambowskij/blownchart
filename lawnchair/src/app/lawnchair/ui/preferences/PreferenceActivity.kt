@@ -24,21 +24,32 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
-import androidx.core.net.toUri
+import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 import app.lawnchair.ui.theme.EdgeToEdge
 import app.lawnchair.ui.theme.LawnchairTheme
+import kotlinx.serialization.json.Json
 
 class PreferenceActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val initialRoute: PreferenceRoute? = intent.getStringExtra(EXTRA_DESTINATION_ROUTE)?.let { routeString ->
+            try {
+                Json.decodeFromString<PreferenceRoute>(routeString)
+            } catch (e: Exception) {
+                null // Fallback to default if deserialization fails
+            }
+        }
+
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
             LawnchairTheme {
                 EdgeToEdge()
                 Preferences(
                     windowSizeClass,
+                    startDestination = initialRoute,
                 )
             }
         }
@@ -46,9 +57,13 @@ class PreferenceActivity : ComponentActivity() {
 
     companion object {
 
-        fun createIntent(context: Context, destination: String): Intent {
-            val uri = "android-app://androidx.navigation/$destination".toUri()
-            return Intent(Intent.ACTION_VIEW, uri, context, PreferenceActivity::class.java)
+        private const val EXTRA_DESTINATION_ROUTE = "app.lawnchair.ui.preferences.DESTINATION_ROUTE"
+
+        fun createIntent(context: Context, destination: PreferenceRoute): Intent {
+            val intent = Intent(context, PreferenceActivity::class.java)
+            val routeString = Json.encodeToString(destination)
+            intent.putExtra(EXTRA_DESTINATION_ROUTE, routeString)
+            return intent
         }
     }
 }
