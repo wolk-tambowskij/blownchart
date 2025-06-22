@@ -12,6 +12,7 @@ import android.os.Process
 import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import app.lawnchair.allapps.views.SearchResultView
 import app.lawnchair.search.algorithms.data.Calculation
@@ -73,7 +74,7 @@ class SearchTargetFactory(
     fun createWebSuggestionsTarget(suggestion: String, suggestionProvider: String, suggestionUrl: String = ""): SearchTargetCompat {
         val webSearchProvider = WebSearchProvider.fromString(suggestionProvider)
         val url = if (webSearchProvider is CustomWebSearchProvider) webSearchProvider.getCustomSearchUrl(suggestion, suggestionUrl) else webSearchProvider.getSearchUrl(suggestion)
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
         val id = suggestion + url
         val action = SearchActionCompat.Builder(id, suggestion).apply {
             setIcon(
@@ -143,7 +144,7 @@ class SearchTargetFactory(
         val value = recentKeyword.getValueByKey("display1") ?: ""
         val webSearchProvider = WebSearchProvider.fromString(suggestionProvider)
         val url = if (webSearchProvider is CustomWebSearchProvider) webSearchProvider.getCustomSearchUrl(value, "%s") else webSearchProvider.getSearchUrl(value)
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
         val id = recentKeyword.data.toString() + url
         val action = SearchActionCompat.Builder(id, value)
             .setIcon(
@@ -239,10 +240,16 @@ class SearchTargetFactory(
     internal fun createWebSearchTarget(
         query: String,
         suggestionProvider: String,
+        suggestionName: String,
         suggestionUrl: String = "",
     ): SearchTargetCompat {
         val webSearchProvider = WebSearchProvider.fromString(suggestionProvider)
-        val webSearchLabel = context.getString(webSearchProvider.label)
+        val webSearchLabel =
+            if (webSearchProvider is CustomWebSearchProvider) {
+                suggestionName
+            } else {
+                context.getString(webSearchProvider.label)
+            }
         val url =
             if (webSearchProvider is CustomWebSearchProvider) {
                 webSearchProvider.getCustomSearchUrl(query, suggestionUrl)
@@ -250,12 +257,8 @@ class SearchTargetFactory(
                 webSearchProvider.getSearchUrl(query)
             }
         val id = "browser:$query"
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        val string = if (webSearchProvider is CustomWebSearchProvider) {
-            context.getString(R.string.all_apps_search_on_web_general)
-        } else {
-            context.getString(R.string.all_apps_search_on_web_message, webSearchLabel)
-        }
+        val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
+        val string = context.getString(R.string.all_apps_search_on_web_message, webSearchLabel)
         val action = SearchActionCompat.Builder(id, string)
             .setIcon(Icon.createWithResource(context, webSearchProvider.iconRes))
             .setIntent(browserIntent)
@@ -275,7 +278,7 @@ class SearchTargetFactory(
 
         val contactIntent = Intent(Intent.ACTION_VIEW, contactUri)
         val action = SearchActionCompat.Builder(id, info.name)
-            .setIcon(ContactsTarget.displayContactPhoto(context, info.name, Uri.parse(info.uri)))
+            .setIcon(ContactsTarget.displayContactPhoto(context, info.name, info.uri.toUri()))
             .setContentDescription(info.contactId)
             .setSubtitle(info.number)
             .setIntent(contactIntent)

@@ -69,6 +69,7 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
     private var enableFuzzySearch = false
     private var useWebSuggestions = true
     private var webSuggestionsProvider = ""
+    private var webSuggestionsProviderName = ""
     private var webSuggestionsProviderUrl = ""
     private var webSuggestionProviderSuggestionsUrl = ""
 
@@ -107,6 +108,9 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
         }
         pref2.webSuggestionProviderSuggestionsUrl.onEach(launchIn = coroutineScope) {
             webSuggestionProviderSuggestionsUrl = it
+        }
+        pref2.webSuggestionProviderName.onEach(launchIn = coroutineScope) {
+            webSuggestionsProviderName = it
         }
 
         pref2.maxAppSearchResultCount.onEach(launchIn = coroutineScope) {
@@ -215,6 +219,7 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
                 searchTargetFactory.createWebSearchTarget(
                     query,
                     webSuggestionsProvider,
+                    webSuggestionsProviderName,
                     suggestionUrl,
                 ),
             )

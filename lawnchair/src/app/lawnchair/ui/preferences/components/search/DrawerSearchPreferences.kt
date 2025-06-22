@@ -199,6 +199,7 @@ private fun LocalSearchSettings(
         )
         WebSearchProvider(
             adapter = prefs2.webSuggestionProvider.getAdapter(),
+            nameAdapter = prefs2.webSuggestionProviderName.getAdapter(),
             urlAdapter = prefs2.webSuggestionProviderUrl.getAdapter(),
             suggestionsUrlAdapter = prefs2.webSuggestionProviderSuggestionsUrl.getAdapter(),
         )

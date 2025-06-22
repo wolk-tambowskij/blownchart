@@ -513,6 +513,11 @@ class PreferenceManager2 private constructor(private val context: Context) :
         defaultValue = "https://google.com/complete/search?client=chrome&q=%s",
     )
 
+    val webSuggestionProviderName = preference(
+        key = stringPreferencesKey(name = "web_suggestion_provider_name"),
+        defaultValue = context.resources.getString(R.string.custom),
+    )
+
     val maxAppSearchResultCount = preference(
         key = intPreferencesKey(name = "max_search_result_count"),
         defaultValue = resourceProvider.getInt(R.dimen.config_default_search_max_result_count),
