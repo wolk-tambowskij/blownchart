@@ -14,12 +14,26 @@ import com.android.launcher3.pm.UserCache
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class FolderService(val context: Context) : SafeCloseable {
 
-    val folderDao = AppDatabase.INSTANCE.get(context).folderDao()
+    private val folderDao = AppDatabase.INSTANCE.get(context).folderDao()
+    private val launcherApps = context.getSystemService(LauncherApps::class.java)
+    private val userCache = UserCache.INSTANCE.get(context)
+    private val appFilter = AppFilter(context)
+    private val converters = Converters()
+
+    fun getFoldersFlow(): Flow<List<FolderInfo>> {
+        return folderDao.getAllFolders().map { folderEntities ->
+            folderEntities.mapNotNull { folderEntity ->
+                getFolderInfo(folderEntity.id, true)
+            }
+        }
+    }
 
     suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>) = withContext(Dispatchers.IO) {
         folderDao.insertFolderWithItems(
@@ -42,35 +56,41 @@ class FolderService(val context: Context) : SafeCloseable {
         folderDao.deleteFolder(id)
     }
 
-    suspend fun getFolderInfo(folderId: Int, hasId: Boolean = false): FolderInfo? = withContext(Dispatchers.IO) {
-        return@withContext try {
-            val folderItems = folderDao.getFolderWithItems(folderId)
+    suspend fun getFolderInfo(folderId: Int, hasId: Boolean = false): FolderInfo? = withContext(Dispatchers.Default) {
+        folderDao.getFolderWithItems(folderId)?.let {
+            mapToFolderInfo(it, hasId)
+        }
+    }
 
-            folderItems?.let { items ->
-                val folderInfo = FolderInfo().apply {
-                    if (hasId) id = items.folder.id
-                    title = items.folder.title
-                }
-
-                items.items.forEach { item ->
-                    toItemInfo(item.componentKey)?.let { folderInfo.add(it) }
-                }
-                folderInfo
+    private fun mapToFolderInfo(folderWithItems: FolderWithItems, hasId: Boolean): FolderInfo? {
+        return try {
+            val domainFolderInfo = FolderInfo().apply {
+                // if no id, launcher automatically creates an id for this
+                if (hasId) id = folderWithItems.folder.id
+                title = folderWithItems.folder.title
             }
+
+            folderWithItems.items.forEach { itemEntity ->
+                // Consider caching toItemInfo results if componentKey lookups are slow
+                // and items don't change frequently without folder data changing
+                toItemInfo(itemEntity.componentKey)?.let { appInfo ->
+                    domainFolderInfo.add(appInfo, false)
+                }
+            }
+            domainFolderInfo
         } catch (e: Exception) {
-            Log.e("FolderService", "Failed to get folder info for folderId: $folderId", e)
+            Log.e("FolderService", "Failed to map FolderWithItems for id: ${folderWithItems.folder.id}", e)
             null
         }
     }
 
     private fun toItemInfo(componentKey: String?): AppInfo? {
-        val launcherApps = context.getSystemService(LauncherApps::class.java)
         if (launcherApps != null) {
-            return UserCache.INSTANCE.get(context).userProfiles.asSequence()
+            return userCache.userProfiles.asSequence()
                 .flatMap { launcherApps.getActivityList(null, it) }
-                .filter { AppFilter(context).shouldShowApp(it.componentName) }
+                .filter { appFilter.shouldShowApp(it.componentName) }
                 .map { AppInfo(context, it, it.user) }
-                .filter { Converters().fromComponentKey(it.componentKey) == componentKey }
+                .filter { converters.fromComponentKey(it.componentKey) == componentKey }
                 .firstOrNull()
         }
         return null

@@ -50,7 +50,7 @@ import sh.calvin.reorderable.ReorderableScope
 
 @Composable
 fun <T> DraggablePreferenceGroup(
-    label: String,
+    label: String?,
     items: List<T>,
     defaultList: List<T>,
     onOrderChange: (List<T>) -> Unit,

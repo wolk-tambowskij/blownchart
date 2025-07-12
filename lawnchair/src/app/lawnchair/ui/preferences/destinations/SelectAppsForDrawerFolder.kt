@@ -102,7 +102,7 @@ fun SelectAppsForDrawerFolder(
                     onUpdateList = { newSet ->
                         selectedAppsInFolder = newSet
 
-                        viewModel.updateFolder(
+                        viewModel.updateFolderItems(
                             folderInfoId,
                             folderInfo?.title.toString(),
                             newSet.toList(),
@@ -148,7 +148,7 @@ fun SelectAppsForDrawerFolder(
                                         onSetChange = { newSet ->
                                             selectedAppsInFolder = newSet
 
-                                            viewModel.updateFolder(
+                                            viewModel.updateFolderItems(
                                                 folderInfoId,
                                                 folderInfo?.title.toString(),
                                                 newSet.filterIsInstance<AppInfo>().toList(),

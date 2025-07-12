@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.data.factory.ViewModelFactory
+import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.launcher
@@ -42,7 +43,9 @@ class LawnchairAlphabeticalAppsList<T>(
     private var viewModel: FolderViewModel
     private var folderList = mutableListOf<FolderInfo>()
     private val filteredList = mutableListOf<AppInfo>()
-    val potsManager = Flowerpot.Manager.getInstance(context)
+
+    private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
+    private val potsManager = Flowerpot.Manager.getInstance(context)
 
     init {
         context.launcher.deviceProfile.inv.addOnChangeListener(this)
@@ -61,8 +64,10 @@ class LawnchairAlphabeticalAppsList<T>(
     }
 
     private fun observeFolders() {
-        viewModel.foldersMutable.observe(context as LifecycleOwner) { folders ->
-            folderList = folders.toMutableList()
+        viewModel.foldersLiveData.observe(context as LifecycleOwner) { folders ->
+            folderList = folders
+                .sortedBy { folderOrder.indexOf(it.id) }
+                .toMutableList()
             updateAdapterItems()
         }
     }
@@ -120,6 +125,5 @@ class LawnchairAlphabeticalAppsList<T>(
 
     override fun onIdpChanged(modelPropertiesChanged: Boolean) {
         onAppsUpdated()
-        viewModel.refreshFolders()
     }
 }
