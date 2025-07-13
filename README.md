@@ -6,6 +6,7 @@
 [![OpenCollective](https://img.shields.io/opencollective/all/lawnchair?label=financial%20contributors&logo=open-collective)](https://opencollective.com/lawnchair)
 [![Telegram](https://img.shields.io/endpoint?url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Flccommunity)](https://t.me/lccommunity)
 [![Discord](https://img.shields.io/discord/803299970169700402?label=server&logo=discord)](https://discord.gg/3x8qNWxgGZ)
+[![GitHub Downloads](https://img.shields.io/github/downloads/LawnchairLauncher/lawnchair/total.svg?label=GitHub%20Downloads&logo=github)](https://github.com/LawnchairLauncher/lawnchair/releases)
 
 <picture>
     <!-- Avoid image being clickable with slight workaround -->
