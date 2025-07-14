@@ -281,7 +281,9 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
             mRightPane.removeAllViews();
             mRightPane.addView(mWidgetRecommendationsContainer);
             mRightPaneScrollView.setScrollY(0);
-            mRightPane.setAccessibilityPaneTitle(suggestionsRightPaneTitle);
+            if (Utilities.ATLEAST_P) {
+                mRightPane.setAccessibilityPaneTitle(suggestionsRightPaneTitle);
+            }
             mSuggestedWidgetsPackageUserKey = PackageUserKey.fromPackageItemInfo(packageItemInfo);
             final boolean isChangingHeaders = mSelectedHeader == null
                     || !mSelectedHeader.equals(mSuggestedWidgetsPackageUserKey);

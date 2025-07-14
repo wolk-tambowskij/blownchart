@@ -48,6 +48,7 @@ import com.android.launcher3.DropTarget.DragObject;
 import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.accessibility.LauncherAccessibilityDelegate;
 import com.android.launcher3.accessibility.ShortcutMenuAccessibilityDelegate;
 import com.android.launcher3.dragndrop.DragController;
@@ -254,7 +255,9 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
      * Animates and loads shortcuts on background thread for this popup container
      */
     private void loadAppShortcuts(ItemInfo originalItemInfo) {
-        setAccessibilityPaneTitle(getTitleForAccessibility());
+        if (Utilities.ATLEAST_P) {
+            setAccessibilityPaneTitle(getTitleForAccessibility());
+        }
         mOriginalIcon.setForceHideDot(true);
         // All views are added. Animate layout from now on.
         setLayoutTransition(new LayoutTransition());
