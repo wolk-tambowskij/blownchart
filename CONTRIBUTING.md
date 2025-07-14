@@ -12,14 +12,13 @@ Feel free to reach out to us on [Telegram](https://t.me/lccommunity) or [Discord
 ### 💫 Bug reports & feature requests
 
 > [!TIP]
-> Using Lawnchair [Nightly](https://github.com/LawnchairLauncher/lawnchair/releases/tag/nightly) is recommended for bug reports and feature requests 
-> as it contains the latest changes from Lawnchair.
+> Use the [Lawnchair Nightly builds](https://github.com/LawnchairLauncher/lawnchair/releases/tag/nightly) when creating bug reports
+> and feature requests, as it contains the latest changes from Lawnchair.
 
 For [bug reports](https://github.com/LawnchairLauncher/lawnchair/issues/new?assignees=&labels=bug&projects=&template=bug_report.yaml&title=%5BBUG%5D+), describe the bug in detail to the best of your ability
 with steps on how to reproduce it. If applicable, attach log files.
 
 For [feature requests](https://github.com/LawnchairLauncher/lawnchair/issues/new?assignees=&labels=feature%2Cenhancement&projects=&template=feature_request.yaml&title=%5BFEATURE%5D+), describe the feature you'd like to see added to Lawnchair.
-If applicable, attach log files.
 
 Make sure to be civil during the discussion of your contribution as outlined by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
@@ -40,7 +39,7 @@ For code, it's highly recommended that you use [Android Studio](https://develope
 know [Java](https://www.java.com) or preferably [Kotlin](https://kotlinlang.org/), and [Git](https://git-scm.com/).
 
 > [!IMPORTANT]
-> You can use Git to clone the repository; ensure that you include the project’s submodules using the `recursive` flag:
+> Use Git to clone the repository; ensure that you include the project’s submodules using the `recursive` flag:
 >
 > ```
 > git clone --recursive https://github.com/LawnchairLauncher/lawnchair.git

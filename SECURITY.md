@@ -4,7 +4,7 @@
 
 > [!WARNING]
 > [Lawnchair Legacy](https://play.google.com/store/apps/details?id=ch.deletescape.lawnchair.plah) is **unsupported**. Use the newer versions instead.
-> See [this FAQ page](https://lawnchair.app/faq#do-you-still-support-the-play-store-version) for additional information.
+> See [this FAQ page](https://lawnchair.app/faq/#what-happened-to-lawnchair-legacy) for additional information.
 
 The latest version of Lawnchair is the only supported version.
 

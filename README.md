@@ -19,12 +19,12 @@
 
 Lawnchair is a free, open-source home app for Android. Taking Launcher3—Android’s default home app—as a starting point, it ports Pixel Launcher features and introduces rich customization options.
 
-This branch houses the codebase of Lawnchair 15, which is currently in development and is based on Launcher3 from Android 15. For Lawnchair 9 to 14, see the branches with the `9-` to `14-` prefixes, respectively.
+This branch houses the codebase of Lawnchair 15, which is currently in beta and is based on Launcher3 from Android 15. For Lawnchair 9 to 14, see the branches with the `9-` to `14-` prefixes, respectively.
 
 ## Features
 
 -   **Material You Theming:** Adapts to your wallpaper and system theme.
--   **At a Glance Widget:** Displays information *at a glance* with support for [Smartspacer](https://github.com/KieronQuinn/Smartspacer) extensions.
+-   **At a Glance Widget:** Displays information *at a glance* with support for [Smartspacer](https://github.com/KieronQuinn/Smartspacer).
 -   **QuickSwitch Support:** Integrates with Android Recents on Android 10 and newer. (requires root)
 -   **Global Search:** Allows quick access to apps, contacts, and web results from the home screen.
 -   **Customization Options:** Provides options to tweak icons, fonts, and colors to your liking.
@@ -64,7 +64,7 @@ Lawnchair on Play Store will install as a different app from other sources. Some
 
 ### Development builds
 
-Interested in keeping yourself up-to-date with every Lawnchair development? Try our development build!
+Interested in keeping yourself up-to-date with every Lawnchair development? Try our development builds!
 
 These builds offer the latest features and bug fixes at a cost of being slower and introducing new bugs. Ensure that you make backups before installing.
 
@@ -90,9 +90,10 @@ Please visit the [Lawnchair Contributing Guidelines](CONTRIBUTING.md) for inform
 
 ## Quick links
 
--   [News](https://t.me/lawnchairci)
--   [Lawnchair on X (formerly Twitter)](https://x.com/lawnchairapp)
 -   [Website](https://lawnchair.app)
+-   [News on Telegram](https://t.me/lawnchairci)
+-   [Discord](https://discord.com/invite/3x8qNWxgGZ)
+-   [Lawnchair on X (formerly Twitter)](https://x.com/lawnchairapp)
 -   [_XDA_ thread](https://xdaforums.com/t/lawnchair-customizable-pixel-launcher.3627137/)
 
 You can view all our links in the [Lawnchair Wiki](https://github.com/LawnchairLauncher/lawnchair/wiki).
