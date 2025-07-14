@@ -1,35 +1,47 @@
-Lawnchair 14 Beta 3 is here! This release works with QuickSwitch from Android 10 to Android 14 QPR3.
+> [!TIP]
+> For the story behind this release, see [the announcement](https://lawnchair.app/blog/lawnchair-15-beta-1) on our website.
 
-This release contains numerous improvements:
-* UI improvements
-  * UI text refresh: all text is now Sentence case to match Material You guidelines (#4209)
-  * Proper tablet support: the launcher and settings UI now adjust accordingly to the larger width
-  * Color scheme improvements: Lawnchair now matches the Android 14 and Pixel Launcher colors
-  * Added support for predictive back when navigating in Settings
-  * Added support for Android 14's per-app language feature
-  * Added new fonts in font picker
-* Search improvements 
-  * Improved permission handling for contacts and files search settings
-  * Improved performance of search results
-  * Added the ability to switch search algorithms
-  * Added new web search providers: Google & DuckDuckGo
-  * Added new dock search bar providers: Yandex
-  * Added additional dock search bar customizations 
-  * Added an option to use dock search provider actions for app drawer
-* Recents screen improvements:
-  * Added the ability to reorganize the quick actions in Overview
-  * Added the ability to change transparency of the recents background
-* Bug fixes
-  * Fixed crashes on One UI, ColorOS, and other Android OEMs
-  * Fixed crash when accessing settings with a wallpaper preview on Android 15
-  * Fixed Smartspacer left padding not working
-  * Fixed Lawnfeed not working
-* Other repository improvments:
-  * Improved docs and README of Lawnchair (#4370)
-  * Added nightly releases (#4264); do note that these are built differently from normal builds, and can be buggy and less optimized.
+Lawnchair 15 Beta 1 is a foundational release based on Launcher3 from Android 15. This version works with QuickSwitch from Android 10 to Android 15 QPR1. Higher Android versions are not yet supported.
 
-Alongside that, this release contains the usual performance improvements, miscellaneous bug fixes, and new bugs & translations.
+### New Features
+*   **Android 15 Support:** Includes core platform features like Private Space and App Archiving.
+*   **App Drawer Folders:** A major new way to organize your app drawer.
+    *   **Manual Folders:** Create, edit, and re-arrange your own custom folders.
+    *   **Automatic Organization ("Caddy"):** An experimental feature to automatically categorize your entire app drawer into smart folders.
+*   **Dock Enhancements:**
+    *   Add a background to the dock with options for color and corner radius.
+    *   Place widgets directly in the dock.
+    *   Show icon labels for apps in the dock.
+*   **Wallpaper Carousel:** A new pop-up menu item to quickly switch between your current and recent wallpapers, similar to the Pixel Launcher.
+*   **App Pausing:** For rooted users with QuickSwitch, you can now manually pause applications directly from the launcher.
+*   **Expanded Search Options:**
+    *   Add custom search engines for web suggestions in the app drawer.
+    *   New web search providers added, including Ecosia, Kagi, Firefox, Iceraven, and Mull.
+*   **"Deck" (Experimental):** An initial implementation of a "no app drawer" mode. *Please create a launcher backup before trying this feature to prevent data loss.*
 
-Thanks to our new contributors: @osm0sis, @t895, @berkekbgz, @JovannMC, @Susexe, @HarmfulBreeze, @sandstranger, @hotmule, and @nivlafx
+### Improvements
+*   **UI:** Updated many UI components to better align with Material 3 design principles.
+*   **Gestures:** Added "Open Recents Screen" and "Open Assistant" as new gesture actions.
+*   **Pop-Up Menu:** The long-press menu options can now be reordered.
+*   **Settings:** Reorganized many settings for a more intuitive experience and centralized all search-related settings into a single screen.
 
-Want to support Lawnchair's development? Visit [our Open Collective page](https://opencollective.com/lawnchair), or set your search engine to Startpage. Alongside that, if you're a developer and want to work on Lawnchair, we're investigating how we want to do payouts for development work and bugfixes. If you have any ideas or want to contribute, please get in contact at our discussion forums!
+### Core & Under-the-Hood
+*   **Type-Safe Navigation:** The settings infrastructure has been rewritten using modern Jetpack Compose Navigation for enhanced stability.
+*   **Build & Dependency Updates:** Major updates to dependencies and build scripts improve performance and maintainability.
+*   **New Translations:** Translations have been updated from Crowdin.
+*   **Nightly Builds:** A formal nightly build system is now in place for easier access to development versions.
+*   **Crash & Bug Fixes:** Implemented numerous fixes for various OEM skins (Lenovo, Motorola), custom ROMs, and older Android versions.
+
+### Regressions & Known Issues
+*   **Icon Badges:** Icon badges for work profile apps are temporarily non-functional due to core changes in the A15 rebase. This is a high-priority item for a future update.
+*   **'Customize Icon' State:** The bottom sheet for customizing an icon may not update its state immediately. Restarting the launcher will apply the change.
+*   **App Drawer folders:** As of now, you can't edit app drawer folders from the app drawer. Please visit the settings screen to change the contents of each folder.
+
+Other issues that you may encounter can be found at [our FAQ](https://lawnchair.app/faq/#common-issues).
+
+### Community & Thanks
+This release marks a new chapter in how we engage with our community. We recently formed the **Lawnchair Triage Team**, a group of dedicated volunteers who have already begun the massive task of organizing our issue tracker. Their early efforts have been invaluable in helping us focus development.
+
+Thanks as well to all the people who have [donated to our Open Collective](https://opencollective.com/lawnchair) and [submitted translations on Crowdin](https://lawnchair.crowdin.com/).
+
+And, as always, a huge thanks to all our code contributors for this cycle: @validcube, @Morty0Smith, @benjaminkitt, and @tgex0

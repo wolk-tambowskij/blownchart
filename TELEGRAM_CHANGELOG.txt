@@ -1,35 +1,10 @@
-Lawnchair 14 Beta 3 is here! This release works with QuickSwitch from Android 10 to Android 14 QPR3.
+*Lawnchair 15 Beta 1 is here!*
 
-This release contains numerous improvements:
-* UI improvements
-  * UI text refresh: all text is now Sentence case to match Material You guidelines
-  * Proper tablet support: the launcher and settings UI now adjust accordingly to the larger width
-  * Color scheme improvements: Lawnchair now matches the Android 14 and Pixel Launcher colors
-  * Added support for predictive back when navigating in Settings
-  * Added support for Android 14's per-app language feature
-  * Added new fonts in font picker
-* Search improvements 
-  * Improved permission handling for contacts and files search settings
-  * Improved performance of search results
-  * Added the ability to switch search algorithms
-  * Added new web search providers: Google & DuckDuckGo
-  * Added new dock search bar providers: Yandex
-  * Added additional dock search bar customizations 
-  * Added an option to use dock search provider actions for app drawer
-* Recents screen improvements:
-  * Added the ability to reorganize the quick actions in Overview
-  * Added the ability to change transparency of the recents background
-* Bug fixes
-  * Fixed crashes on One UI, ColorOS, and other Android OEMs
-  * Fixed crash when accessing settings with a wallpaper preview on Android 15
-  * Fixed Smartspacer left padding not working
-  * Fixed Lawnfeed not working
-* Other repository improvments:
-  * Improved docs and README of Lawnchair
-  * Added nightly releases; do note that these are built differently from normal builds, and can be buggy and less optimized.
+We're excited to release the first beta for Lawnchair 15, a foundational update based on Android 15.
 
-Alongside that, this release contains the usual performance improvements, miscellaneous bug fixes, and new bugs & translations.
+The biggest new feature is one of our most requested ever: **App Drawer Folders**. You can now create and reorder custom folders to finally organize your app drawer.
 
-Thanks to our new contributors: <a href="https://github.com/osm0sis">@osm0sis</a>, <a href="https://github.com/t895">@t895</a>, <a href="https://github.com/berkekbgz">@berkekbgz</a>, <a href="https://github.com/JovannMC">@JovannMC</a>, <a href="https://github.com/Susexe">@Susexe</a>, <a href="https://github.com/HarmfulBreeze">@HarmfulBreeze</a>, <a href="https://github.com/sandstranger">@sandstranger</a>, <a href="https://github.com/hotmule">@hotmule</a>, and <a href="https://github.com/nivlafx">@nivlafx</a>
+This release is packed with many other improvements, from a more powerful dock to dozens of UI refinements.
 
-Want to support Lawnchair's development? Visit <a href="https://opencollective.com/lawnchair">our Open Collective page</a>, or set your search engine to Startpage. Alongside that, if you're a developer and want to work on Lawnchair, we're investigating how we want to do payouts for development work and bugfixes. If you have any ideas or want to contribute, please get in contact at our discussion forums!
+**Read the full announcement on our blog:**
+https://lawnchair.app/blog/lawnchair-15-beta-1
