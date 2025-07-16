@@ -403,7 +403,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (dragObject.dragSource != this) {
             return;
         }
-        if (isInAppDrawer()) close(true);
+        if (isInAppDrawer()) {
+            close(true);
+            // Do not remove item
+            return;
+        }
         
         mContent.removeItem(mCurrentDragView);
         mItemsInvalidated = true;
@@ -1091,6 +1095,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     };
 
     public void completeDragExit() {
+        if (isInAppDrawer()) {
+            return;
+        }
         if (mIsOpen) {
             close(true);
             mRearrangeOnClose = true;
@@ -1519,6 +1526,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
     @Override
     public void onRemove(List<ItemInfo> items) {
+        if (isInAppDrawer()) {
+            return;
+        }
         mItemsInvalidated = true;
         items.stream().map(this::getViewForInfo).forEach(mContent::removeItem);
         if (mState == STATE_ANIMATING) {
