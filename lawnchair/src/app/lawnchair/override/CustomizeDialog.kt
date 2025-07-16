@@ -145,7 +145,9 @@ fun CustomizeAppDialog(
     val hiddenApps by preferenceManager2.hiddenApps.asState()
     val adapter = preferenceManager2.hiddenApps.getAdapter()
     val context = LocalContext.current
-    var title by remember { mutableStateOf("") }
+    var title by remember {
+        mutableStateOf(prefs.customAppName[componentKey] ?: defaultTitle)
+    }
 
     val request = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
@@ -160,8 +162,7 @@ fun CustomizeAppDialog(
         request.launch(PreferenceActivity.createIntent(context, route))
     }
 
-    DisposableEffect(key1 = null) {
-        title = prefs.customAppName[componentKey] ?: defaultTitle
+    DisposableEffect(Unit) {
         onDispose {
             val previousTitle = prefs.customAppName[componentKey]
             val newTitle = if (title != defaultTitle) title else null
