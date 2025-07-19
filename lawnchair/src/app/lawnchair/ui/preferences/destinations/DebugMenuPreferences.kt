@@ -1,10 +1,8 @@
 package app.lawnchair.ui.preferences.destinations
 
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.preferences.core.Preferences
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences.getAdapter
@@ -12,6 +10,7 @@ import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.controls.MainSwitchPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
@@ -20,8 +19,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.data.liveinfo.liveInformationManager
 import app.lawnchair.ui.preferences.data.liveinfo.model.LiveInformation
-import com.android.launcher3.settings.SettingsActivity
-import com.android.launcher3.uioverrides.flags.DevOptionsUiHelper
+import app.lawnchair.ui.preferences.navigation.FeatureFlags
 import com.patrykmichalik.opto.domain.Preference
 import kotlinx.coroutines.runBlocking
 
@@ -38,7 +36,7 @@ fun DebugMenuPreferences(
     val flags = remember { prefs.debugFlags }
     val flags2 = remember { prefs2.debugFlags }
     val textFlags = remember { prefs2.textFlags }
-    val context = LocalContext.current
+    val navController = LocalNavController.current
 
     val enableDebug = prefs.enableDebugMenu.getAdapter()
 
@@ -52,12 +50,7 @@ fun DebugMenuPreferences(
                 ClickablePreference(
                     label = "Feature flags",
                     onClick = {
-                        Intent(context, SettingsActivity::class.java)
-                            .putExtra(
-                                ":settings:fragment",
-                                DevOptionsUiHelper::class.java.name,
-                            )
-                            .also { context.startActivity(it) }
+                        navController.navigate(FeatureFlags)
                     },
                 )
                 ClickablePreference(
