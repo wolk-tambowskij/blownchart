@@ -27,6 +27,7 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 import app.lawnchair.ui.theme.EdgeToEdge
 import app.lawnchair.ui.theme.LawnchairTheme
+import com.google.accompanist.adaptive.calculateDisplayFeatures
 import kotlinx.serialization.json.Json
 
 class PreferenceActivity : ComponentActivity() {
@@ -44,11 +45,11 @@ class PreferenceActivity : ComponentActivity() {
         }
 
         setContent {
-            val windowSizeClass = calculateWindowSizeClass(this)
             LawnchairTheme {
                 EdgeToEdge()
                 Preferences(
-                    windowSizeClass,
+                    windowSizeClass = calculateWindowSizeClass(this),
+                    displayFeatures = calculateDisplayFeatures(this),
                     startDestination = initialRoute,
                 )
             }

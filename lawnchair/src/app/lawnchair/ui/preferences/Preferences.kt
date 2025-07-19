@@ -16,12 +16,11 @@
 
 package app.lawnchair.ui.preferences
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -40,11 +39,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.window.layout.DisplayFeature
 import app.lawnchair.ui.preferences.destinations.PreferencesDashboard
 import app.lawnchair.ui.preferences.navigation.General
 import app.lawnchair.ui.preferences.navigation.IconPicker
 import app.lawnchair.ui.preferences.navigation.PreferenceNavigation
-import app.lawnchair.ui.preferences.navigation.PreferencePane
 import app.lawnchair.ui.preferences.navigation.PreferenceRootRoute
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 import app.lawnchair.ui.preferences.navigation.Root
@@ -73,6 +72,7 @@ val twoPaneBlacklist = setOf(
 @Composable
 fun Preferences(
     windowSizeClass: WindowSizeClass,
+    displayFeatures: List<DisplayFeature>,
     modifier: Modifier = Modifier,
     startDestination: PreferenceRoute? = null,
     interactor: PreferenceInteractor = viewModel<PreferenceViewModel>(),
@@ -92,7 +92,7 @@ fun Preferences(
 
     Providers {
         Surface(
-            color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+            color = MaterialTheme.colorScheme.surface,
             modifier = modifier,
         ) {
             CompositionLocalProvider(
@@ -106,6 +106,7 @@ fun Preferences(
                         currentTopRoute = it
                     },
                     useTwoPane = useTwoPane,
+                    displayFeatures = displayFeatures,
                     isExpandedScreen = isExpandedScreen,
                     navController = navController,
                 ) {
@@ -124,6 +125,7 @@ private fun PreferenceScreen(
     currentTopRoute: PreferenceRootRoute,
     onRouteChange: (PreferenceRootRoute) -> Unit,
     useTwoPane: Boolean,
+    displayFeatures: List<DisplayFeature>,
     isExpandedScreen: Boolean,
     navController: NavHostController,
     navHost: @Composable () -> Unit,
@@ -133,37 +135,31 @@ private fun PreferenceScreen(
         useTwoPane -> {
             TwoPane(
                 first = {
-                    PreferencePane {
-                        PreferencesDashboard(
-                            currentRoute = currentTopRoute,
-                            onNavigate = {
-                                navController.navigate(it) {
-                                    launchSingleTop = true
-                                    popUpTo(navController.graph.id)
-                                }
-                                onRouteChange(it)
-                            },
-                        )
-                    }
+                    PreferencesDashboard(
+                        currentRoute = currentTopRoute,
+                        onNavigate = {
+                            navController.navigate(it) {
+                                launchSingleTop = true
+                                popUpTo(navController.graph.id)
+                            }
+                            onRouteChange(it)
+                        },
+                    )
                 },
                 second = {
-                    PreferencePane {
-                        moveableNavHost()
-                    }
+                    moveableNavHost()
                 },
                 strategy = HorizontalTwoPaneStrategy(splitOffset = 420.dp),
-                displayFeatures = listOf(),
-                modifier = Modifier.safeContentPadding(),
+                displayFeatures = displayFeatures,
             )
         }
         isExpandedScreen -> {
             Surface(
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .safeContentPadding(),
+                    .fillMaxWidth(),
             ) {
-                PreferencePane(
+                Box(
                     modifier = Modifier.requiredWidth(640.dp),
                 ) {
                     moveableNavHost()
