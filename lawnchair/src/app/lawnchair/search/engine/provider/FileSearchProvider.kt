@@ -30,7 +30,7 @@ object FileSearchProvider : SearchProvider {
     override fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList?
+        allApps: AllAppsList?,
     ): Flow<List<SearchResult>> = flow {
         val prefs = PreferenceManager.getInstance(context)
         val prefs2 = PreferenceManager2.getInstance(context)
@@ -46,7 +46,7 @@ object FileSearchProvider : SearchProvider {
         val fileInfoList = queryFilesInMediaStore(
             context = context,
             keyword = query,
-            maxResult = maxResults
+            maxResult = maxResults,
         ).toList()
 
         val searchResults = fileInfoList.map { fileInfo ->
@@ -151,6 +151,4 @@ object FileSearchProvider : SearchProvider {
             dateModified,
         )
     }
-
 }
-

@@ -53,7 +53,7 @@ object GoogleWebSearchProvider : WebSearchProvider {
         @GET("complete/search")
         suspend fun getSuggestions(
             @Query("client") client: String = "firefox",
-            @Query("q") query: String
+            @Query("q") query: String,
         ): Response<String>
     }
 
@@ -137,7 +137,7 @@ object DuckDuckGoWebSearchProvider : WebSearchProvider {
         @GET("ac/")
         suspend fun getSuggestions(
             @Query("q") query: String,
-            @Query("type") type: String = "json"
+            @Query("type") type: String = "json",
         ): Response<ResponseBody>
     }
 
@@ -220,7 +220,7 @@ object StartPageWebSearchProvider : WebSearchProvider {
             @Query("q") query: String,
             @Query("segment") segment: String = "startpage.lawnchair", // Identify our app
             @Query("partner") partner: String = "lawnchair",
-            @Query("format") format: String = "opensearch"
+            @Query("format") format: String = "opensearch",
         ): Response<String>
     }
 
@@ -302,7 +302,7 @@ object KagiWebSearchProvider : WebSearchProvider {
     private interface KagiService {
         @GET("api/autosuggest")
         suspend fun getSuggestions(
-            @Query("q") query: String
+            @Query("q") query: String,
         ): Response<String>
     }
 
@@ -360,7 +360,7 @@ private class StringConverterFactory : Converter.Factory() {
     override fun responseBodyConverter(
         type: Type,
         annotations: Array<Annotation>,
-        retrofit: Retrofit
+        retrofit: Retrofit,
     ): Converter<ResponseBody, *>? {
         if (type == String::class.java) {
             return Converter<ResponseBody, String> { value -> value.string() }

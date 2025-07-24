@@ -17,7 +17,7 @@ object WebSuggestionProvider : SearchProvider {
     override fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList?
+        allApps: AllAppsList?,
     ): Flow<List<SearchResult>> {
         val prefs = PreferenceManager.getInstance(context)
         val prefs2 = PreferenceManager2.getInstance(context)

@@ -28,6 +28,6 @@ interface SearchProvider {
     fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList? = null
+        allApps: AllAppsList? = null,
     ): Flow<List<SearchResult>>
 }

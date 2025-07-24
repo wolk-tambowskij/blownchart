@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
-
 object SettingsSearchProvider : SearchProvider {
 
     override val id: String = "settings"
@@ -25,7 +24,7 @@ object SettingsSearchProvider : SearchProvider {
     override fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList?
+        allApps: AllAppsList?,
     ): Flow<List<SearchResult>> = flow {
         // We get the preference manager instance when needed, using the passed context.
         val prefs = PreferenceManager.getInstance(context)
@@ -45,7 +44,6 @@ object SettingsSearchProvider : SearchProvider {
         emit(searchResults)
     }
 }
-
 
 private suspend fun findSettingsByNameAndAction(query: String, max: Int): List<SettingInfo> = try {
     if (query.isBlank() || max <= 0) {
@@ -84,4 +82,3 @@ private suspend fun findSettingsByNameAndAction(query: String, max: Int): List<S
     Log.e("SettingSearch", "Something went wrong ", e)
     emptyList()
 }
-

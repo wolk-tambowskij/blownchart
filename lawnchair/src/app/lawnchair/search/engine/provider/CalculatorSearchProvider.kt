@@ -2,7 +2,6 @@ package app.lawnchair.search.engine.provider
 
 import android.content.Context
 import app.lawnchair.preferences.PreferenceManager
-import app.lawnchair.preferences.PreferenceManager.Companion
 import app.lawnchair.search.algorithms.data.Calculation
 import app.lawnchair.search.algorithms.data.calculator.Expressions
 import app.lawnchair.search.engine.SearchProvider
@@ -20,7 +19,7 @@ object CalculatorSearchProvider : SearchProvider {
     override fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList?
+        allApps: AllAppsList?,
     ): Flow<List<SearchResult>> = flow {
         val legacyPrefs = PreferenceManager.getInstance(context)
 
