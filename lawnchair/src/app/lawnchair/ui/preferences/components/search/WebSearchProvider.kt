@@ -26,7 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.PreferenceAdapter
-import app.lawnchair.search.algorithms.data.WebSearchProviderLegacy
+import app.lawnchair.search.engine.provider.web.WebSearchProvider
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.layout.Chip
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
@@ -34,14 +34,14 @@ import com.android.launcher3.R
 
 @Composable
 fun WebSearchProvider(
-    adapter: PreferenceAdapter<WebSearchProviderLegacy>,
+    adapter: PreferenceAdapter<WebSearchProvider>,
     nameAdapter: PreferenceAdapter<String>,
     urlAdapter: PreferenceAdapter<String>,
     suggestionsUrlAdapter: PreferenceAdapter<String>,
     modifier: Modifier = Modifier,
 ) {
     val entries = remember {
-        WebSearchProviderLegacy.values().map { mode ->
+        WebSearchProvider.values().map { mode ->
             ListPreferenceEntry(
                 value = mode,
                 label = { stringResource(id = mode.label) },
@@ -55,7 +55,7 @@ fun WebSearchProvider(
             entries = entries,
             label = stringResource(R.string.allapps_web_suggestion_provider_label),
         )
-        if (adapter.state.value == WebSearchProviderLegacy.fromString("custom")) {
+        if (adapter.state.value == WebSearchProvider.fromString("custom")) {
             SearchPopupPreference(
                 title = stringResource(R.string.custom_search_label),
                 initialValue = nameAdapter.state.value,

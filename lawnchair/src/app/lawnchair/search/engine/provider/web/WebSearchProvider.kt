@@ -47,7 +47,15 @@ interface WebSearchProvider {
 
     override fun toString(): String
 
-    companion object {
+    companion object WebSearchProviderCompanion {
+        fun values(): List<WebSearchProvider> = listOf(
+            GoogleWebSearchProvider,
+            DuckDuckGoWebSearchProvider,
+            StartPageWebSearchProvider,
+            KagiWebSearchProvider,
+            CustomWebSearchProvider,
+        )
+
         fun fromString(value: String): WebSearchProvider = when (value) {
             "google" -> GoogleWebSearchProvider
             "duckduckgo" -> DuckDuckGoWebSearchProvider

@@ -1,6 +1,10 @@
 package app.lawnchair.search.engine
 
+import android.annotation.DrawableRes
 import android.content.pm.ShortcutInfo
+import androidx.annotation.StringRes
+import app.lawnchair.search.adapter.HEADER
+import app.lawnchair.search.adapter.SPACE
 import app.lawnchair.search.algorithms.data.ContactInfo
 import app.lawnchair.search.algorithms.data.IFileInfo
 import app.lawnchair.search.algorithms.data.RecentKeyword
@@ -23,7 +27,13 @@ sealed class SearchResult {
 
     sealed class Action : SearchResult() {
         data class MarketSearch(val query: String) : Action()
-        data class WebSearch(val query: String, val provider: String) : Action()
-        // Add other actions like headers here if needed.
+        data class WebSearch(
+            val query: String,
+            val providerName: String,
+            val searchUrl: String,
+            @DrawableRes val providerIconRes: Int
+        ) : Action()
+        data class Header(val title: String, val pkg: String = HEADER) : Action()
+        data class Divider(val pkg: String = SPACE) : Action()
     }
 }

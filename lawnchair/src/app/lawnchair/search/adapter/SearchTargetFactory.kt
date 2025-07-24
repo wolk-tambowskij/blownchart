@@ -1,5 +1,6 @@
 package app.lawnchair.search.adapter
 
+import androidx.annotation.DrawableRes
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,14 +18,12 @@ import androidx.core.os.bundleOf
 import app.lawnchair.allapps.views.SearchResultView
 import app.lawnchair.search.algorithms.data.Calculation
 import app.lawnchair.search.algorithms.data.ContactInfo
-import app.lawnchair.search.algorithms.data.CustomWebSearchProvider
 import app.lawnchair.search.algorithms.data.FileInfo
 import app.lawnchair.search.algorithms.data.FileInfo.Companion.isImageType
 import app.lawnchair.search.algorithms.data.FolderInfo
 import app.lawnchair.search.algorithms.data.IFileInfo
 import app.lawnchair.search.algorithms.data.RecentKeyword
 import app.lawnchair.search.algorithms.data.SettingInfo
-import app.lawnchair.search.algorithms.data.WebSearchProviderLegacy
 import app.lawnchair.search.engine.provider.web.WebSearchProvider
 import app.lawnchair.theme.color.tokens.ColorTokens
 import app.lawnchair.util.createTextBitmap
@@ -143,8 +142,8 @@ class SearchTargetFactory(
 
     fun createSearchHistoryTarget(recentKeyword: RecentKeyword, suggestionProvider: String): SearchTargetCompat {
         val value = recentKeyword.getValueByKey("display1") ?: ""
-        val webSearchProvider = WebSearchProviderLegacy.fromString(suggestionProvider)
-        val url = if (webSearchProvider is CustomWebSearchProvider) webSearchProvider.getCustomSearchUrl(value, "%s") else webSearchProvider.getSearchUrl(value)
+        val webSearchProvider = WebSearchProvider.fromString(suggestionProvider)
+        val url = webSearchProvider.getSearchUrl(value)
         val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
         val id = recentKeyword.data.toString() + url
         val action = SearchActionCompat.Builder(id, value)
@@ -238,35 +237,24 @@ class SearchTargetFactory(
         )
     }
 
-    internal fun createWebSearchTarget(
+    fun createWebSearchActionTarget(
         query: String,
-        suggestionProvider: String,
-        suggestionName: String,
-        suggestionUrl: String = "",
+        providerName: String, // The actual display name, not an ID
+        searchUrl: String, // The final, pre-formatted search URL
+        @DrawableRes providerIconRes: Int
     ): SearchTargetCompat {
-        val webSearchProvider = WebSearchProviderLegacy.fromString(suggestionProvider)
-        val webSearchLabel =
-            if (webSearchProvider is CustomWebSearchProvider) {
-                suggestionName
-            } else {
-                context.getString(webSearchProvider.label)
-            }
-        val url =
-            if (webSearchProvider is CustomWebSearchProvider) {
-                webSearchProvider.getCustomSearchUrl(query, suggestionUrl)
-            } else {
-                webSearchProvider.getSearchUrl(query)
-            }
-        val id = "browser:$query"
-        val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
-        val string = context.getString(R.string.all_apps_search_on_web_message, webSearchLabel)
-        val action = SearchActionCompat.Builder(id, string)
-            .setIcon(Icon.createWithResource(context, webSearchProvider.iconRes))
+        val id = "browser:$query:$providerName"
+        val browserIntent = Intent(Intent.ACTION_VIEW, searchUrl.toUri())
+        val title = context.getString(R.string.all_apps_search_on_web_message, providerName)
+
+        val action = SearchActionCompat.Builder(id, title)
+            .setIcon(Icon.createWithResource(context, providerIconRes))
             .setIntent(browserIntent)
             .build()
-        val extras = bundleOf(
-            SearchResultView.EXTRA_HIDE_SUBTITLE to true,
-        )
+
+        val extras = bundleOf(SearchResultView.EXTRA_HIDE_SUBTITLE to true)
+
+        // Assuming START_PAGE is a generic package key for this type
         return createSearchLinksTarget(id, action, START_PAGE, extras)
     }
 

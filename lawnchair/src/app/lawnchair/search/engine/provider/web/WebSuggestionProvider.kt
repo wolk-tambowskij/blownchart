@@ -24,12 +24,9 @@ object WebSuggestionProvider : SearchProvider {
             return emptyFlow()
         }
 
-        // 1. Get the provider ID string from preferences.
-        val providerId = prefs2.webSuggestionProvider.firstBlocking()
+        val provider = prefs2.webSuggestionProvider.firstBlocking()
 
-        // 2. Use our factory to get the correct static provider object.
-        val webProvider = WebSearchProvider.fromString(providerId)
-            // 3. **CRITICAL:** Configure it with the necessary context/state.
+        val webProvider = provider
             .configure(context)
 
         // 4. Now we can safely use it.
