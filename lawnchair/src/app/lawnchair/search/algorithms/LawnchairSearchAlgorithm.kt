@@ -10,6 +10,7 @@ import app.lawnchair.search.adapter.SearchAdapterItem
 import app.lawnchair.search.adapter.SearchTargetCompat
 import app.lawnchair.search.adapter.SearchTargetCompat.Companion.RESULT_TYPE_APPLICATION
 import app.lawnchair.search.adapter.SearchTargetCompat.Companion.RESULT_TYPE_SHORTCUT
+import app.lawnchair.search.engine.NewSearchAlgorithmAdapter
 import com.android.app.search.LayoutType.CALCULATOR
 import com.android.app.search.LayoutType.EMPTY_DIVIDER
 import com.android.app.search.LayoutType.HORIZONTAL_MEDIUM_TEXT
@@ -215,7 +216,7 @@ abstract class LawnchairSearchAlgorithm(
                     context,
                 )
 
-                searchAlgorithm == LOCAL_SEARCH -> LawnchairLocalSearchAlgorithm(context)
+                searchAlgorithm == LOCAL_SEARCH -> NewSearchAlgorithmAdapter(context)
                 else -> LawnchairAppSearchAlgorithm(context)
             }
         }
