@@ -22,7 +22,7 @@ import app.lawnchair.search.algorithms.data.CustomWebSearchProvider
 import app.lawnchair.search.algorithms.data.IFileInfo
 import app.lawnchair.search.algorithms.data.RecentKeyword
 import app.lawnchair.search.algorithms.data.SettingInfo
-import app.lawnchair.search.algorithms.data.WebSearchProvider
+import app.lawnchair.search.algorithms.data.WebSearchProviderLegacy
 import app.lawnchair.search.algorithms.data.calculateEquationFromString
 import app.lawnchair.search.algorithms.data.findContactsByName
 import app.lawnchair.search.algorithms.data.findSettingsByNameAndAction
@@ -396,7 +396,7 @@ class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm
                 val timeout = maxWebSuggestionDelay.toLong()
                 val result = withTimeoutOrNull(timeout) {
                     if (prefs.searchResultStartPageSuggestion.get()) {
-                        WebSearchProvider.fromString(webSuggestionsProvider)
+                        WebSearchProviderLegacy.fromString(webSuggestionsProvider)
                             .let {
                                 if (it is CustomWebSearchProvider) {
                                     it.getCustomSuggestions(

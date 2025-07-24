@@ -25,7 +25,7 @@ import retrofit2.http.Query
 /**
  * A class to get the current web search provider
  */
-sealed class WebSearchProvider {
+sealed class WebSearchProviderLegacy {
 
     /**
      * Human-readable label used by the preference UI
@@ -74,7 +74,7 @@ sealed class WebSearchProvider {
     abstract fun getSearchUrl(query: String): String
 
     companion object {
-        fun fromString(value: String): WebSearchProvider = when (value) {
+        fun fromString(value: String): WebSearchProviderLegacy = when (value) {
             "google" -> Google
             "duckduckgo" -> DuckDuckGo
             "kagi" -> Kagi
@@ -138,7 +138,7 @@ sealed class WebSearchProvider {
  * of the existing preference system's deserialization and a planned
  * future refactor of the search provider architecture.
  */
-data object CustomWebSearchProvider : WebSearchProvider() {
+data object CustomWebSearchProvider : WebSearchProviderLegacy() {
     override val label = R.string.search_provider_custom
 
     override val iconRes = R.drawable.ic_search
@@ -211,7 +211,7 @@ data object CustomWebSearchProvider : WebSearchProvider() {
 /**
  * A popular search engine
  */
-data object Google : WebSearchProvider() {
+data object Google : WebSearchProviderLegacy() {
     override val label = R.string.search_provider_google
 
     override val iconRes = R.drawable.ic_super_g_color
@@ -263,7 +263,7 @@ data object Google : WebSearchProvider() {
 /**
  * A Google-like search engine.
  */
-data object StartPage : WebSearchProvider() {
+data object StartPage : WebSearchProviderLegacy() {
     override val label = R.string.search_provider_startpage
 
     override val iconRes = R.drawable.ic_startpage
@@ -312,7 +312,7 @@ data object StartPage : WebSearchProvider() {
 /**
  * An fast, alternative engine to Google.
  */
-data object DuckDuckGo : WebSearchProvider() {
+data object DuckDuckGo : WebSearchProviderLegacy() {
     override val label = R.string.search_provider_duckduckgo
 
     override val iconRes = R.drawable.ic_duckduckgo
@@ -363,7 +363,7 @@ data object DuckDuckGo : WebSearchProvider() {
 /**
  * Paid, ad-free search engine.
  */
-data object Kagi : WebSearchProvider() {
+data object Kagi : WebSearchProviderLegacy() {
     override var label = R.string.search_provider_kagi
 
     override val iconRes = R.drawable.ic_kagi
@@ -417,7 +417,7 @@ data object Kagi : WebSearchProvider() {
 interface GenericSearchService
 
 /**
- * Web suggestions for [WebSearchProvider.Google]
+ * Web suggestions for [WebSearchProviderLegacy.Google]
  */
 interface GoogleService : GenericSearchService {
     @GET("complete/search")
@@ -429,7 +429,7 @@ interface GoogleService : GenericSearchService {
 }
 
 /**
- * Web suggestions for [WebSearchProvider.StartPage].
+ * Web suggestions for [WebSearchProviderLegacy.StartPage].
  */
 interface StartPageService : GenericSearchService {
     @GET("suggestions")
@@ -442,7 +442,7 @@ interface StartPageService : GenericSearchService {
 }
 
 /**
- * Web suggestions for [WebSearchProvider.DuckDuckGo].
+ * Web suggestions for [WebSearchProviderLegacy.DuckDuckGo].
  */
 interface DuckDuckGoService : GenericSearchService {
     @GET("ac/")
@@ -454,7 +454,7 @@ interface DuckDuckGoService : GenericSearchService {
 }
 
 /**
- * Web suggestions for [WebSearchProvider.Kagi].
+ * Web suggestions for [WebSearchProviderLegacy.Kagi].
  */
 interface KagiService : GenericSearchService {
     @GET("api/autosuggest")
