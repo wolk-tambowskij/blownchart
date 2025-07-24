@@ -18,7 +18,7 @@ import me.xdrop.fuzzywuzzy.algorithms.WeightedRatio
 
 object AppSearchProvider {
 
-    fun search(context: Context, query: String, allApps: AllAppsList): List<SearchResult> {
+    fun search(context: Context, query: String, allApps: AllAppsList): List<SearchResult.App> {
         val prefs = PreferenceManager2.getInstance(context)
         val hiddenApps = prefs.hiddenApps.firstBlocking()
         val hiddenAppsInSearch = prefs.hiddenAppsInSearch.firstBlocking()
@@ -31,16 +31,7 @@ object AppSearchProvider {
             normalSearch(allApps.data, query, maxAppResults, hiddenApps, hiddenAppsInSearch)
         }
 
-        val finalResults = mutableListOf<SearchResult>()
-        appResults.mapTo(finalResults) { SearchResult.App(data = it) }
-
-        if (appResults.size == 1) {
-            val singleApp = appResults.first()
-            val shortcuts = getShortcuts(singleApp, context)
-            shortcuts.mapTo(finalResults) { SearchResult.Shortcut(data = it) }
-        }
-
-        return finalResults
+        return appResults.map { SearchResult.App(data = it) }
     }
 
     private fun normalSearch(apps: List<AppInfo>, query: String, maxResultsCount: Int, hiddenApps: Set<String>, hiddenAppsInSearch: String): List<AppInfo> {
@@ -70,12 +61,5 @@ object AppSearchProvider {
 
         return matches.take(maxResultsCount)
             .map { it.referent }
-    }
-
-    private fun getShortcuts(app: AppInfo, context: Context): List<ShortcutInfo> {
-        val shortcuts = ShortcutRequest(context.launcher, app.user)
-            .withContainer(app.targetComponent)
-            .query(ShortcutRequest.PUBLISHED)
-        return PopupPopulator.sortAndFilterShortcuts(shortcuts)
     }
 }

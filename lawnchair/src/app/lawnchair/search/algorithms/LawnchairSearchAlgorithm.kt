@@ -25,9 +25,10 @@ import com.android.launcher3.BuildConfig
 import com.android.launcher3.Utilities
 import com.android.launcher3.allapps.BaseAllAppsAdapter
 import com.android.launcher3.search.SearchAlgorithm
+import com.android.launcher3.search.SearchCallback
 import com.patrykmichalik.opto.core.firstBlocking
 
-sealed class LawnchairSearchAlgorithm(
+abstract class LawnchairSearchAlgorithm(
     protected val context: Context,
 ) : SearchAlgorithm<BaseAllAppsAdapter.AdapterItem> {
 
@@ -179,6 +180,11 @@ sealed class LawnchairSearchAlgorithm(
         index == indices.first() -> topBackground
         index == indices.last() -> bottomBackground
         else -> centerBackground
+    }
+
+    open fun doZeroStateSearch(callback: SearchCallback<BaseAllAppsAdapter.AdapterItem>) {
+        // Default implementation is to clear results.
+        callback.clearSearchResult()
     }
 
     companion object {
