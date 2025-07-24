@@ -5,7 +5,6 @@ import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.search.engine.SearchProvider
 import app.lawnchair.search.engine.SearchResult
-import com.android.launcher3.model.AllAppsList
 import com.patrykmichalik.opto.core.firstBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -17,7 +16,6 @@ object WebSuggestionProvider : SearchProvider {
     override fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList?,
     ): Flow<List<SearchResult>> {
         val prefs = PreferenceManager.getInstance(context)
         val prefs2 = PreferenceManager2.getInstance(context)

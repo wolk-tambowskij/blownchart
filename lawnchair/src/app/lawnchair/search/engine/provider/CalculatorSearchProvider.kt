@@ -6,7 +6,6 @@ import app.lawnchair.search.algorithms.data.Calculation
 import app.lawnchair.search.algorithms.data.calculator.Expressions
 import app.lawnchair.search.engine.SearchProvider
 import app.lawnchair.search.engine.SearchResult
-import com.android.launcher3.model.AllAppsList
 import java.math.BigDecimal
 import java.math.MathContext
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +18,6 @@ object CalculatorSearchProvider : SearchProvider {
     override fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList?,
     ): Flow<List<SearchResult>> = flow {
         val legacyPrefs = PreferenceManager.getInstance(context)
 

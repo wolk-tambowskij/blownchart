@@ -8,7 +8,6 @@ import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.search.algorithms.data.SettingInfo
 import app.lawnchair.search.engine.SearchProvider
 import app.lawnchair.search.engine.SearchResult
-import com.android.launcher3.model.AllAppsList
 import com.patrykmichalik.opto.core.firstBlocking
 import java.lang.reflect.Modifier
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -24,7 +23,6 @@ object SettingsSearchProvider : SearchProvider {
     override fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList?,
     ): Flow<List<SearchResult>> = flow {
         // We get the preference manager instance when needed, using the passed context.
         val prefs = PreferenceManager.getInstance(context)

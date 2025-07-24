@@ -1,7 +1,6 @@
 package app.lawnchair.search.engine
 
 import android.content.Context
-import com.android.launcher3.model.AllAppsList
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -22,12 +21,10 @@ interface SearchProvider {
      *
      * @param context The application context.
      * @param query The user's search query.
-     * @param allApps (Optional) The current list of all apps, for providers that require apps.
      * @return A Flow that emits a list of [SearchResult]s.
      */
     fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList? = null,
     ): Flow<List<SearchResult>>
 }

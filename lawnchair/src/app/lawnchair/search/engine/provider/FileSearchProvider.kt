@@ -16,7 +16,6 @@ import app.lawnchair.util.isDirectory
 import app.lawnchair.util.isHidden
 import app.lawnchair.util.isRegularFile
 import app.lawnchair.util.mimeType2Extension
-import com.android.launcher3.model.AllAppsList
 import com.patrykmichalik.opto.core.firstBlocking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +29,6 @@ object FileSearchProvider : SearchProvider {
     override fun search(
         context: Context,
         query: String,
-        allApps: AllAppsList?,
     ): Flow<List<SearchResult>> = flow {
         val prefs = PreferenceManager.getInstance(context)
         val prefs2 = PreferenceManager2.getInstance(context)
