@@ -7,19 +7,17 @@ import app.lawnchair.search.engine.provider.HistorySearchProvider
 import app.lawnchair.search.engine.provider.SettingsSearchProvider
 import app.lawnchair.search.engine.provider.web.WebSuggestionProvider
 import android.content.Context
+import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
-import app.lawnchair.search.adapter.HEADER_JUSTIFY
 import app.lawnchair.search.adapter.SPACE
+import app.lawnchair.search.adapter.SearchLinksTarget
 import app.lawnchair.search.adapter.SearchTargetCompat
 import app.lawnchair.search.adapter.SearchTargetFactory
 import app.lawnchair.search.algorithms.LawnchairSearchAlgorithm
 import app.lawnchair.search.algorithms.data.Calculation
-import app.lawnchair.search.algorithms.data.ContactInfo
-import app.lawnchair.search.algorithms.data.IFileInfo
-import app.lawnchair.search.algorithms.data.RecentKeyword
-import app.lawnchair.search.algorithms.data.SettingInfo
 import app.lawnchair.search.engine.provider.CalculatorSearchProvider
 import app.lawnchair.search.engine.provider.ShortcutSearchProvider
+import app.lawnchair.search.engine.provider.web.CustomWebSearchProvider
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.R
 import com.android.launcher3.allapps.BaseAllAppsAdapter
@@ -44,7 +42,7 @@ class NewSearchAlgorithmAdapter(context: Context) : LawnchairSearchAlgorithm(con
         SettingsSearchProvider,
         FileSearchProvider,
         ContactsSearchProvider,
-        WebSuggestionProvider
+        WebSuggestionProvider,
     )
 
     override fun doSearch(query: String, callback: SearchCallback<BaseAllAppsAdapter.AdapterItem>) {
@@ -64,7 +62,7 @@ class NewSearchAlgorithmAdapter(context: Context) : LawnchairSearchAlgorithm(con
                     val calcResult = CalculatorSearchProvider.search(context, query)
                         .firstOrNull()
 
-                    val allResults = appResults + shortcutResults + (calcResult ?: emptyList()) + nonAppResults
+                    val allResults = appResults + shortcutResults + (calcResult ?: emptyList()) + nonAppResults + generateActionResults(query)
 
                     val searchTargets = translateToSearchTargets(allResults, appResults.size)
                     val adapterItems = transformSearchResults(searchTargets)
@@ -94,6 +92,40 @@ class NewSearchAlgorithmAdapter(context: Context) : LawnchairSearchAlgorithm(con
 
     override fun cancel(interruptActiveRequests: Boolean) {
         currentJob?.cancel()
+    }
+
+    private fun generateActionResults(query: String): List<SearchResult.Action> {
+        val actions = mutableListOf<SearchResult.Action>()
+        val prefs = PreferenceManager.getInstance(context)
+        val prefs2 = PreferenceManager2.getInstance(context)
+
+        actions.add(SearchResult.Action.Divider())
+
+        if (prefs.searchResultStartPageSuggestion.get()) {
+            val provider = prefs2.webSuggestionProvider.firstBlocking()
+            val webProvider = provider.configure(context)
+
+            val providerName = if (webProvider is CustomWebSearchProvider) {
+                webProvider.getDisplayName(context.getString(webProvider.label))
+            } else {
+                context.getString(webProvider.label)
+            }
+
+            actions.add(
+                SearchResult.Action.WebSearch(
+                    query = query,
+                    providerName = providerName,
+                    searchUrl = webProvider.getSearchUrl(query),
+                    providerIconRes = webProvider.iconRes
+                )
+            )
+        }
+
+        if (SearchLinksTarget.resolveMarketSearchActivity(context) != null) {
+            actions.add(SearchResult.Action.MarketSearch(query = query))
+        }
+
+        return actions
     }
 
     private fun translateToSearchTargets(
@@ -172,6 +204,32 @@ class NewSearchAlgorithmAdapter(context: Context) : LawnchairSearchAlgorithm(con
         if (history.isNotEmpty()) {
             val historyHeader = factory.createHeaderTarget(context.getString(R.string.search_pref_result_history_title))
             targets.add(historyHeader)
+        }
+
+        val marketSearch = otherResults.filterIsInstance<SearchResult.Action.MarketSearch>()
+        if (marketSearch.isNotEmpty()) {
+            factory.createMarketSearchTarget((marketSearch.first()).query)?.let { targets.add(it) }
+        }
+
+        val webSearch = otherResults.filterIsInstance<SearchResult.Action.WebSearch>()
+        if (webSearch.isNotEmpty()) {
+            val action = webSearch.first()
+
+            factory.createWebSearchActionTarget(
+                query = action.query,
+                providerName = action.providerName,
+                searchUrl = action.searchUrl,
+                providerIconRes = action.providerIconRes
+            )
+        }
+
+        val header = otherResults.filterIsInstance<SearchResult.Action.Header>()
+        if (header.isNotEmpty()) {
+            header.forEach {
+                factory.createHeaderTarget(
+                    it.pkg, it.title
+                )
+            }
         }
 
         return targets
