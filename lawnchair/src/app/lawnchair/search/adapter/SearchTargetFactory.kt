@@ -24,7 +24,8 @@ import app.lawnchair.search.algorithms.data.FolderInfo
 import app.lawnchair.search.algorithms.data.IFileInfo
 import app.lawnchair.search.algorithms.data.RecentKeyword
 import app.lawnchair.search.algorithms.data.SettingInfo
-import app.lawnchair.search.algorithms.data.WebSearchProvider
+import app.lawnchair.search.algorithms.data.WebSearchProviderLegacy
+import app.lawnchair.search.engine.provider.web.WebSearchProvider
 import app.lawnchair.theme.color.tokens.ColorTokens
 import app.lawnchair.util.createTextBitmap
 import app.lawnchair.util.file2Uri
@@ -71,9 +72,9 @@ class SearchTargetFactory(
         }.build()
     }
 
-    fun createWebSuggestionsTarget(suggestion: String, suggestionProvider: String, suggestionUrl: String = ""): SearchTargetCompat {
+    fun createWebSuggestionsTarget(suggestion: String, suggestionProvider: String): SearchTargetCompat {
         val webSearchProvider = WebSearchProvider.fromString(suggestionProvider)
-        val url = if (webSearchProvider is CustomWebSearchProvider) webSearchProvider.getCustomSearchUrl(suggestion, suggestionUrl) else webSearchProvider.getSearchUrl(suggestion)
+        val url = webSearchProvider.getSearchUrl(suggestion)
         val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
         val id = suggestion + url
         val action = SearchActionCompat.Builder(id, suggestion).apply {
@@ -142,7 +143,7 @@ class SearchTargetFactory(
 
     fun createSearchHistoryTarget(recentKeyword: RecentKeyword, suggestionProvider: String): SearchTargetCompat {
         val value = recentKeyword.getValueByKey("display1") ?: ""
-        val webSearchProvider = WebSearchProvider.fromString(suggestionProvider)
+        val webSearchProvider = WebSearchProviderLegacy.fromString(suggestionProvider)
         val url = if (webSearchProvider is CustomWebSearchProvider) webSearchProvider.getCustomSearchUrl(value, "%s") else webSearchProvider.getSearchUrl(value)
         val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
         val id = recentKeyword.data.toString() + url
@@ -243,7 +244,7 @@ class SearchTargetFactory(
         suggestionName: String,
         suggestionUrl: String = "",
     ): SearchTargetCompat {
-        val webSearchProvider = WebSearchProvider.fromString(suggestionProvider)
+        val webSearchProvider = WebSearchProviderLegacy.fromString(suggestionProvider)
         val webSearchLabel =
             if (webSearchProvider is CustomWebSearchProvider) {
                 suggestionName
