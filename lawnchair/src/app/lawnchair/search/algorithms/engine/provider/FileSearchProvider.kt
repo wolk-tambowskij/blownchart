@@ -41,12 +41,14 @@ object FileSearchProvider : SearchProvider {
     ): Flow<List<SearchResult>> = flow {
         val prefs = PreferenceManager.getInstance(context)
 
-        val searchAllFiles = prefs.searchResultFilesToggle.get()
+        val searchAllFiles = prefs.searchResultAllFiles.get()
         val searchAudio = prefs.searchResultAudio.get()
         val searchVisualMedia = prefs.searchResultVisualMedia.get()
 
-        if (query.isBlank() || !(searchAllFiles || searchAudio || searchVisualMedia)) {
-            // do nothing if query is empty or if none of the providers are enabled
+        val fileSearchEnabled = prefs.searchResultFilesToggle.get()
+        val anyProviderEnabled = searchAllFiles || searchAudio || searchVisualMedia
+        if (query.isBlank() || !fileSearchEnabled || !anyProviderEnabled) {
+            // do nothing if query is empty, file search is disabled, or none of the providers are enabled
             emit(emptyList())
             return@flow
         }
