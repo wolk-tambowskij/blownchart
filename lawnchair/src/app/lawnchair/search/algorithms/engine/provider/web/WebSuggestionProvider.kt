@@ -7,7 +7,7 @@ import app.lawnchair.search.algorithms.engine.SearchProvider
 import app.lawnchair.search.algorithms.engine.SearchResult
 import com.patrykmichalik.opto.core.firstBlocking
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 object WebSuggestionProvider : SearchProvider {
@@ -21,7 +21,7 @@ object WebSuggestionProvider : SearchProvider {
         val prefs2 = PreferenceManager2.getInstance(context)
 
         if (query.isBlank() || !prefs.searchResultStartPageSuggestion.get()) {
-            return emptyFlow()
+            return flow { emit(emptyList()) }
         }
 
         val provider = prefs2.webSuggestionProvider.firstBlocking()
