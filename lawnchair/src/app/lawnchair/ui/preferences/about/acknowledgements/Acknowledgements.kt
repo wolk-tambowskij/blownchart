@@ -16,129 +16,59 @@
 
 package app.lawnchair.ui.preferences.about.acknowledgements
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.lawnchair.ui.ModalBottomSheetContent
-import app.lawnchair.ui.preferences.LocalPreferenceInteractor
-import app.lawnchair.ui.preferences.components.layout.LoadingScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
+import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayoutLazyColumn
-import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
-import app.lawnchair.ui.util.bottomSheetHandler
 import com.android.launcher3.R
 
 @Composable
 fun Acknowledgements(
     modifier: Modifier = Modifier,
+    viewModel: AcknowledgementsViewModel = viewModel(),
 ) {
-    val ossLibraries by LocalPreferenceInteractor.current.ossLibraries.collectAsStateWithLifecycle()
-    LoadingScreen(
-        obj = ossLibraries,
+    val ossLibraries by viewModel.ossLibraries.collectAsStateWithLifecycle()
+    PreferenceLayoutLazyColumn(
+        label = stringResource(id = R.string.acknowledgements),
         modifier = modifier,
-    ) { libraries ->
-        PreferenceLayoutLazyColumn(
-            label = stringResource(id = R.string.acknowledgements),
-        ) {
-            preferenceGroupItems(libraries, isFirstChild = true) { index, library ->
-                OssLibraryItem(
-                    ossLibrary = library,
-                    index = index,
-                )
-            }
+    ) {
+        preferenceGroupItems(ossLibraries, isFirstChild = true) { _, library ->
+            OssLibraryItem(
+                name = library.name,
+                license = library.license,
+            )
         }
     }
 }
 
 @Composable
 fun OssLibraryItem(
-    ossLibrary: OssLibrary,
-    index: Int,
+    name: String,
+    license: OssLibrary.License?,
     modifier: Modifier = Modifier,
 ) {
-    val bottomSheetHandler = bottomSheetHandler
+    val context = LocalContext.current
 
-    PreferenceTemplate(
-        title = {
-            Text(
-                text = ossLibrary.name,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        },
-        modifier = modifier
-            .clickable {
-                bottomSheetHandler.show {
-                    NoticePage(ossLibrary = ossLibrary)
-                }
-            },
-    )
-}
-
-@Composable
-fun NoticePage(
-    ossLibrary: OssLibrary?,
-    modifier: Modifier = Modifier,
-) {
-    val dataState = ossLibrary?.let { loadNotice(ossLibrary = it) }
-    val data = dataState?.value
-
-    ModalBottomSheetContent(
-        title = {
-            Text(text = ossLibrary?.name ?: stringResource(id = R.string.loading))
-        },
-        buttons = {},
+    ClickablePreference(
+        label = name,
         modifier = modifier,
-    ) {
-        Column {
-            Crossfade(targetState = data, label = "") { it ->
-                it ?: return@Crossfade
-                val uriHandler = LocalUriHandler.current
-                val layoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
-                val pressIndicator = Modifier.pointerInput(Unit) {
-                    detectTapGestures { pos ->
-                        layoutResult.value?.let { layoutResult ->
-                            val position = layoutResult.getOffsetForPosition(pos)
-                            val annotation =
-                                it.notice.getStringAnnotations(position, position).firstOrNull()
-                            if (annotation?.tag == "URL") {
-                                uriHandler.openUri(annotation.item)
-                            }
-                        }
-                    }
+        subtitle = license?.name,
+        onClick = {
+            license?.url?.let { urlString ->
+                val webpage = urlString.toUri()
+                val intent = Intent(Intent.ACTION_VIEW, webpage)
+                if (intent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(intent)
                 }
-
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
-                        .then(pressIndicator),
-                    text = it.notice,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 14.sp,
-                    onTextLayout = {
-                        layoutResult.value = it
-                    },
-                )
             }
-        }
-    }
+        },
+    )
 }
