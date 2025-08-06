@@ -125,6 +125,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v5
+        with:
+          name: Debug APK
       # Note the # and () symbols are not supported in GitHub Release filenames, even manually
       - name: Export APK_NAME for later use
         run: echo "APK_NAME=Lawnchair.Debug.${{ github.ref_name }}.Nightly-CI_${{ github.run_number }}-$(echo ${{ github.sha }} | cut -c1-7).apk" >> $GITHUB_ENV
