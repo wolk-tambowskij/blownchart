@@ -14,11 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.android.launcher3.R
+import java.io.File
 
 @Composable
 fun UpdateSection(
     updateState: UpdateState,
-    onEvent: (AboutEvent) -> Unit,
+    onViewChanges: () -> Unit,
+    onInstall: (File) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -40,8 +42,7 @@ fun UpdateSection(
             }
             is UpdateState.Available -> {
                 Button(
-                    onClick = { onEvent(AboutEvent.OnDownloadClicked) },
-                    modifier = Modifier.padding(top = 8.dp),
+                    onClick = onViewChanges,
                 ) {
                     Text(text = stringResource(R.string.download_update))
                 }
@@ -49,7 +50,9 @@ fun UpdateSection(
             is UpdateState.Downloading -> {
                 LinearProgressIndicator(
                     progress = { updateState.progress },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                 )
                 Text(
                     text = "${(updateState.progress * 100).toInt()}%",
@@ -58,8 +61,9 @@ fun UpdateSection(
             }
             is UpdateState.Downloaded -> {
                 Button(
-                    onClick = { onEvent(AboutEvent.OnInstallClicked(updateState.file)) },
-                    modifier = Modifier.padding(top = 8.dp),
+                    onClick = {
+                        onInstall(updateState.file)
+                    },
                 ) {
                     Text(text = stringResource(R.string.install_update))
                 }

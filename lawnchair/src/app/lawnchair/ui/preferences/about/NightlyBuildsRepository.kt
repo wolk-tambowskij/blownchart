@@ -30,6 +30,10 @@ class NightlyBuildsRepository(
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.UpToDate)
     val updateState = _updateState.asStateFlow()
 
+    private var currentBuildNumber: Int = 0
+    private var latestBuildNumber: Int = 0
+    private var currentCommitHash: String = BuildConfig.COMMIT_HASH
+
     fun checkForUpdate() {
         coroutineScope.launch(Dispatchers.Default) {
             _updateState.update { UpdateState.Checking }
@@ -42,18 +46,29 @@ class NightlyBuildsRepository(
                 // <major>.<branch>.(#<CI build number>)
                 // This is done inside build.gradle in the source root. Reflect
                 // changes from there if needed.
-                val currentVersion = BuildConfig.VERSION_DISPLAY_NAME
+                currentBuildNumber = BuildConfig.VERSION_DISPLAY_NAME
                     .substringAfterLast("#")
                     .removeSuffix(")")
                     .toIntOrNull() ?: 0
-                val latestVersion =
+                latestBuildNumber =
                     asset?.name?.substringAfter("_")?.substringBefore("-")?.toIntOrNull() ?: 0
 
-                if (asset != null && latestVersion > currentVersion) {
+                if (asset != null && latestBuildNumber > currentBuildNumber) {
+                    val commitList = getCommitsSinceCurrentVersion()
+
                     _updateState.update {
                         UpdateState.Available(
                             asset.name,
                             asset.browserDownloadUrl,
+                            changelogState = if (commitList != null) {
+                                ChangelogState(
+                                    commits = commitList,
+                                    currentBuildNumber = currentBuildNumber,
+                                    latestBuildNumber = latestBuildNumber,
+                                )
+                            } else {
+                                null
+                            },
                         )
                     }
                 } else {
@@ -114,6 +129,27 @@ class NightlyBuildsRepository(
         applicationContext.startActivity(intent)
     }
 
+    private suspend fun getCommitsSinceCurrentVersion(): List<GitHubCommit>? {
+        return try {
+            // Get the latest commits (last 100)
+            val commits = api.getRepositoryCommits("LawnchairLauncher", "lawnchair")
+
+            // Find the index of current commit
+            val currentIndex = commits.indexOfFirst { it.sha.startsWith(currentCommitHash) }
+
+            if (currentIndex > 0) {
+                // Return all commits newer than current version
+                commits.take(currentIndex)
+            } else {
+                // If current commit not found, show last N commits
+                commits.take(MAX_FALLBACK_COMMITS)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get commits", e)
+            null
+        }
+    }
+
     private suspend fun downloadApk(url: String, onProgress: (Float) -> Unit): File? {
         return try {
             val cacheDir = applicationContext.cacheDir
@@ -170,3 +206,5 @@ private fun Context.requestInstallPermission() {
         startActivity(intent)
     }
 }
+
+private const val MAX_FALLBACK_COMMITS = 30
