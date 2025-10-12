@@ -1361,7 +1361,9 @@ public class DeviceProfile {
         if (mIsResponsiveGrid) {
             updateAllAppsWithResponsiveMeasures();
         } else {
-            updateAllAppsIconSize(scale, context.getResources());
+            // All apps should use scale 1.0, not workspace scale
+            // This ensures drawer icons are independent of workspace scaling
+            updateAllAppsIconSize(1.0f, context.getResources());
         }
         updateAllAppsContainerWidth();
         if (isVerticalLayout && !mIsResponsiveGrid) {
@@ -1424,7 +1426,7 @@ public class DeviceProfile {
             allAppsIconSizePx = pxFromDp(inv.allAppsIconSize[mTypeIndex], mMetrics);
             allAppsIconTextSizePx = pxFromSp(inv.allAppsIconTextSize[mTypeIndex], mMetrics);
             allAppsIconTextSizePx *= mTextFactors.getAllAppsIconTextSizeFactor();
-            allAppsIconDrawablePaddingPx = getNormalizedIconDrawablePadding();
+            allAppsIconDrawablePaddingPx = getNormalizedIconDrawablePadding(allAppsIconSizePx, mIconDrawablePaddingOriginalPx);
             allAppsCellWidthPx = pxFromDp(inv.allAppsCellSize[mTypeIndex].x, mMetrics);
 
             if (allAppsCellWidthPx < allAppsIconSizePx) {
@@ -1457,7 +1459,7 @@ public class DeviceProfile {
             float invIconTextSizeSp = inv.allAppsIconTextSize[mTypeIndex];
             allAppsIconSizePx = Math.max(1, pxFromDp(invIconSizeDp, mMetrics, scale));
             allAppsIconTextSizePx = (int) (pxFromSp(invIconTextSizeSp, mMetrics) * scale);
-            allAppsIconDrawablePaddingPx = res.getDimensionPixelSize(R.dimen.all_apps_icon_drawable_padding);
+            allAppsIconDrawablePaddingPx = getNormalizedIconDrawablePadding(allAppsIconSizePx, mIconDrawablePaddingOriginalPx);;
             allAppsIconTextSizePx *= mTextFactors.getAllAppsIconTextSizeFactor();
             allAppsCellWidthPx = allAppsIconSizePx + (2 * allAppsIconDrawablePaddingPx);
         }
@@ -1529,9 +1531,9 @@ public class DeviceProfile {
                     + allAppsPadding.left + allAppsPadding.right;
             allAppsLeftRightMargin = Math.max(1, (availableWidthPx - usedWidth) / 2);
         } else if (!mIsResponsiveGrid) {
-            allAppsPadding.left = allAppsPadding.right = Math.max(0,
-                    desiredWorkspaceHorizontalMarginPx + cellLayoutHorizontalPadding
-                            - (allAppsBorderSpacePx.x / 2));
+            allAppsPadding.left = allAppsPadding.right = Math.max(0, 
+                desiredWorkspaceHorizontalMarginPx + cellLayoutHorizontalPadding 
+                    - (allAppsBorderSpacePx.x / 2));
         }
         var allAppLeftRightMarginMultiplier = PreferenceExtensionsKt
                 .firstBlocking(preferenceManager2.getDrawerLeftRightMarginFactor());
