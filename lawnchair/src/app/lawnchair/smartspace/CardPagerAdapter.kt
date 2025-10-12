@@ -7,13 +7,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.viewpager.widget.PagerAdapter
+import app.lawnchair.preferences2.PreferenceManager2.Companion.getInstance
 import app.lawnchair.smartspace.model.SmartspaceTarget
+import app.lawnchair.theme.color.ColorMode
 import app.lawnchair.util.isWallpaperDark
 import com.android.launcher3.R
 import com.android.launcher3.util.Themes
+import com.patrykmichalik.opto.core.firstBlocking
 
 class CardPagerAdapter(context: Context) : PagerAdapter() {
+    private val preferenceManager2 = getInstance(context)
 
+    val colorMode: ColorMode = preferenceManager2.workspaceTextColor.firstBlocking()
     private val currentTextColor = Themes.getAttrColor(context, R.attr.workspaceTextColor)
     private val targets = mutableListOf<SmartspaceTarget>()
     private var smartspaceTargets = targets
@@ -75,7 +80,7 @@ class CardPagerAdapter(context: Context) : PagerAdapter() {
         card.setSmartspaceTarget(target, smartspaceTargets.size > 1)
         val isDark = isWallpaperDark(card.context)
         val dynamicColors = if (isDark) Color.WHITE else Color.BLACK
-        card.setPrimaryTextColor(dynamicColors)
+        card.setPrimaryTextColor(if (colorMode == ColorMode.AUTO) dynamicColors else currentTextColor)
     }
 
     override fun getCount() = smartspaceTargets.size
