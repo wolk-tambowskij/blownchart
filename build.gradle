@@ -86,6 +86,15 @@ allprojects {
         }
     }
 
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            // Fix duplicate class kotlinx.android.parcel.* found in these 2 dependencies.
+            if (requested.module == libs.kotlin.androidExtensionRuntime.get().module) {
+                useTarget(libs.kotlin.parcelizeRuntime)
+            }
+        }
+    }
+
     ext {
         FRAMEWORK_PREBUILTS_DIR = "$rootDir/prebuilts/libs"
 
