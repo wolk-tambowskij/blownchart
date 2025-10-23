@@ -1,5 +1,6 @@
 import app.cash.licensee.SpdxId
 import com.android.build.gradle.api.AndroidBasePlugin
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -79,9 +80,7 @@ allprojects {
 
     tasks.withType(KotlinCompile).configureEach {
         compilerOptions {
-            freeCompilerArgs.add(
-                "-Xjvm-default=all",
-            )
+            jvmDefault = JvmDefaultMode.ENABLE
             jvmTarget = JvmTarget.JVM_17
         }
     }
