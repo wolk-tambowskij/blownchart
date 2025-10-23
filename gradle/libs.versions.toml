@@ -43,7 +43,6 @@ profileinstaller = "1.4.1"
 recyclerview = "1.4.0"
 reorderable = "2.5.1"
 restrictionBypass = "2.2"
-rikkaRefine = "4.4.0"
 slice = "1.1.0-alpha02"
 smartspacer = "1.1.2"
 uiautomator = "2.3.0"
@@ -121,7 +120,6 @@ accompanist-drawablepainter = { group = "com.google.accompanist", name = "accomp
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 
 # Opto
-kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
 opto-core = { group = "com.patrykmichalik.opto", name = "core", version.ref = "opto" }
 opto-compose = { group = "com.patrykmichalik.opto", name = "compose", version.ref = "opto" }
 opto-domain = { group = "com.patrykmichalik.opto", name = "domain", version.ref = "opto" }
@@ -154,9 +152,9 @@ libsu-service = { group = "com.github.topjohnwu.libsu", name = "service", versio
 material-motion-compose = { group = "io.github.fornewid", name = "material-motion-compose-core", version.ref = "materialMotionCompose" }
 persian-date = { group = "com.github.samanzamani", name = "PersianDate", version.ref = "persianDate" }
 reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.ref = "reorderable" }
-rikka-annotation = { module = "dev.rikka.tools.refine:annotation", version.ref = "rikkaRefine" }
-rikka-annotation-processor = { module = "dev.rikka.tools.refine:annotation-processor", version.ref = "rikkaRefine" }
-rikka-refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", version.ref = "rikkaRefine" }
+rikka-annotation = { module = "dev.rikka.tools.refine:annotation", version.ref = "refine" }
+rikka-annotation-processor = { module = "dev.rikka.tools.refine:annotation-processor", version.ref = "refine" }
+rikka-refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", version.ref = "refine" }
 smartspacer-sdk = { group = "com.kieronquinn.smartspacer", name = "sdk-client", version.ref = "smartspacer" }
 xdrop-fuzzywuzzy = { group = "me.xdrop", name = "fuzzywuzzy", version.ref = "fuzzywuzzy" }
 
