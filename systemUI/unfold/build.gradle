@@ -16,9 +16,10 @@ android {
             aidl.srcDirs = ['src']
         }
     }
-    ksp {
-        arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
-    }
+}
+
+ksp {
+    arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
 }
 
 addFrameworkJar('framework-15.jar')
