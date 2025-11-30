@@ -96,7 +96,7 @@ class AboutViewModel(
                 socialUrl = "https://codebucket.de",
             ),
             TeamMember(
-                name = "Goooler",
+                name = "Zongle Wang",
                 role = Role.Development,
                 photoUrl = "https://avatars.githubusercontent.com/u/10363352",
                 socialUrl = "https://github.com/Goooler",
