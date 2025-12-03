@@ -89,6 +89,11 @@ fun HomeScreenPreferences(
                 adapter = prefs2.doubleTapGestureHandler.getAdapter(),
                 label = stringResource(id = R.string.gesture_double_tap),
             )
+            SwitchPreference(
+                prefs.infiniteScrolling.getAdapter(),
+                label = stringResource(id = R.string.infinite_scrolling_label),
+                description = stringResource(id = R.string.infinite_scrolling_description),
+            )
         }
         PreferenceGroup(heading = stringResource(id = R.string.minus_one)) {
             val feedAvailable = OverlayCallbackImpl.minusOneAvailable(LocalContext.current)
