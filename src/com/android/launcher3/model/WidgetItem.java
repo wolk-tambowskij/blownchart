@@ -55,7 +55,7 @@ public class WidgetItem extends ComponentKey {
         spanX = Math.min(info.spanX, idp.numColumns);
         spanY = Math.min(info.spanY, idp.numRows);
 
-        if (BuildCompat.isAtLeastV() && Flags.enableGeneratedPreviews()) {
+        if (BuildCompat.isAtLeastV()) {
             generatedPreviews = new SparseArray<>(3);
             for (int widgetCategory : new int[] {
                     WIDGET_CATEGORY_HOME_SCREEN,
@@ -120,7 +120,7 @@ public class WidgetItem extends ComponentKey {
      * category.
      */
     public boolean hasGeneratedPreview(int widgetCategory) {
-        if (!Flags.enableGeneratedPreviews() || generatedPreviews == null) {
+        if (!Utilities.ATLEAST_V || generatedPreviews == null) {
             return false;
         }
         return generatedPreviews.contains(widgetCategory)

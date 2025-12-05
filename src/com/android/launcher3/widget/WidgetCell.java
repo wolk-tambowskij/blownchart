@@ -56,6 +56,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedPropertySetter;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.RoundDrawableWrapper;
@@ -292,7 +293,7 @@ public class WidgetCell extends LinearLayout {
             mAppWidgetHostViewPreview = createAppWidgetHostView(context);
             setAppWidgetHostViewPreview(mAppWidgetHostViewPreview, item.widgetInfo,
                     mRemoteViewsPreview);
-        } else if (Flags.enableGeneratedPreviews()
+        } else if (Utilities.ATLEAST_V
                 && item.hasGeneratedPreview(WIDGET_CATEGORY_HOME_SCREEN)) {
             mAppWidgetHostViewPreview = createAppWidgetHostView(context);
             setAppWidgetHostViewPreview(mAppWidgetHostViewPreview, item.widgetInfo,

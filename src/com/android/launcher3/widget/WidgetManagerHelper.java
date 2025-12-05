@@ -33,6 +33,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.android.launcher3.Utilities;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.pm.UserCache;
@@ -162,7 +163,6 @@ public class WidgetManagerHelper {
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     public RemoteViews loadGeneratedPreview(@NonNull AppWidgetProviderInfo info,
             int widgetCategory) {
-        if (!Flags.generatedPreviews()) return null;
         return mAppWidgetManager.getWidgetPreview(info.provider, info.getProfile(), widgetCategory);
     }
 
