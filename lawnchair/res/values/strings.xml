@@ -765,7 +765,7 @@
 
     -->
     <!-- Launcher strings used -->
-    <string name="all_apps_device_search_hint">Search apps, web, and more</string>
+    <string name="all_apps_device_search_hint">Search web and more</string>
     <string name="all_apps_search_bar_hint">Search apps</string>
     <string name="all_apps_no_search_results">No apps found matching \"<xliff:g example="Android" id="query">%1$s</xliff:g>\"</string>
 
