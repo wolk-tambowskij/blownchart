@@ -46,7 +46,7 @@ data object Google : QsbSearchProvider(
                     Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK,
                     Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK,
                     0,
-                    options.toBundle()
+                    options.toBundle(),
                 )
                 return
             }
