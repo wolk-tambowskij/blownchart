@@ -38,14 +38,14 @@ import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.preferences.LocalNavController
-import app.lawnchair.ui.preferences.components.DragHandle
-import app.lawnchair.ui.preferences.components.DraggablePreferenceGroup
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.layout.LoadingScreen
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.components.reorderable.ReorderableDragHandle
+import app.lawnchair.ui.preferences.components.reorderable.ReorderablePreferenceGroup
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppListToFolder
 import app.lawnchair.ui.preferences.navigation.AppDrawerFolder
 import app.lawnchair.ui.util.bottomSheetHandler
@@ -185,7 +185,7 @@ fun AppDrawerFoldersPreference(
                     },
                 )
             }
-            DraggablePreferenceGroup(
+            ReorderablePreferenceGroup(
                 label = null,
                 items = sortedDisplayList,
                 defaultList = sortedDisplayList,
@@ -231,7 +231,7 @@ fun AppDrawerFoldersPreference(
                         onDeleteFolder(folderToDelete)
                     },
                     dragIndicator = {
-                        DragHandle(
+                        ReorderableDragHandle(
                             interactionSource = interactionSource,
                             scope = this,
                             onDragStop = {

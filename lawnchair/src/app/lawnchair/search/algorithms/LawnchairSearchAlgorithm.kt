@@ -6,6 +6,7 @@ import app.lawnchair.allapps.views.SearchItemBackground
 import app.lawnchair.allapps.views.SearchResultView.Companion.EXTRA_QUICK_LAUNCH
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.search.LawnchairSearchAdapterProvider
+import app.lawnchair.search.adapter.START_PAGE
 import app.lawnchair.search.adapter.SearchAdapterItem
 import app.lawnchair.search.adapter.SearchTargetCompat
 import app.lawnchair.search.adapter.SearchTargetCompat.Companion.RESULT_TYPE_APPLICATION

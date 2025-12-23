@@ -153,6 +153,13 @@
     <string name="x_and_y">%1$s &amp; %2$s</string>
 
     <string name="advanced">Advanced</string>
+
+    <!-- Draggable -->
+    <string name="reorderable_active_items">Active items</string>
+    <string name="reorderable_disabled_items">Other items</string>
+    <string name="reorderable_disabled_hint">Disabled items will appear here. Drag an item here or tap the remove button to make an item active.</string>
+    <string name="reorderable_add_hint_items">Active items will appear here. Drag an item here or tap the add button to make an item active.</string>
+
     <!--
 
     Preference Dashboard
@@ -592,10 +599,10 @@
     <string name="wallpaper_depth_effect_label">Wallpaper depth effect</string>
     <string name="wallpaper_depth_effect_description">Zoom in and out of the wallpaper when transitioning between areas of the launcher</string>
     <string name="show_sys_ui_scrim">Top shadow</string>
-    
+
     <string name="infinite_scrolling_label">Infinite scrolling</string>
     <string name="infinite_scrolling_description">Swipe to loop between the first and last pages</string>
-    
+
     <string name="home_screen_grid">Home screen grid</string>
     <string name="home_screen_lock">Lock home screen</string>
     <string name="home_screen_unlock">Unlock home screen</string>
