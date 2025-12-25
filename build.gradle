@@ -145,7 +145,7 @@ final def ciRunNumber = System.getenv("GITHUB_RUN_NUMBER") ?: ""
 final def isReleaseBuild = ciBuild && ciRef.contains("beta")
 final def devReleaseName = ciBuild ? "Dev.(#${ciRunNumber})" : "Dev.(${buildCommit})"
 final def version = "15"
-final def releaseName = "Beta 1"
+final def releaseName = "Beta 2"
 final def versionDisplayName = "${version}.${isReleaseBuild ? releaseName : devReleaseName}"
 final def majorVersion = versionDisplayName.split("\\.")[0]
 
@@ -155,9 +155,9 @@ final def quickstepMaxSdk = "35"
 android {
     namespace "com.android.launcher3"
     defaultConfig {
-        // Lawnchair Launcher 15.0 Beta 1
+        // Lawnchair Launcher 15.0 Beta 2
         // See CONTRIBUTING.md#versioning-scheme
-        versionCode 15_00_02_01
+        versionCode 15_00_02_02
         versionName "${versionDisplayName}"
         buildConfigField "String", "VERSION_DISPLAY_NAME", "\"${versionDisplayName}\""
         buildConfigField "String", "MAJOR_VERSION", "\"${majorVersion}\""
