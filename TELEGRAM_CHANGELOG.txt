@@ -1,10 +1,18 @@
-*Lawnchair 15 Beta 1 is here!*
+Hey everyone, and happy holidays from the Lawnchair team! 🎄
 
-We're excited to release the first beta for Lawnchair 15, a foundational update based on Android 15.
+We're excited to announce that Lawnchair 15 Beta 2 is now available for download!
 
-The biggest new feature is one of our most requested ever: **App Drawer Folders**. You can now create and reorder custom folders to finally organize your app drawer.
+This release contains several bug fixes and quality-of-life improvements that make the Lawnchair 15 experience much more stable and enjoyable. Some of the highlights include:
 
-This release is packed with many other improvements, from a more powerful dock to dozens of UI refinements.
+- A completely revamped search experience
+- Infinite home screen scrolling
+- The ability to reorder apps inside app drawer folders
+- ...and many more fixes for crashes and visual bugs!
 
-**Read the full announcement on our blog:**
-https://lawnchair.app/blog/lawnchair-15-beta-1
+A huge thank you to everyone who made this release possible: our code contributors on GitHub, our translators on Crowdin, and our financial supporters on Open Collective. Your support is what keeps this project going.
+
+We'll have a full Lawnstate blog post coming soon with a look back at the year and a deep dive into the ongoing work for Lawnchair 16.
+
+For now, enjoy a more stable home screen for the holidays!
+
+Download and changelog: https://github.com/LawnchairLauncher/lawnchair/releases/tag/v15.0.0-beta2
