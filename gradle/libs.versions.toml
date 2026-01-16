@@ -102,7 +102,10 @@ protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.
 # Other
 android-desugarJdkLibs = "com.android.tools:desugar_jdk_libs:2.1.5"
 airbnb-lottie = "com.airbnb.android:lottie:6.7.1"
-chickenhook-restrictionbypass = "com.github.ChickenHook:RestrictionBypass:2.2"
+
+# Lawnchair-TODO: Migrate it to the latest version once jitpack publishing is fixed
+# LC-Note: This specific commit is needed because of 16kb compatibility
+chickenhook-restrictionbypass = "com.github.ChickenHook:RestrictionBypass:c59bd6a680"
 coil-compose = "io.coil-kt:coil-compose:2.7.0"
 google-material = "com.google.android.material:material:1.13.0"
 hoko-blur = "io.github.hokofly:hoko-blur:1.5.5"
