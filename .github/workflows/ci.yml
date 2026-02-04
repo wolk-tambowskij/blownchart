@@ -28,8 +28,10 @@ on:
 
 jobs:
   build-debug-apk:
+    strategy:
+      matrix:
+        build-variant: [ assembleLawnWithQuickstepNightlyRelease, assembleLawnWithQuickstepGithubDebug, assembleLawnWithQuickstepPlayDebug ]
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -51,12 +53,12 @@ jobs:
             echo storeFile='${{ github.workspace }}/key.jks' >> keystore.properties
             echo ${{ secrets.KEYSTORE }} | base64 --decode > ${{ github.workspace }}/key.jks
           fi
-      - name: Build debug APK
-        run: ./gradlew assembleLawnWithQuickstepGithubDebug assembleLawnWithQuickstepPlayDebug assembleLawnWithQuickstepNightlyRelease --no-configuration-cache
+      - name: Build APK
+        run: ./gradlew ${{ matrix.build-variant }}
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
-          name: Debug APK
+          name: ${{ matrix.build-variant }}
           path: build/outputs/apk/**/*.apk
 
   check-style:
@@ -91,7 +93,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v7
         with:
-          name: Debug APK
+          pattern: assembleLawnWith*
+          merge-multiple: true
           path: artifacts/debug-apk
       - name: Send notifications
         run: python ci.py
@@ -126,7 +129,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/download-artifact@v7
         with:
-          name: Debug APK
+          name: assembleLawnWithQuickstepNightlyRelease
       # Note the # and () symbols are not supported in GitHub Release filenames, even manually
       - name: Export APK_NAME for later use
         run: echo "APK_NAME=Lawnchair.Debug.${{ github.ref_name }}.Nightly-CI_${{ github.run_number }}-$(echo ${{ github.sha }} | cut -c1-7).apk" >> $GITHUB_ENV
