@@ -1,29 +1,19 @@
-Lawnchair 15 Beta 2 is now available! This is a stability-focused release that addresses numerous bugs from Beta 1, while adding a few quality of life improvements.
+Lawnchair 15 Beta 2.1 is here!
 
-Note that this release only supports QuickSwitch from Android 10 to Android 15 QPR0 (initial release).
+While our focus remains on Lawnchair 16, we've decided to do a hotfix release 
+to address common issues regarding the current experience of Lawnchair 15.
 
-This release includes the following improvements:
-* Redesigned the launcher search backend infrastructure, with a cleaner UI for settings
-  * Replace Mull search provider with IronFox (#5780)
-  * Fix launch intent for Kagi search provider (#5800)
-* Added support for infinite scrolling in home screen (#5807);
-* Added support for re-ordering apps inside app drawer folders (via settings) (#6173)
-* Added an option in Settings to clear all items from the home screen (#6125)
-* Added an option to turn off the alpha change behind the search bar when scrolling in the app drawer (#5934)
-* Improved the layout of the About screen, and added a changelog viewer for Nightly builds (##5711)
+This release contains the following changes:
 
-Alongside that, several issues have also been fixed:
-* Fixed an issue that caused the search widget to fail to launch the Google app on Android 14 and above. 
-* Addressed multiple crashes on older Android versions. 
-* Resolved a race condition that could cause a crash when customizing an app that was being uninstalled.
-* Corrected various visual bugs, including:
-  * "Customize" bottom sheet not updating state
-  * Search state would not clear when app drawer is hidden (#5933)
-  * Wrong icon scaling in app drawer when home screen icons are resized (#5932)
-  * Home screen page indicator being partially displayed (#5937)
+* Adds a toggle to disable icon closing animations (`GestureNavContract`), which can resolve animation glitches on certain OEMs (like One UI)
+* Fixes widgets failing to add when it requires a configuration step on Android 14 and up
+* Fixes web search timeout not working (improving search performance when offline)
+* Fixes Google Feed not showing properly (requires Lawnfeed 4.0)
+* Fixes icon shadow not being applied correctly.
 
-Alongside that, this release contains the usual performance improvements, miscellaneous bug fixes, dependency updates, and new bugs & translations.
+This release also includes new translations from Crowdin, and other minor performance improvements.
 
-Thanks as well to our new contributors: @lebao3105, @IzzySoft, @foXaCe, @itsaky, @victor-marino, @garghimanshu0786, @VBansal99, @Chaikew, and @abhixv
+Alongside this hotfix, we have also released Lawnfeed 4.0, resolving issues
+with the Google Feed not working in the Play Store or Nightly releases.
 
-[Support Lawnchair's development by donating on Open Collective](https://opencollective.com/lawnchair)
+[Download Lawnfeed 4](https://github.com/LawnchairLauncher/lawnfeed/releases/tag/v4.0.0) &bull; [Donate on Open Collective](https://opencollective.com/lawnchair)

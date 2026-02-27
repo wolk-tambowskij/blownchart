@@ -1,18 +1,20 @@
-Hey everyone, and happy holidays from the Lawnchair team! 🎄
+Lawnchair 15 Beta 2.1 is here!
 
-We're excited to announce that Lawnchair 15 Beta 2 is now available for download!
+While our focus remains on Lawnchair 16, we've decided to do a hotfix release
+to address common issues regarding the current experience of Lawnchair 15.
 
-This release contains several bug fixes and quality-of-life improvements that make the Lawnchair 15 experience much more stable and enjoyable. Some of the highlights include:
+This release contains the following changes:
 
-- A completely revamped search experience
-- Infinite home screen scrolling
-- The ability to reorder apps inside app drawer folders
-- ...and many more fixes for crashes and visual bugs!
+* Adds a toggle to disable icon closing animations (<code>GestureNavContract</code>), which can resolve animation glitches on certain OEMs (like One UI)
+* Fixes widgets failing to add when it requires a configuration step on Android 14 and up
+* Fixes web search timeout not working (improving search performance when offline)
+* Fixes Google Feed not showing properly (requires Lawnfeed 4.0)
+* Fixes icon shadow not being applied correctly.
 
-A huge thank you to everyone who made this release possible: our code contributors on GitHub, our translators on Crowdin, and our financial supporters on Open Collective. Your support is what keeps this project going.
+This release also includes new translations from Crowdin, and other minor performance improvements.
 
-We'll have a full Lawnstate blog post coming soon with a look back at the year and a deep dive into the ongoing work for Lawnchair 16.
+Alongside this hotfix, we have also released Lawnfeed 4.0, resolving issues
+with the Google Feed not working in the Play Store or Nightly releases.
 
-For now, enjoy a more stable home screen for the holidays!
-
-Download and changelog: https://github.com/LawnchairLauncher/lawnchair/releases/tag/v15.0.0-beta2
+<a href="https://opencollective.com/lawnchair">Donate on Open Collective</a> &bull;
+<a href="https://github.com/LawnchairLauncher/lawnchair/releases/tag/v15.0.0-beta2.1">View full changelog on GitHub</a>
