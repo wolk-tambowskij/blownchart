@@ -308,7 +308,6 @@ class SearchTargetFactory(
 
         val fileIntent = Intent(Intent.ACTION_VIEW)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             .setDataAndType(fileUri, mimeType)
 
         val action = SearchActionCompat.Builder(info.path, info.name)
