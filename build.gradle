@@ -362,6 +362,7 @@ dependencies {
     implementation projects.iconloaderlib
     implementation projects.searchuilib
     implementation projects.animationlib
+    implementation libs.androidx.exifinterface
 
     // Recents lib dependency
     withQuickstepCompileOnly projects.hiddenApi
