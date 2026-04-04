@@ -1,19 +1,15 @@
-Lawnchair 15 Beta 2.1 is here!
+Lawnchair 15 Beta 3 is here!
 
-While our focus remains on Lawnchair 16, we've decided to do a hotfix release 
-to address common issues regarding the current experience of Lawnchair 15.
+This release contains support for importing backups from Nova Launcher, which currently restores:
 
-This release contains the following changes:
+• Icon grid layout in home screen and dock
+• Widgets and folders
+• Selected icon pack
 
-* Adds a toggle to disable icon closing animations (`GestureNavContract`), which can resolve animation glitches on certain OEMs (like One UI)
-* Fixes widgets failing to add when it requires a configuration step on Android 14 and up
-* Fixes web search timeout not working (improving search performance when offline)
-* Fixes Google Feed not showing properly (requires Lawnfeed 4.0)
-* Fixes icon shadow not being applied correctly.
+To access this feature, open Home settings, tap the three-dots at the top right, and select "Restore Nova backup".
 
-This release also includes new translations from Crowdin, and other minor performance improvements.
+Alongside that, this release contains miscellaneous bug fixes and performance improvements.
 
-Alongside this hotfix, we have also released Lawnfeed 4.0, resolving issues
-with the Google Feed not working in the Play Store or Nightly releases.
+[Donate on Open Collective](https://opencollective.com/lawnchair)
 
-[Download Lawnfeed 4](https://github.com/LawnchairLauncher/lawnfeed/releases/tag/v4.0.0) &bull; [Donate on Open Collective](https://opencollective.com/lawnchair)
+Full changelog: https://github.com/LawnchairLauncher/lawnchair/compare/v15.0.0-beta2.1...v15.0.0-beta3
