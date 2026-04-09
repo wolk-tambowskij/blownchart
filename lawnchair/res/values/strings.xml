@@ -529,6 +529,7 @@
     <string name="nova_shortcut_label">Shortcuts</string>
     <string name="nova_icon_pack_label">Icon pack</string>
     <string name="restore_nova_subgrid_warning">This backup uses Nova\'s subgrid positioning. Lawnchair does not support subgrids, so any items placed in a subgrid will be aligned to the nearest grid position.</string>
+    <string name="restore_nova_smartspace_conflict_toggle">Add extra row to show At a Glance</string>
 
     <!--
 

@@ -33,8 +33,11 @@ import androidx.navigation.toRoute
 import app.lawnchair.backup.NovaBackupConverter.NovaBackupInfo
 import app.lawnchair.backup.ui.RestoreNovaBackupViewModel.Event
 import app.lawnchair.backup.ui.RestoreNovaBackupViewModel.State
+import app.lawnchair.preferences.getAdapter
+import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.LocalNavController
+import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
@@ -99,6 +102,12 @@ internal fun ColumnScope.RestoreNovaBackupContent(
 
     BackupInfoGroup(state.info)
 
+    if (state.info.isSubgrid) {
+        SubgridWarning()
+    }
+
+    BackupInfoOptions()
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -132,17 +141,28 @@ private fun BackupInfoGroup(info: NovaBackupInfo) {
         BackupInfoIntPreference(R.string.nova_folder_label, info.folderCount)
         BackupInfoIntPreference(R.string.nova_shortcut_label, info.shortcutCount)
         BackupInfoStringPreference(R.string.nova_icon_pack_label, info.iconPackLabel)
-        if (info.isSubgrid) {
-            SubgridWarning()
-        }
     }
 }
 
 @Composable
 private fun SubgridWarning() {
-    WarningPreference(
-        text = stringResource(R.string.restore_nova_subgrid_warning),
-    )
+    PreferenceGroup {
+        WarningPreference(
+            text = stringResource(R.string.restore_nova_subgrid_warning),
+        )
+    }
+}
+
+@Composable
+private fun BackupInfoOptions() {
+    PreferenceGroup {
+        val prefs2 = preferenceManager2()
+        val smartspaceAdapter = prefs2.enableSmartspace.getAdapter()
+        SwitchPreference(
+            adapter = smartspaceAdapter,
+            label = stringResource(R.string.restore_nova_smartspace_conflict_toggle),
+        )
+    }
 }
 
 @Composable

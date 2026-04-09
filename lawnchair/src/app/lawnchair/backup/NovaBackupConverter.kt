@@ -10,6 +10,7 @@ import android.os.Process
 import android.util.Log
 import app.lawnchair.DeviceProfileOverrides
 import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.preferences2.PreferenceManager2
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.model.DatabaseHelper
@@ -19,6 +20,7 @@ import com.android.launcher3.pm.UserCache
 import com.android.launcher3.provider.RestoreDbTask
 import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.shortcuts.ShortcutRequest
+import com.patrykmichalik.opto.core.firstBlocking
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -150,11 +152,14 @@ class NovaBackupConverter(
             val novaDbFile = File(tempDir, NOVA_DB)
             require(novaDbFile.exists()) { "Missing $NOVA_DB" }
 
+            val smartspaceEnabled = PreferenceManager2.getInstance(context)
+                .enableSmartspace.firstBlocking()
+
             val stagedDbFile = File(tempDir, NOVA_WORKSPACE_DB)
-            val importedDeepShortcuts = createRestoredDb(novaDbFile, stagedDbFile)
+            val importedDeepShortcuts = createRestoredDb(novaDbFile, stagedDbFile, info, smartspaceEnabled)
 
             val columns = info.columns
-            val rows = info.rows
+            val rows = if (smartspaceEnabled && info.rows != null) info.rows + 1 else info.rows
             val hotseatCount = info.hotseatCount
             if (columns != null && rows != null && hotseatCount != null) {
                 val gridInfo = DeviceProfileOverrides.DBGridInfo(
@@ -173,7 +178,7 @@ class NovaBackupConverter(
                 gridState.writeToPrefs(context)
                 InvariantDeviceProfile.INSTANCE.get(context).dbFile = gridInfo.dbFile
             }
-            writeGridToLawnchairPrefs(info)
+            writeGridToLawnchairPrefs(info, smartspaceEnabled)
 
             val restoredDbFile = context.getDatabasePath(LawnchairBackup.RESTORED_DB_FILE_NAME)
             restoredDbFile.parentFile?.mkdirs()
@@ -195,11 +200,12 @@ class NovaBackupConverter(
         packageName
     }
 
-    private fun writeGridToLawnchairPrefs(info: NovaBackupInfo) {
+    private fun writeGridToLawnchairPrefs(info: NovaBackupInfo, smartspaceEnabled: Boolean) {
         val prefs = PreferenceManager.getInstance(context)
+        val adjustedRows = if (smartspaceEnabled && info.rows != null) info.rows + 1 else info.rows
         prefs.sp.edit().apply {
             info.columns?.let { putInt(prefs.workspaceColumns.key, it) }
-            info.rows?.let { putInt(prefs.workspaceRows.key, it) }
+            adjustedRows?.let { putInt(prefs.workspaceRows.key, it) }
             info.hotseatCount?.let { putInt(prefs.hotseatColumns.key, it) }
             info.iconPackPackage?.let { putString(prefs.iconPackPackage.key, it) }
         }.commit()
@@ -279,6 +285,8 @@ class NovaBackupConverter(
     private fun createRestoredDb(
         novaDbFile: File,
         targetDbFile: File,
+        info: NovaBackupInfo,
+        smartspaceEnabled: Boolean,
     ): Map<String, Set<String>> {
         val profileId = UserCache.INSTANCE.get(context)
             .getSerialNumberForUser(Process.myUserHandle())
@@ -297,7 +305,7 @@ class NovaBackupConverter(
             novaDb.use { src ->
                 db.beginTransaction()
                 try {
-                    insertNovaItems(src, db, profileId, importedDeepShortcuts)
+                    insertNovaItems(src, db, profileId, importedDeepShortcuts, info, smartspaceEnabled)
                     db.setTransactionSuccessful()
                 } finally {
                     db.endTransaction()
@@ -312,6 +320,8 @@ class NovaBackupConverter(
         db: SQLiteDatabase,
         profileId: Long,
         importedDeepShortcuts: MutableMap<String, MutableSet<String>>,
+        info: NovaBackupInfo,
+        smartspaceEnabled: Boolean,
     ) {
         src.rawQuery(
             "SELECT * FROM $NOVA_TABLE_FAVORITES WHERE $NOVA_COL_ITEM_TYPE != -1",
@@ -348,10 +358,24 @@ class NovaBackupConverter(
                 }
                 val intent = importedDeepShortcut?.toLauncherIntentUri() ?: rawIntent
                 val cellX = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_CELL_X)).roundToInt()
-                val cellY = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_CELL_Y)).roundToInt()
+                val rawCellY = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_CELL_Y)).roundToInt()
+                val cellY = if (isDesktop && smartspaceEnabled) rawCellY + 1 else rawCellY
                 val screen = if (isHotseat) cellX else cursor.getInt(cursor.getColumnIndexOrThrow(NOVA_COL_SCREEN))
-                val spanX = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_SPAN_X)).roundToInt().coerceAtLeast(1)
-                val spanY = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_SPAN_Y)).roundToInt().coerceAtLeast(1)
+                var spanX = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_SPAN_X)).roundToInt().coerceAtLeast(1)
+                var spanY = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_SPAN_Y)).roundToInt().coerceAtLeast(1)
+
+                // Clamp to grid bounds when grid dimensions are known
+                val maxCols = info.columns
+                val maxRows = if (smartspaceEnabled && info.rows != null) info.rows + 1 else info.rows
+                if (maxCols != null && isDesktop) {
+                    spanX = spanX.coerceAtMost(maxCols)
+                    if (cellX + spanX > maxCols) continue
+                }
+                if (maxRows != null && isDesktop) {
+                    spanY = spanY.coerceAtMost(maxRows)
+                    if (cellY + spanY > maxRows) continue
+                }
+                if (maxCols != null && isHotseat && cellX >= maxCols) continue
                 val icon = getBlobOrNull(cursor, NOVA_COL_ICON)
                 val appWidgetProvider = getStringOrNull(cursor, NOVA_COL_APP_WIDGET_PROVIDER)
                 val rank = when {
