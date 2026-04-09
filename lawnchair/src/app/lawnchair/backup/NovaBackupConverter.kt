@@ -26,6 +26,7 @@ import java.net.URISyntaxException
 import java.util.UUID
 import java.util.zip.ZipInputStream
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -69,6 +70,7 @@ class NovaBackupConverter(
     }
 
     private val novaGridRegex = Regex("(\\d+)x(\\d+)")
+    private val novaSubgridRegex = Regex("subgrid", RegexOption.IGNORE_CASE)
 
     data class NovaBackupInfo(
         val columns: Int?,
@@ -80,6 +82,7 @@ class NovaBackupConverter(
         val shortcutCount: Int,
         val iconPackPackage: String?,
         val iconPackLabel: String?,
+        val isSubgrid: Boolean = false,
     )
 
     private data class NovaConfig(
@@ -87,6 +90,7 @@ class NovaBackupConverter(
         val rows: Int?,
         val dockCols: Int?,
         val iconPackPackage: String?,
+        val isSubgrid: Boolean = false,
     )
 
     private data class ItemCounts(
@@ -129,6 +133,7 @@ class NovaBackupConverter(
                 iconPackLabel = novaConfig.iconPackPackage?.let { packageName ->
                     resolveIconPackLabel(packageName)
                 },
+                isSubgrid = novaConfig.isSubgrid,
             )
         } finally {
             tempDir.deleteRecursively()
@@ -207,6 +212,7 @@ class NovaBackupConverter(
         var rows: Int? = null
         var dockCols: Int? = null
         var iconPackPackage: String? = null
+        var isSubgrid = false
 
         val stringNodes = root.getElementsByTagName(NOVA_XML_TAG_STRING)
         for (i in 0 until stringNodes.length) {
@@ -215,6 +221,7 @@ class NovaBackupConverter(
             val text = node.textContent ?: continue
             when (name) {
                 NOVA_XML_KEY_DESKTOP_GRID -> {
+                    isSubgrid = novaSubgridRegex.containsMatchIn(text)
                     val match = novaGridRegex.find(text) ?: continue
                     rows = match.groupValues[1].toIntOrNull() ?: continue
                     columns = match.groupValues[2].toIntOrNull() ?: continue
@@ -235,7 +242,7 @@ class NovaBackupConverter(
             if (name == NOVA_XML_KEY_DOCK_COLS) dockCols = value
         }
 
-        return NovaConfig(columns, rows, dockCols, iconPackPackage)
+        return NovaConfig(columns, rows, dockCols, iconPackPackage, isSubgrid)
     }
 
     private fun countItems(dbFile: File): ItemCounts {
@@ -340,11 +347,11 @@ class NovaBackupConverter(
                     null
                 }
                 val intent = importedDeepShortcut?.toLauncherIntentUri() ?: rawIntent
-                val cellX = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_CELL_X)).toInt()
-                val cellY = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_CELL_Y)).toInt()
+                val cellX = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_CELL_X)).roundToInt()
+                val cellY = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_CELL_Y)).roundToInt()
                 val screen = if (isHotseat) cellX else cursor.getInt(cursor.getColumnIndexOrThrow(NOVA_COL_SCREEN))
-                val spanX = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_SPAN_X)).toInt().coerceAtLeast(1)
-                val spanY = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_SPAN_Y)).toInt().coerceAtLeast(1)
+                val spanX = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_SPAN_X)).roundToInt().coerceAtLeast(1)
+                val spanY = cursor.getDouble(cursor.getColumnIndexOrThrow(NOVA_COL_SPAN_Y)).roundToInt().coerceAtLeast(1)
                 val icon = getBlobOrNull(cursor, NOVA_COL_ICON)
                 val appWidgetProvider = getStringOrNull(cursor, NOVA_COL_APP_WIDGET_PROVIDER)
                 val rank = when {

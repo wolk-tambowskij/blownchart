@@ -35,6 +35,7 @@ import app.lawnchair.backup.ui.RestoreNovaBackupViewModel.Event
 import app.lawnchair.backup.ui.RestoreNovaBackupViewModel.State
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.LocalNavController
+import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
@@ -131,7 +132,17 @@ private fun BackupInfoGroup(info: NovaBackupInfo) {
         BackupInfoIntPreference(R.string.nova_folder_label, info.folderCount)
         BackupInfoIntPreference(R.string.nova_shortcut_label, info.shortcutCount)
         BackupInfoStringPreference(R.string.nova_icon_pack_label, info.iconPackLabel)
+        if (info.isSubgrid) {
+            SubgridWarning()
+        }
     }
+}
+
+@Composable
+private fun SubgridWarning() {
+    WarningPreference(
+        text = stringResource(R.string.restore_nova_subgrid_warning),
+    )
 }
 
 @Composable
