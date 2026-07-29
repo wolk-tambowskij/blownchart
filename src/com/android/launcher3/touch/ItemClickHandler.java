@@ -32,7 +32,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.LauncherApps;
 import android.content.pm.PackageInstaller.SessionInfo;
+import android.content.pm.ResolveInfo;
 import android.os.Process;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -78,6 +80,8 @@ import com.android.launcher3.widget.WidgetManagerHelper;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+
+import app.lawnchair.LawnchairLauncher;
 
 /**
  * Class for handling clicks on workspace and all-apps items
@@ -434,7 +438,31 @@ public class ItemClickHandler {
             // Preload the icon to reduce latency b/w swapping the floating view with the original.
             FloatingIconView.fetchIcon(launcher, v, item, true /* isOpening */);
         }
+        final Intent finalIntent = intent;
+        if (launcher instanceof LawnchairLauncher
+                && isSystemSettingsPackage(launcher, finalIntent)) {
+            ((LawnchairLauncher) launcher).requestSettingsUnlock(
+                    () -> launcher.startActivitySafely(v, finalIntent, item));
+            return;
+        }
         launcher.startActivitySafely(v, intent, item);
+    }
+
+    /**
+     * Whether the given intent targets the device's system Settings app, so that a direct tap
+     * on its icon (home screen, drawer, or dock) can be gated behind the same launcher PIN that
+     * already guards "App info" and the "System settings" long-press item.
+     */
+    private static boolean isSystemSettingsPackage(Context context, Intent intent) {
+        if (intent.getComponent() == null) {
+            return false;
+        }
+        ResolveInfo resolveInfo = context.getPackageManager().resolveActivity(
+                new Intent(Settings.ACTION_SETTINGS), 0);
+        if (resolveInfo == null || resolveInfo.activityInfo == null) {
+            return false;
+        }
+        return intent.getComponent().getPackageName().equals(resolveInfo.activityInfo.packageName);
     }
 
     /**
