@@ -81,18 +81,3 @@ class FolderViewModel(
         reloadHelper.reloadGrid()
     }
 }
-
-object FolderOrderUtils {
-    private const val DEFAULT_DELIMITER = ","
-
-    fun intListToString(list: List<Int>, delimiter: String = DEFAULT_DELIMITER): String {
-        return list.joinToString(delimiter)
-    }
-
-    fun stringToIntList(string: String, delimiter: String = DEFAULT_DELIMITER): List<Int> {
-        return string.takeIf { it.isNotBlank() }
-            ?.split(delimiter)
-            ?.mapNotNull { it.trim().toIntOrNull() }
-            ?: emptyList()
-    }
-}

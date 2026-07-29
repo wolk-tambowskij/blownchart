@@ -30,7 +30,8 @@ interface FolderDao {
     suspend fun getItems(folderId: Int): List<FolderItemEntity>
 
     @Query("SELECT * FROM Folders")
-    fun getAllFolders(): Flow<List<FolderInfoEntity>>
+    @Transaction
+    fun getAllFoldersWithItems(): Flow<List<FolderWithItems>>
 
     @Transaction
     suspend fun insertFolderWithItems(folder: FolderInfoEntity, items: List<FolderItemEntity>) {
