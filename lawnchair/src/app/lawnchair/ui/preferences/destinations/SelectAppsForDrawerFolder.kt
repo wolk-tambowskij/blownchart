@@ -14,6 +14,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +59,7 @@ fun SelectAppsForDrawerFolder(
 
     var allFolderPackages by remember { mutableStateOf(emptySet<String>()) }
     var filterNonUniqueItems by remember { mutableStateOf(true) }
+    var hasChanges by remember { mutableStateOf(false) }
 
     var selectedIds by remember(folderInfo) {
         mutableStateOf(
@@ -78,6 +80,12 @@ fun SelectAppsForDrawerFolder(
         viewModel.setFolderInfo(folderInfoId, false)
     }
 
+    // Applying every toggle to the grid immediately would mean a full launcher model reload
+    // per checkbox tap; instead apply them all once, when the user actually leaves this screen.
+    DisposableEffect(Unit) {
+        onDispose { if (hasChanges) viewModel.onFolderEditingFinished() }
+    }
+
     // Apps are already sorted alphabetically by appsState(); folder membership is a filter/toggle
     // only, not a manual order, so the displayed order never changes when items are (de)selected.
     val displayedApps = remember(apps, filterNonUniqueItems, allFolderPackages, selectedIds) {
@@ -90,6 +98,7 @@ fun SelectAppsForDrawerFolder(
 
     fun persistSelection(newSelectedIds: Set<String>) {
         selectedIds = newSelectedIds
+        hasChanges = true
         val newSelection = newSelectedIds.mapNotNull { keyString ->
             apps.find { it.key.toString() == keyString }?.toAppInfo(context)
         }
