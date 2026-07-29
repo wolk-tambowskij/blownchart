@@ -10,6 +10,7 @@ import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.preferences2.ReloadHelper
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
+import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -60,12 +61,24 @@ class FolderViewModel(
     fun updateFolderItems(id: Int, title: String, appInfo: List<AppInfo>) {
         viewModelScope.launch {
             repository.updateFolderWithItems(id, title, appInfo)
-            // Update the local state flow so UI can observe changes without full reload if needed,
-            // though for now we just rely on reloadGrid to refresh the launcher.
-            // We call reloadGrid *after* the DB update is complete.
-            _folderInfo.value = repository.getFolderInfo(id, true)
-            reloadHelper.reloadGrid()
+            // appInfo is already the full, resolved new selection, so build the updated
+            // FolderInfo from it directly instead of re-reading it back from the DB (which
+            // would re-resolve every componentKey through a fresh LauncherApps enumeration).
+            _folderInfo.value = FolderInfo().apply {
+                this.id = id
+                this.title = title
+                appInfo.sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
+                    .forEach { add(it, false) }
+            }
         }
+        // Reloading the grid is the expensive part (it triggers a full launcher model rebind);
+        // don't pay for it on every single checkbox toggle. onFolderEditingFinished() does it
+        // once, when the user actually leaves the folder-editing screen.
+    }
+
+    /** Call when leaving the folder-editing screen to apply any pending item changes to the grid. */
+    fun onFolderEditingFinished() {
+        reloadHelper.reloadGrid()
     }
 
     fun createFolder(folderInfo: FolderInfo) {
@@ -79,20 +92,5 @@ class FolderViewModel(
             repository.deleteFolderInfo(id)
         }
         reloadHelper.reloadGrid()
-    }
-}
-
-object FolderOrderUtils {
-    private const val DEFAULT_DELIMITER = ","
-
-    fun intListToString(list: List<Int>, delimiter: String = DEFAULT_DELIMITER): String {
-        return list.joinToString(delimiter)
-    }
-
-    fun stringToIntList(string: String, delimiter: String = DEFAULT_DELIMITER): List<Int> {
-        return string.takeIf { it.isNotBlank() }
-            ?.split(delimiter)
-            ?.mapNotNull { it.trim().toIntOrNull() }
-            ?: emptyList()
     }
 }
