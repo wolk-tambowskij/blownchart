@@ -83,12 +83,10 @@ class SettingsLockUnlockActivity : FragmentActivity() {
         private const val EXTRA_SETUP_MODE = "app.lawnchair.security.EXTRA_SETUP_MODE"
 
         /** Unlock an already-configured PIN before proceeding to something gated. */
-        fun createUnlockIntent(context: Context): Intent =
-            Intent(context, SettingsLockUnlockActivity::class.java)
+        fun createUnlockIntent(context: Context): Intent = Intent(context, SettingsLockUnlockActivity::class.java)
 
         /** First-time (or "forgot PIN") PIN creation; succeeds by setting a brand new PIN. */
-        fun createSetupIntent(context: Context): Intent =
-            Intent(context, SettingsLockUnlockActivity::class.java)
-                .putExtra(EXTRA_SETUP_MODE, true)
+        fun createSetupIntent(context: Context): Intent = Intent(context, SettingsLockUnlockActivity::class.java)
+            .putExtra(EXTRA_SETUP_MODE, true)
     }
 }
