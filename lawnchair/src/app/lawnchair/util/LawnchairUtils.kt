@@ -266,8 +266,7 @@ fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
 
 fun Context.isDefaultLauncher(): Boolean = getDefaultLauncherPackageName() == packageName
 
-fun Context.isIgnoringBatteryOptimizations(): Boolean =
-    getSystemService(PowerManager::class.java)?.isIgnoringBatteryOptimizations(packageName) == true
+fun Context.isIgnoringBatteryOptimizations(): Boolean = getSystemService(PowerManager::class.java)?.isIgnoringBatteryOptimizations(packageName) == true
 
 fun Context.getDefaultLauncherPackageName(): String? = runCatching { getDefaultResolveInfo()?.activityInfo?.packageName }.getOrNull()
 
