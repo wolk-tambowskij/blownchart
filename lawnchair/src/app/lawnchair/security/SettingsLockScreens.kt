@@ -48,7 +48,7 @@ fun SettingsLockUnlockScreen(
     onUnlockWithPin: (String) -> Boolean,
     onCreatePin: (String) -> Unit,
     onRequestBiometric: (onSuccess: () -> Unit) -> Unit,
-    onUnlocked: () -> Unit,
+    onUnlock: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -63,7 +63,7 @@ fun SettingsLockUnlockScreen(
         when (mode) {
             LockScreenMode.UNLOCK -> {
                 if (onUnlockWithPin(pin)) {
-                    onUnlocked()
+                    onUnlock()
                 } else {
                     errorRes = R.string.settings_lock_wrong_pin
                     pin = ""
@@ -75,7 +75,7 @@ fun SettingsLockUnlockScreen(
                     pin != confirmPin -> errorRes = R.string.settings_lock_pin_mismatch
                     else -> {
                         onCreatePin(pin)
-                        onUnlocked()
+                        onUnlock()
                     }
                 }
             }
@@ -152,7 +152,7 @@ fun SettingsLockUnlockScreen(
             if (canUseBiometric && mode == LockScreenMode.UNLOCK) {
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(
-                    onClick = { onRequestBiometric(onUnlocked) },
+                    onClick = { onRequestBiometric(onUnlock) },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.settings_lock_use_biometric_action))

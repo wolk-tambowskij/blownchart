@@ -41,7 +41,7 @@ class SettingsLockUnlockActivity : FragmentActivity() {
                     onUnlockWithPin = { pin -> SettingsLockGate.verifyPin(this, pin) },
                     onCreatePin = { pin -> SettingsLockGate.setPin(this, pin) },
                     onRequestBiometric = { onSuccess -> showBiometricPrompt(onSuccess) },
-                    onUnlocked = {
+                    onUnlock = {
                         setResult(RESULT_OK)
                         finish()
                     },
