@@ -19,6 +19,8 @@
     <string name="accessibility_smartspace_page">Страница %1$d из %2$d</string>
 
     <string name="security_label">Безопасность</string>
+    <string name="app_drawer_lock">Блокировка меню приложений</string>
+    <string name="app_drawer_lock_description">Запретить переименование, скрытие, смену иконки и удаление приложений из меню приложений</string>
     <string name="settings_lock_label">Блокировка настроек лончера</string>
     <string name="settings_lock_status_on">Вкл</string>
     <string name="settings_lock_status_off">Выкл</string>
