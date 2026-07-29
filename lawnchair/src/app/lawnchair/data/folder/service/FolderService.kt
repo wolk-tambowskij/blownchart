@@ -6,18 +6,27 @@ import android.util.Log
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.data.Converters
 import app.lawnchair.data.folder.FolderInfoEntity
+import app.lawnchair.data.folder.backup.FolderBackup
+import app.lawnchair.data.folder.backup.FolderBackupApp
+import app.lawnchair.data.folder.backup.FolderBackupEntry
+import app.lawnchair.data.folder.backup.FolderImportResult
 import app.lawnchair.data.toEntity
+import app.lawnchair.util.kotlinxJson
 import com.android.launcher3.AppFilter
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
+import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 
 class FolderService(val context: Context) : SafeCloseable {
 
@@ -51,8 +60,9 @@ class FolderService(val context: Context) : SafeCloseable {
         )
     }
 
-    suspend fun saveFolderInfo(folderInfo: FolderInfo) = withContext(Dispatchers.IO) {
+    suspend fun saveFolderInfo(folderInfo: FolderInfo): Unit = withContext(Dispatchers.IO) {
         folderDao.insertFolder(FolderInfoEntity(title = folderInfo.title.toString()))
+        Unit
     }
 
     suspend fun updateFolderInfo(folderInfo: FolderInfo, hide: Boolean = false) = withContext(Dispatchers.IO) {
@@ -101,6 +111,72 @@ class FolderService(val context: Context) : SafeCloseable {
             .map { AppInfo(context, it, it.user) }
             .mapNotNull { appInfo -> converters.fromComponentKey(appInfo.componentKey)?.let { key -> key to appInfo } }
             .toMap()
+    }
+
+    /**
+     * Keyed by package + class rather than the full [ComponentKey] (which also encodes the
+     * user), since an imported folder scheme is matched against whatever is installed on this
+     * device now, not the exact user profile it was exported from.
+     */
+    private fun buildAppInfoByPackageAndClass(): Map<Pair<String, String>, AppInfo> {
+        if (launcherApps == null) return emptyMap()
+        return userCache.userProfiles.asSequence()
+            .flatMap { launcherApps.getActivityList(null, it) }
+            .filter { appFilter.shouldShowApp(it.componentName) }
+            .map { AppInfo(context, it, it.user) }
+            .mapNotNull { appInfo ->
+                appInfo.componentName?.let { component -> (component.packageName to component.className) to appInfo }
+            }
+            .toMap()
+    }
+
+    suspend fun exportFoldersToJson(): String = withContext(Dispatchers.IO) {
+        val foldersWithItems = folderDao.getAllFoldersWithItems().first()
+        val backup = FolderBackup(
+            folders = foldersWithItems.map { folderWithItems ->
+                FolderBackupEntry(
+                    title = folderWithItems.folder.title,
+                    apps = folderWithItems.items.mapNotNull { item ->
+                        item.componentKey
+                            ?.let { ComponentKey.fromString(it) }
+                            ?.let { key ->
+                                FolderBackupApp(
+                                    packageName = key.componentName.packageName,
+                                    className = key.componentName.className,
+                                )
+                            }
+                    },
+                )
+            },
+        )
+        kotlinxJson.encodeToString(backup)
+    }
+
+    /**
+     * Imports folders as new entries; existing folders are left untouched. Apps not installed
+     * on this device are skipped.
+     */
+    suspend fun importFoldersFromJson(json: String): FolderImportResult = withContext(Dispatchers.IO) {
+        val backup = kotlinxJson.decodeFromString<FolderBackup>(json)
+        val appInfoByPackageAndClass = buildAppInfoByPackageAndClass()
+
+        var importedFolders = 0
+        var importedApps = 0
+        var skippedApps = 0
+
+        backup.folders.forEach { entry ->
+            val resolvedApps = entry.apps.mapNotNull { app ->
+                appInfoByPackageAndClass[app.packageName to app.className]
+            }
+            skippedApps += entry.apps.size - resolvedApps.size
+            if (resolvedApps.isNotEmpty()) {
+                folderDao.insertNewFolderWithItems(entry.title, resolvedApps.map { it.toEntity(0) })
+                importedFolders++
+                importedApps += resolvedApps.size
+            }
+        }
+
+        FolderImportResult(importedFolders, importedApps, skippedApps)
     }
 
     override fun close() {

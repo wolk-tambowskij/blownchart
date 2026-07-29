@@ -1,5 +1,10 @@
 package app.lawnchair.ui.preferences.destinations
 
+import android.app.Activity
+import android.content.Intent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
@@ -12,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +41,7 @@ import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.ModalBottomSheetContent
+import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
@@ -46,6 +53,9 @@ import app.lawnchair.ui.preferences.navigation.AppDrawerFolder
 import app.lawnchair.ui.util.bottomSheetHandler
 import com.android.launcher3.R
 import com.android.launcher3.model.data.FolderInfo
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 @Composable
@@ -73,7 +83,50 @@ fun AppDrawerFoldersPreference(
     viewModel: FolderViewModel = viewModel(),
 ) {
     val navController = LocalNavController.current
+    val context = LocalContext.current
     val folders by viewModel.folders.collectAsStateWithLifecycle()
+
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        val uri = result.data?.data ?: return@rememberLauncherForActivityResult
+        viewModel.exportFolders { exportResult ->
+            val writeResult = exportResult.mapCatching { json ->
+                val stream = context.contentResolver.openOutputStream(uri)
+                    ?: throw IOException("Unable to open output stream for $uri")
+                stream.use { it.write(json.toByteArray()) }
+            }
+            val messageRes = if (writeResult.isSuccess) R.string.folder_export_success else R.string.folder_export_error
+            Toast.makeText(context, messageRes, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        val uri = result.data?.data ?: return@rememberLauncherForActivityResult
+        val json = runCatching {
+            context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                ?: throw IOException("Unable to open input stream for $uri")
+        }.getOrNull()
+        if (json == null) {
+            Toast.makeText(context, R.string.folder_import_error, Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
+        viewModel.importFolders(json) { importResult ->
+            importResult
+                .onSuccess { imported ->
+                    val message = context.getString(
+                        R.string.folder_import_success,
+                        imported.importedFolders,
+                        imported.importedApps,
+                        imported.skippedApps,
+                    )
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                }
+                .onFailure {
+                    Toast.makeText(context, R.string.folder_import_error, Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
 
     AppDrawerFoldersPreference(
         modifier = modifier,
@@ -97,6 +150,20 @@ fun AppDrawerFoldersPreference(
         onDeleteFolder = {
             viewModel.deleteFolder(it.id)
         },
+        onExportFolders = {
+            val fileName = "lawnchair_folders_${SimpleDateFormat.getDateTimeInstance().format(Date())}.json"
+            Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("application/json")
+                .putExtra(Intent.EXTRA_TITLE, fileName)
+                .let { exportLauncher.launch(it) }
+        },
+        onImportFolders = {
+            Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("application/json")
+                .let { importLauncher.launch(it) }
+        },
     )
 }
 
@@ -107,6 +174,8 @@ fun AppDrawerFoldersPreference(
     onEditFolderItems: (Int) -> Unit,
     onRenameFolder: (FolderInfo, String) -> Unit,
     onDeleteFolder: (FolderInfo) -> Unit,
+    onExportFolders: () -> Unit,
+    onImportFolders: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val bottomSheetHandler = bottomSheetHandler
@@ -121,6 +190,24 @@ fun AppDrawerFoldersPreference(
         label = stringResource(id = R.string.app_drawer_folder),
         backArrowVisible = true,
         modifier = modifier,
+        actions = {
+            OverflowMenu {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.folder_export_action)) },
+                    onClick = {
+                        onExportFolders()
+                        hideMenu()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.folder_import_action)) },
+                    onClick = {
+                        onImportFolders()
+                        hideMenu()
+                    },
+                )
+            }
+        },
     ) {
         PreferenceGroup(
             heading = stringResource(R.string.settings),
