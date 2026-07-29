@@ -69,7 +69,7 @@ import app.lawnchair.util.LawnchairUtilsKt;
 public class PreviewBackground extends DelegatedCellDrawing {
 
     private static final boolean DRAW_SHADOW = false;
-    private static final boolean DRAW_STROKE = false;
+    private static final boolean DRAW_STROKE = true;
 
     @VisibleForTesting
     protected static final int CONSUMPTION_ANIMATION_DURATION = 100;
@@ -195,7 +195,9 @@ public class PreviewBackground extends DelegatedCellDrawing {
 
         TypedArray ta = context.getTheme().obtainStyledAttributes(R.styleable.FolderIconPreview);
         mDotColor = ColorTokens.FolderDotColor.resolveColor(context);
-        mStrokeColor = ColorTokens.FolderIconBorderColor.resolveColor(context);
+        // A plain gray outline (independent of theme color and background opacity) so folders
+        // stay visually distinguishable regardless of the chosen background color/transparency.
+        mStrokeColor = ColorTokens.FolderOutlineColor.resolveColor(context);
         if (folderColor != 0) {
             mBgColor = folderColor;
         } else {
