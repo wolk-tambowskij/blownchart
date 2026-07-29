@@ -26,6 +26,9 @@ object PinHasher {
     }
 
     fun verify(pin: String, storedHash: String): Boolean {
+        // PBEKeySpec throws IllegalArgumentException for a non-null but zero-length password,
+        // and no valid PIN is empty anyway (SettingsLockGate.MIN_PIN_LENGTH is 4).
+        if (pin.isEmpty()) return false
         val parts = storedHash.split(":")
         if (parts.size != 3) return false
         val iterations = parts[0].toIntOrNull() ?: return false
