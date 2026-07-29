@@ -433,28 +433,39 @@ public class ItemClickHandler {
                 return;
             }
         }
-        if (v != null && launcher.supportsAdaptiveIconAnimation(v)
-                && !item.shouldUseBackgroundAnimation()) {
-            // Preload the icon to reduce latency b/w swapping the floating view with the original.
-            FloatingIconView.fetchIcon(launcher, v, item, true /* isOpening */);
-        }
         final Intent finalIntent = intent;
+        Runnable startActivity = () -> {
+            if (v != null && launcher.supportsAdaptiveIconAnimation(v)
+                    && !item.shouldUseBackgroundAnimation()) {
+                // Preload the icon to reduce latency b/w swapping the floating view with the
+                // original.
+                FloatingIconView.fetchIcon(launcher, v, item, true /* isOpening */);
+            }
+            launcher.startActivitySafely(v, finalIntent, item);
+        };
         if (launcher instanceof LawnchairLauncher
                 && isSystemSettingsPackage(launcher, finalIntent)) {
-            ((LawnchairLauncher) launcher).requestSettingsUnlock(
-                    () -> launcher.startActivitySafely(v, finalIntent, item));
+            // Gate before doing anything else: fetchIcon() above sets up floating-icon
+            // transition state that assumes startActivitySafely() runs immediately after, so
+            // it must stay inside the same deferred Runnable as the PIN prompt, not run early.
+            ((LawnchairLauncher) launcher).requestSettingsUnlock(startActivity);
             return;
         }
-        launcher.startActivitySafely(v, intent, item);
+        startActivity.run();
     }
 
     /**
      * Whether the given intent targets the device's system Settings app, so that a direct tap
      * on its icon (home screen, drawer, or dock) can be gated behind the same launcher PIN that
-     * already guards "App info" and the "System settings" long-press item.
+     * already guards "App info" and the "System settings" long-press item. Covers both a plain
+     * app icon (explicit component) and a pinned deep shortcut (package only, no component --
+     * the actual target is resolved by LauncherApps.startShortcut() at launch time).
      */
     private static boolean isSystemSettingsPackage(Context context, Intent intent) {
-        if (intent.getComponent() == null) {
+        String targetPackage = intent.getComponent() != null
+                ? intent.getComponent().getPackageName()
+                : intent.getPackage();
+        if (TextUtils.isEmpty(targetPackage)) {
             return false;
         }
         ResolveInfo resolveInfo = context.getPackageManager().resolveActivity(
@@ -462,7 +473,7 @@ public class ItemClickHandler {
         if (resolveInfo == null || resolveInfo.activityInfo == null) {
             return false;
         }
-        return intent.getComponent().getPackageName().equals(resolveInfo.activityInfo.packageName);
+        return targetPackage.equals(resolveInfo.activityInfo.packageName);
     }
 
     /**
