@@ -114,7 +114,11 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
                 subtitle.setPaddingRelative(subtitleStartPadding, 0, 0, 0)
             }
         }
-        setSubtitleText(target.searchAction?.subtitle, showDelimiter)
+        // Plain app targets never carry a searchAction (see SearchTargetFactory /
+        // SearchResultIcon.bind's plain-app branch), so their folder-name label - the only
+        // subtitle they can have - travels via extras instead.
+        val subtitleText = target.searchAction?.subtitle ?: target.extras.getString("folder_name")
+        setSubtitleText(subtitleText, showDelimiter)
         if (shouldHandleClick(target) && !isSmall) {
             setOnClickListener {
                 target.searchAction?.intent?.let { intent -> handleSearchTargetClick(context, intent) }
