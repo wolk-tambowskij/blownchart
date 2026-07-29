@@ -48,6 +48,9 @@ import com.android.launcher3.widget.NavigableAppWidgetHostView;
 import com.android.launcher3.widget.PendingItemDragHelper;
 import com.android.launcher3.widget.WidgetCell;
 import com.android.launcher3.widget.WidgetImageView;
+import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
+
+import app.lawnchair.preferences2.PreferenceManager2;
 
 /**
  * Class to handle long-clicks on workspace items and start drag as a result.
@@ -100,9 +103,16 @@ public class ItemLongClickListener {
     }
 
     private static boolean onWidgetItemLongClick(WidgetCell v) {
+        Launcher launcher = Launcher.getLauncher(v.getContext());
+        boolean lockHomeScreen = PreferenceExtensionsKt.firstBlocking(
+                PreferenceManager2.getInstance(launcher).getLockHomeScreen());
+        if (lockHomeScreen) {
+            // A new widget can't be placed on the home screen while it's locked.
+            return false;
+        }
+
         // Get the widget preview as the drag representation
         WidgetImageView image = v.getWidgetView();
-        Launcher launcher = Launcher.getLauncher(v.getContext());
         DragSource dragSource = (target, dragObject, success) -> { };
 
         // If the ImageView doesn't have a drawable yet, the widget preview hasn't been loaded and
