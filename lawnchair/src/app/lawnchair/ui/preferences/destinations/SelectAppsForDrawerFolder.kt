@@ -4,14 +4,19 @@ import android.content.Context
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -60,6 +65,7 @@ fun SelectAppsForDrawerFolder(
     var allFolderPackages by remember { mutableStateOf(emptySet<String>()) }
     var filterNonUniqueItems by remember { mutableStateOf(true) }
     var hasChanges by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
     var selectedIds by remember(folderInfo) {
         mutableStateOf(
@@ -88,11 +94,14 @@ fun SelectAppsForDrawerFolder(
 
     // Apps are already sorted alphabetically by appsState(); folder membership is a filter/toggle
     // only, not a manual order, so the displayed order never changes when items are (de)selected.
-    val displayedApps = remember(apps, filterNonUniqueItems, allFolderPackages, selectedIds) {
+    val displayedApps = remember(apps, filterNonUniqueItems, allFolderPackages, selectedIds, searchQuery) {
         apps.filter { app ->
-            !filterNonUniqueItems ||
-                !allFolderPackages.contains(app.key.componentName.packageName) ||
-                selectedIds.contains(app.key.toString())
+            (
+                !filterNonUniqueItems ||
+                    !allFolderPackages.contains(app.key.componentName.packageName) ||
+                    selectedIds.contains(app.key.toString())
+                ) &&
+                app.label.contains(searchQuery, ignoreCase = true)
         }
     }
 
@@ -167,6 +176,27 @@ fun SelectAppsForDrawerFolder(
                 }
             } else {
                 PreferenceLazyColumn(contentPadding, state = rememberLazyListState()) {
+                    item {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            placeholder = { Text(stringResource(R.string.all_apps_search_bar_hint)) },
+                            leadingIcon = { Icon(Icons.Rounded.Search, null) },
+                            trailingIcon = if (searchQuery.isNotEmpty()) {
+                                {
+                                    IconButton(onClick = { searchQuery = "" }) {
+                                        Icon(Icons.Rounded.Clear, null)
+                                    }
+                                }
+                            } else {
+                                null
+                            },
+                            singleLine = true,
+                        )
+                    }
                     preferenceGroupItems(
                         items = displayedApps,
                         isFirstChild = true,
