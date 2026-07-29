@@ -17,4 +17,27 @@
 <resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="generic_smartspace_concatenated_desc">%1$s, %2$s</string>
     <string name="accessibility_smartspace_page">Страница %1$d из %2$d</string>
+
+    <string name="security_label">Безопасность</string>
+    <string name="settings_lock_label">Блокировка настроек лончера</string>
+    <string name="settings_lock_status_on">Вкл</string>
+    <string name="settings_lock_status_off">Выкл</string>
+    <string name="settings_lock_description">Требовать PIN-код перед открытием настроек лончера или любого экрана системных настроек</string>
+    <string name="settings_lock_enable_action">Задать PIN-код для включения</string>
+    <string name="settings_lock_change_pin_action">Изменить PIN-код</string>
+    <string name="settings_lock_disable_action">Отключить блокировку настроек</string>
+    <string name="settings_lock_use_biometric_label">Разрешить разблокировку отпечатком</string>
+    <string name="settings_lock_use_biometric_description">Также принимать отпечаток пальца вместо PIN-кода, если он добавлен на устройстве</string>
+    <string name="settings_lock_unlock_title">Разблокировка настроек</string>
+    <string name="settings_lock_create_pin_title">Задайте PIN-код настроек</string>
+    <string name="settings_lock_create_pin_description">Этот PIN-код отдельный от блокировки экрана устройства. Он будет запрашиваться каждый раз при открытии настроек лончера или системных настроек из Lawnchair.</string>
+    <string name="settings_lock_pin_label">PIN-код</string>
+    <string name="settings_lock_confirm_pin_label">Подтвердите PIN-код</string>
+    <string name="settings_lock_set_pin_action">Задать PIN-код</string>
+    <string name="settings_lock_use_biometric_action">Использовать отпечаток пальца</string>
+    <string name="settings_lock_forgot_pin_action">Забыли PIN-код?</string>
+    <string name="settings_lock_biometric_prompt_title">Разблокировка настроек</string>
+    <string name="settings_lock_wrong_pin">Неверный PIN-код</string>
+    <string name="settings_lock_pin_length_error">PIN-код должен содержать от 4 до 16 символов</string>
+    <string name="settings_lock_pin_mismatch">PIN-коды не совпадают</string>
 </resources>
