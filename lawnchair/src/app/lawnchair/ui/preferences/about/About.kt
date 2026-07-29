@@ -18,8 +18,8 @@ package app.lawnchair.ui.preferences.about
 
 import android.content.Intent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -55,7 +55,6 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroupHeading
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroupItem
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayoutLazyColumn
-import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
 import app.lawnchair.ui.preferences.navigation.AboutLicenses
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
@@ -139,15 +138,6 @@ fun About(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                val commitUrl =
-                                    "https://github.com/LawnchairLauncher/lawnchair/commit/${BuildConfig.COMMIT_HASH}"
-                                context.startActivity(Intent(Intent.ACTION_VIEW, commitUrl.toUri()))
-                            },
-                        ),
                 )
             }
         }
@@ -172,6 +162,30 @@ fun About(
             Spacer(modifier = Modifier.requiredHeight(16.dp))
         }
         item {
+            Text(
+                text = stringResource(id = R.string.about_developed_by, "Wolk Tambowskij"),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+        item {
+            Text(
+                text = stringResource(id = R.string.about_fork_disclosure),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -187,37 +201,39 @@ fun About(
                 }
             }
         }
-        preferenceGroupItems(
-            items = uiState.coreTeam,
-            key = { _, it -> it.name },
-            isFirstChild = false,
-            heading = { stringResource(id = R.string.product) },
-        ) { _, it ->
-            ContributorRow(
-                member = it,
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        item {
+            PreferenceGroupHeading(
+                stringResource(R.string.about_whats_new_heading),
             )
         }
-        preferenceGroupItems(
-            items = uiState.supportAndPr,
-            key = { _, it -> it.name },
-            isFirstChild = false,
-            heading = { stringResource(id = R.string.support_and_pr) },
-        ) { _, it ->
-            ContributorRow(
-                member = it,
-            )
-        }
-        preferenceGroupItems(
-            items = uiState.bottomLinks,
-            key = { _, it -> it.labelResId },
-            isFirstChild = false,
-            heading = { stringResource(id = R.string.community) },
-        ) { _, it ->
-            HorizontalLawnchairLink(
-                iconResId = it.iconResId,
-                label = stringResource(id = it.labelResId),
-                url = it.url,
-            )
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            ) {
+                listOf(
+                    R.string.about_change_1,
+                    R.string.about_change_2,
+                    R.string.about_change_3,
+                    R.string.about_change_4,
+                    R.string.about_change_5,
+                    R.string.about_change_6,
+                    R.string.about_change_7,
+                    R.string.about_change_8,
+                ).forEach { changeRes ->
+                    Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                        Text(text = "• ", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            text = stringResource(id = changeRes),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
         }
         item {
             PreferenceGroupHeading(
@@ -240,17 +256,28 @@ fun About(
                 cutTop = true,
                 cutBottom = true,
             ) {
-                PreferenceDivider()
-                ClickablePreference(
-                    label = stringResource(id = R.string.privacy_policy),
-                    onClick = {
-                        val webpage = PRIVACY_POLICY.toUri()
-                        val intent = Intent(Intent.ACTION_VIEW, webpage)
-                        if (intent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(intent)
-                        }
-                    },
-                )
+                // PreferenceGroupItem's content sits directly in a Surface/Box, so multiple
+                // real (non-divider) children need an explicit Column or they'd overlap
+                // instead of stacking.
+                Column {
+                    PreferenceDivider()
+                    Text(
+                        text = stringResource(id = R.string.about_privacy_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                    ClickablePreference(
+                        label = stringResource(id = R.string.privacy_policy),
+                        onClick = {
+                            val webpage = PRIVACY_POLICY.toUri()
+                            val intent = Intent(Intent.ACTION_VIEW, webpage)
+                            if (intent.resolveActivity(context.packageManager) != null) {
+                                context.startActivity(intent)
+                            }
+                        },
+                    )
+                }
             }
         }
     }
