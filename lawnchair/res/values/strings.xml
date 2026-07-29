@@ -647,6 +647,12 @@
     <string name="app_drawer_lock">Lock app drawer</string>
     <string name="app_drawer_lock_description">Prevent renaming, hiding, changing the icon, or uninstalling apps from the app drawer</string>
 
+    <string name="battery_optimization_prompt_title">Keep the launcher running reliably</string>
+    <string name="battery_optimization_prompt_message">Android\'s battery management can slow down or interrupt a launcher in the background. For the most reliable experience, allow it to ignore battery optimization, and check that unused permissions aren\'t automatically removed. Some phone manufacturers (e.g. Xiaomi, Huawei, Samsung) also have their own separate autostart/background-activity setting - if things still feel unreliable afterward, check your phone\'s battery or app settings for one.</string>
+    <string name="battery_optimization_prompt_allow">Ignore battery optimization</string>
+    <string name="battery_optimization_prompt_auto_revoke">Auto-revoke settings</string>
+    <string name="battery_optimization_prompt_skip">Skip</string>
+
     <string name="security_label">Security</string>
     <string name="settings_lock_label">Lock launcher settings</string>
     <string name="settings_lock_status_on">On</string>

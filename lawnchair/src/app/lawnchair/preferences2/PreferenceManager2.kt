@@ -308,6 +308,12 @@ class PreferenceManager2 private constructor(private val context: Context) :
         defaultValue = context.resources.getBoolean(R.bool.config_default_lock_app_drawer),
     )
 
+    // Whether the one-time battery-optimization nudge has already been shown (or skipped).
+    val batteryOptimizationPromptShown = preference(
+        key = booleanPreferencesKey(name = "battery_optimization_prompt_shown"),
+        defaultValue = false,
+    )
+
     val legacyPopupOptionsMigrated = preference(
         key = booleanPreferencesKey(name = "legacy_popup_options_migrated"),
         defaultValue = false,
