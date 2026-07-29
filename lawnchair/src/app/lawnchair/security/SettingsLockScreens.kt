@@ -69,10 +69,13 @@ fun SettingsLockUnlockScreen(
                     pin = ""
                 }
             }
+
             LockScreenMode.CREATE_PIN -> {
                 when {
                     !SettingsLockGate.isValidPin(pin) -> errorRes = R.string.settings_lock_pin_length_error
+
                     pin != confirmPin -> errorRes = R.string.settings_lock_pin_mismatch
+
                     else -> {
                         onCreatePin(pin)
                         onUnlock()
