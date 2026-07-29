@@ -68,6 +68,11 @@ class LawnchairShortcut {
                 ) {
                     return@Factory null
                 }
+                // Lock home screen also blocks uninstalling, everywhere a long-press menu can
+                // show this shortcut (home screen, hotseat, folders, and the drawer).
+                if (PreferenceManager2.getInstance(activity).lockHomeScreen.firstBlocking()) {
+                    return@Factory null
+                }
                 UnInstall(activity, itemInfo, view)
             }
 

@@ -221,6 +221,13 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
         boolean force = PreferenceExtensionsKt.firstBlocking(pref2.getForceWidgetResize());
         boolean unlimited = PreferenceExtensionsKt.firstBlocking(pref2.getWidgetUnlimitedSize());
 
+        // Widgets can't be resized while the home screen is locked. The other entry points
+        // that lead here are already gated on this same flag, but check again directly so
+        // this doesn't silently regress if one of those paths changes.
+        if (PreferenceExtensionsKt.firstBlocking(pref2.getLockHomeScreen())) {
+            return;
+        }
+
         // If widget is not added to view hierarchy, we cannot show resize frame at
         // correct location
         if (widget.getParent() == null) {
