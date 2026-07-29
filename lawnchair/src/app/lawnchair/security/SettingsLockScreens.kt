@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Lock
@@ -123,6 +124,7 @@ fun SettingsLockUnlockScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
                 isError = errorRes != null,
+                shape = RoundedCornerShape(32.dp),
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -139,6 +141,7 @@ fun SettingsLockUnlockScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
                     isError = errorRes != null,
+                    shape = RoundedCornerShape(32.dp),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
