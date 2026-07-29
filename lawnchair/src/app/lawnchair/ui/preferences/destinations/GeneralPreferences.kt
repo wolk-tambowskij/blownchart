@@ -31,6 +31,7 @@ import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.theme.color.ColorOption
 import app.lawnchair.theme.color.ColorStyle
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.LocalPreferenceInteractor
 import app.lawnchair.ui.preferences.components.FontPreference
 import app.lawnchair.ui.preferences.components.NavigationActionPreference
@@ -38,6 +39,7 @@ import app.lawnchair.ui.preferences.components.NotificationDotsPreference
 import app.lawnchair.ui.preferences.components.ThemePreference
 import app.lawnchair.ui.preferences.components.colorpreference.ColorContrastWarning
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreference
+import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
@@ -51,12 +53,14 @@ import app.lawnchair.ui.preferences.components.notificationDotsEnabled
 import app.lawnchair.ui.preferences.components.notificationServiceEnabled
 import app.lawnchair.ui.preferences.navigation.GeneralIconPack
 import app.lawnchair.ui.preferences.navigation.GeneralIconShape
+import app.lawnchair.ui.preferences.navigation.SettingsLock
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 
 @Composable
 fun GeneralPreferences() {
     val context = LocalContext.current
+    val navController = LocalNavController.current
     val prefs = preferenceManager()
     val prefs2 = preferenceManager2()
     val iconPacks by LocalPreferenceInteractor.current.iconPacks.collectAsStateWithLifecycle()
@@ -201,6 +205,17 @@ fun GeneralPreferences() {
                     }
                 }
             }
+        }
+
+        PreferenceGroup(heading = stringResource(id = R.string.security_label)) {
+            val settingsLockEnabled by prefs2.settingsLockEnabled.asState()
+            ClickablePreference(
+                label = stringResource(id = R.string.settings_lock_label),
+                subtitle = stringResource(
+                    id = if (settingsLockEnabled) R.string.settings_lock_status_on else R.string.settings_lock_status_off,
+                ),
+                onClick = { navController.navigate(SettingsLock) },
+            )
         }
     }
 }

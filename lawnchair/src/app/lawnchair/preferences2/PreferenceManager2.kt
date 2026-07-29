@@ -332,6 +332,24 @@ class PreferenceManager2 private constructor(private val context: Context) :
         onSet = { reloadHelper.reloadGrid() },
     )
 
+    /** Whether launcher settings and system settings require the settings PIN to open. */
+    val settingsLockEnabled = preference(
+        key = booleanPreferencesKey(name = "settings_lock_enabled"),
+        defaultValue = false,
+    )
+
+    /** Salted PBKDF2 hash of the settings-lock PIN (see [app.lawnchair.security.PinHasher]); never the raw PIN. */
+    val settingsLockPinHash = preference(
+        key = stringPreferencesKey(name = "settings_lock_pin_hash"),
+        defaultValue = "",
+    )
+
+    /** Whether biometric auth may be offered as an alternative to the settings-lock PIN. */
+    val settingsLockBiometricEnabled = preference(
+        key = booleanPreferencesKey(name = "settings_lock_biometric_enabled"),
+        defaultValue = true,
+    )
+
     val hideAppDrawerSearchBar = preference(
         key = booleanPreferencesKey(name = "hide_app_drawer_search_bar"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_hide_app_drawer_search_bar),

@@ -84,6 +84,9 @@ data object GeneralIconShape : PreferenceRoute
 @Serializable
 data object GeneralCustomIconShapeCreator : PreferenceRoute
 
+@Serializable
+data object SettingsLock : PreferenceRoute
+
 // Home Screen section routes
 @Serializable
 data object HomeScreenGrid : PreferenceRoute

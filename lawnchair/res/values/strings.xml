@@ -624,6 +624,29 @@
     <string name="home_screen_locked">Home screen is locked</string>
     <string name="home_screen_lock_description">Prevent changes to the home screen layout</string>
 
+    <string name="security_label">Security</string>
+    <string name="settings_lock_label">Lock launcher settings</string>
+    <string name="settings_lock_status_on">On</string>
+    <string name="settings_lock_status_off">Off</string>
+    <string name="settings_lock_description">Require a PIN before opening launcher settings or any system settings screen</string>
+    <string name="settings_lock_enable_action">Set a PIN to enable</string>
+    <string name="settings_lock_change_pin_action">Change PIN</string>
+    <string name="settings_lock_disable_action">Turn off settings lock</string>
+    <string name="settings_lock_use_biometric_label">Allow fingerprint unlock</string>
+    <string name="settings_lock_use_biometric_description">Also accept a fingerprint instead of the PIN, if one is enrolled</string>
+    <string name="settings_lock_unlock_title">Unlock settings</string>
+    <string name="settings_lock_create_pin_title">Set a settings PIN</string>
+    <string name="settings_lock_create_pin_description">This PIN is separate from your device screen lock. It will be required every time you open launcher settings or system settings from Lawnchair.</string>
+    <string name="settings_lock_pin_label">PIN</string>
+    <string name="settings_lock_confirm_pin_label">Confirm PIN</string>
+    <string name="settings_lock_set_pin_action">Set PIN</string>
+    <string name="settings_lock_use_biometric_action">Use fingerprint instead</string>
+    <string name="settings_lock_forgot_pin_action">Forgot PIN?</string>
+    <string name="settings_lock_biometric_prompt_title">Unlock settings</string>
+    <string name="settings_lock_wrong_pin">Incorrect PIN</string>
+    <string name="settings_lock_pin_length_error">PIN must be 4–16 characters</string>
+    <string name="settings_lock_pin_mismatch">PINs don\'t match</string>
+
     <string name="show_dot_pagination_label">Show dot pagination</string>
     <string name="show_dot_pagination_description">Use dots instead of lines to show page number</string>
     <string name="show_material_u_popup_label">Use new pop-up style</string>

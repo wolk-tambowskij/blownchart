@@ -48,6 +48,7 @@ import app.lawnchair.ui.preferences.destinations.SearchPreferences
 import app.lawnchair.ui.preferences.destinations.SearchProviderPreferences
 import app.lawnchair.ui.preferences.destinations.SelectAppsForDrawerFolder
 import app.lawnchair.ui.preferences.destinations.SelectIconPreference
+import app.lawnchair.ui.preferences.destinations.SettingsLockPreferences
 import app.lawnchair.ui.preferences.destinations.SmartspacePreferences
 import com.android.launcher3.util.ComponentKey
 import soup.compose.material.motion.animation.materialSharedAxisXIn
@@ -104,6 +105,7 @@ fun PreferenceNavigation(
         composable<GeneralIconPack> { IconPackPreferences() }
         composable<GeneralIconShape> { IconShapePreference() }
         composable<GeneralCustomIconShapeCreator> { CustomIconShapePreference() }
+        composable<SettingsLock> { SettingsLockPreferences() }
 
         composable<HomeScreen> { HomeScreenPreferences() }
         composable<HomeScreenGrid> { HomeScreenGridPreferences() }

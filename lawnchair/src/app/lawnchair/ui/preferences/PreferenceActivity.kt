@@ -22,8 +22,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import app.lawnchair.security.SettingsLockGate
+import app.lawnchair.security.SettingsLockUnlockActivity
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 import app.lawnchair.ui.theme.EdgeToEdge
 import app.lawnchair.ui.theme.LawnchairTheme
@@ -31,6 +37,20 @@ import com.google.accompanist.adaptive.calculateDisplayFeatures
 import kotlinx.serialization.json.Json
 
 class PreferenceActivity : ComponentActivity() {
+
+    private var isUnlocked by mutableStateOf(false)
+
+    private val settingsUnlockLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            isUnlocked = true
+        } else {
+            // The user didn't unlock; there's nothing sensible to show behind the lock.
+            finish()
+        }
+    }
+
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,14 +64,22 @@ class PreferenceActivity : ComponentActivity() {
             }
         }
 
+        if (SettingsLockGate.isEnabled(this)) {
+            settingsUnlockLauncher.launch(SettingsLockUnlockActivity.createUnlockIntent(this))
+        } else {
+            isUnlocked = true
+        }
+
         setContent {
             LawnchairTheme {
                 EdgeToEdge()
-                Preferences(
-                    windowSizeClass = calculateWindowSizeClass(this),
-                    displayFeatures = calculateDisplayFeatures(this),
-                    startDestination = initialRoute,
-                )
+                if (isUnlocked) {
+                    Preferences(
+                        windowSizeClass = calculateWindowSizeClass(this),
+                        displayFeatures = calculateDisplayFeatures(this),
+                        startDestination = initialRoute,
+                    )
+                }
             }
         }
     }
