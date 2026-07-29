@@ -19,8 +19,7 @@ object SettingsLockGate {
         return prefs2.settingsLockEnabled.firstBlocking() && prefs2.settingsLockPinHash.firstBlocking().isNotEmpty()
     }
 
-    fun isBiometricOfferEnabled(context: Context): Boolean =
-        PreferenceManager2.getInstance(context).settingsLockBiometricEnabled.firstBlocking()
+    fun isBiometricOfferEnabled(context: Context): Boolean = PreferenceManager2.getInstance(context).settingsLockBiometricEnabled.firstBlocking()
 
     fun isValidPin(pin: String): Boolean = pin.length in MIN_PIN_LENGTH..MAX_PIN_LENGTH
 
