@@ -30,11 +30,16 @@ interface FolderDao {
     suspend fun getItems(folderId: Int): List<FolderItemEntity>
 
     @Query("SELECT * FROM Folders")
-    fun getAllFolders(): Flow<List<FolderInfoEntity>>
+    @Transaction
+    fun getAllFoldersWithItems(): Flow<List<FolderWithItems>>
 
     @Transaction
     suspend fun insertFolderWithItems(folder: FolderInfoEntity, items: List<FolderItemEntity>) {
         insertFolder(folder)
+        // FolderItemEntity.id is auto-generated, so a plain insert would never replace an
+        // item that was removed from the folder (it would just accumulate stale rows and let
+        // the removed app resurface on the next read). Clear the old set first.
+        deleteFolderItemsByFolderId(folder.id)
         insertFolderItems(items)
     }
 

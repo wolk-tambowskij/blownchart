@@ -13,10 +13,10 @@ import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
 class FolderService(val context: Context) : SafeCloseable {
@@ -27,20 +27,27 @@ class FolderService(val context: Context) : SafeCloseable {
     private val appFilter = AppFilter(context)
     private val converters = Converters()
 
-    fun getFoldersFlow(): Flow<List<FolderInfo>> {
-        return folderDao.getAllFolders().map { folderEntities ->
-            folderEntities.mapNotNull { folderEntity ->
-                getFolderInfo(folderEntity.id, true)
-            }
+    fun getFoldersFlow(): Flow<List<FolderInfo>> = flow {
+        // Cache the componentKey -> AppInfo lookup for the lifetime of this collection instead
+        // of rebuilding it (a full LauncherApps.getActivityList() enumeration of every installed
+        // app) on every single emission: editing a folder's items writes to the same tables this
+        // flow observes, so without the cache, every checkbox toggle re-scanned all apps. The
+        // cache resets whenever a fresh collection starts (e.g. the screen is reopened after the
+        // StateFlow's WhileSubscribed window drops the subscription), matching how the rest of
+        // the app already treats the installed-app list as a per-visit snapshot rather than
+        // something tracked live.
+        var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
+        folderDao.getAllFoldersWithItems().collect { foldersWithItems ->
+            val appInfoByComponentKey = cachedAppInfoByComponentKey
+                ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
+            emit(foldersWithItems.mapNotNull { mapToFolderInfo(it, true, appInfoByComponentKey) })
         }
     }
 
     suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>) = withContext(Dispatchers.IO) {
         folderDao.insertFolderWithItems(
             FolderInfoEntity(id = folderInfoId, title = title),
-            appInfos.mapIndexed { index, appInfo ->
-                appInfo.toEntity(folderInfoId).copy(rank = index)
-            }.toList(),
+            appInfos.map { it.toEntity(folderInfoId) },
         )
     }
 
@@ -58,11 +65,15 @@ class FolderService(val context: Context) : SafeCloseable {
 
     suspend fun getFolderInfo(folderId: Int, hasId: Boolean = false): FolderInfo? = withContext(Dispatchers.Default) {
         folderDao.getFolderWithItems(folderId)?.let {
-            mapToFolderInfo(it, hasId)
+            mapToFolderInfo(it, hasId, buildAppInfoByComponentKey())
         }
     }
 
-    private fun mapToFolderInfo(folderWithItems: FolderWithItems, hasId: Boolean): FolderInfo? {
+    private fun mapToFolderInfo(
+        folderWithItems: FolderWithItems,
+        hasId: Boolean,
+        appInfoByComponentKey: Map<String, AppInfo>,
+    ): FolderInfo? {
         return try {
             val domainFolderInfo = FolderInfo().apply {
                 // if no id, launcher automatically creates an id for this
@@ -70,13 +81,11 @@ class FolderService(val context: Context) : SafeCloseable {
                 title = folderWithItems.folder.title
             }
 
-            folderWithItems.items.sortedBy { it.rank }.forEach { itemEntity ->
-                // Consider caching toItemInfo results if componentKey lookups are slow
-                // and items don't change frequently without folder data changing
-                toItemInfo(itemEntity.componentKey)?.let { appInfo ->
-                    domainFolderInfo.add(appInfo, false)
-                }
-            }
+            // Folder contents are sorted alphabetically on read; no manual order is persisted.
+            folderWithItems.items
+                .mapNotNull { itemEntity -> itemEntity.componentKey?.let { appInfoByComponentKey[it] } }
+                .sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
+                .forEach { appInfo -> domainFolderInfo.add(appInfo, false) }
             domainFolderInfo
         } catch (e: Exception) {
             Log.e("FolderService", "Failed to map FolderWithItems for id: ${folderWithItems.folder.id}", e)
@@ -84,28 +93,14 @@ class FolderService(val context: Context) : SafeCloseable {
         }
     }
 
-    private fun toItemInfo(componentKey: String?): AppInfo? {
-        if (launcherApps != null) {
-            return userCache.userProfiles.asSequence()
-                .flatMap { launcherApps.getActivityList(null, it) }
-                .filter { appFilter.shouldShowApp(it.componentName) }
-                .map { AppInfo(context, it, it.user) }
-                .filter { converters.fromComponentKey(it.componentKey) == componentKey }
-                .firstOrNull()
-        }
-        return null
-    }
-
-    suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.Main) {
-        try {
-            val folderEntities = folderDao.getAllFolders().firstOrNull() ?: emptyList()
-            folderEntities.mapNotNull { folderEntity ->
-                getFolderInfo(folderEntity.id, true)
-            }
-        } catch (e: Exception) {
-            Log.e("FolderService", "Failed to get all folders", e)
-            emptyList()
-        }
+    private fun buildAppInfoByComponentKey(): Map<String, AppInfo> {
+        if (launcherApps == null) return emptyMap()
+        return userCache.userProfiles.asSequence()
+            .flatMap { launcherApps.getActivityList(null, it) }
+            .filter { appFilter.shouldShowApp(it.componentName) }
+            .map { AppInfo(context, it, it.user) }
+            .mapNotNull { appInfo -> converters.fromComponentKey(appInfo.componentKey)?.let { key -> key to appInfo } }
+            .toMap()
     }
 
     override fun close() {
