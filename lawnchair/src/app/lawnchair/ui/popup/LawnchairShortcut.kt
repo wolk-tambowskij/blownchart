@@ -68,6 +68,15 @@ class LawnchairShortcut {
                 ) {
                     return@Factory null
                 }
+                // Lock home screen also locks the drawer's contents: an app can't be
+                // uninstalled from the drawer's long-press menu while locked. This only
+                // applies to the drawer (itemInfo is a plain ModelAppInfo there, not a
+                // WorkspaceItemInfo), so uninstalling from the home screen is unaffected.
+                if (itemInfo is ModelAppInfo &&
+                    PreferenceManager2.getInstance(activity).lockHomeScreen.firstBlocking()
+                ) {
+                    return@Factory null
+                }
                 UnInstall(activity, itemInfo, view)
             }
 
