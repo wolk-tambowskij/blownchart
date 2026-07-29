@@ -17,4 +17,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="generic_smartspace_concatenated_desc">%1$s, %2$s</string>
     <string name="accessibility_smartspace_page">Страница %1$d из %2$d</string>
+
+    <string name="about_developed_by">Разработчик: %1$s</string>
+    <string name="about_fork_disclosure">BlownChart — независимый неофициальный форк Lawnchair, лончера для Android с открытым исходным кодом. Не связан с проектом Lawnchair и не одобрен им.</string>
+    <string name="about_whats_new_heading">Что нового в этом форке</string>
+    <string name="about_change_1">Ускорено открытие экрана «Папки в меню приложений» и редактирование папок при большом количестве установленных приложений</string>
+    <string name="about_change_2">Папки и их содержимое сортируются по алфавиту автоматически, вместо ручной сортировки перетаскиванием</string>
+    <string name="about_change_3">Строка поиска при выборе приложений для папки</string>
+    <string name="about_change_4">Экспорт и импорт структуры папок в файл JSON</string>
+    <string name="about_change_5">Добавлена тонкая рамка для папок на рабочем столе и в меню приложений</string>
+    <string name="about_change_6">Исправлен выход иконок за края превью папки при трёх приложениях в папке</string>
+    <string name="about_change_7">«Блокировка рабочего стола» теперь также блокирует контекстное меню приложений в меню приложений (переименование, скрытие, удаление, смена иконки) и запрещает перемещение и изменение размера виджетов</string>
+    <string name="about_change_8">Новая защита PIN-кодом/отпечатком пальца для настроек лончера и любого перехода в системные настройки</string>
+    <string name="about_privacy_note">Все настройки, данные папок и необязательный PIN-код настроек хранятся локально на этом устройстве. Этот форк не добавляет аналитику или телеметрию сверх того, что уже есть в оригинальном Lawnchair; ознакомьтесь с политикой конфиденциальности Lawnchair ниже — форк её наследует.</string>
 </resources>

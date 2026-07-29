@@ -1,5 +1,5 @@
 package app.lawnchair.baseline
 
 object Constants {
-    val PACKAGE_NAME = "app.lawnchair"
+    val PACKAGE_NAME = "com.blownchart"
 }

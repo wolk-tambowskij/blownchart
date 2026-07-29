@@ -27,7 +27,7 @@ class NightlyBuildsRepository(
 ) {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private val _updateState = MutableStateFlow<UpdateState>(UpdateState.UpToDate)
+    private val _updateState = MutableStateFlow<UpdateState>(UpdateState.Hidden)
     val updateState = _updateState.asStateFlow()
 
     private var currentBuildNumber: Int = 0
