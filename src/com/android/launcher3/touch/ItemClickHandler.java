@@ -434,24 +434,29 @@ public class ItemClickHandler {
             }
         }
         final Intent finalIntent = intent;
-        Runnable startActivity = () -> {
-            if (v != null && launcher.supportsAdaptiveIconAnimation(v)
-                    && !item.shouldUseBackgroundAnimation()) {
-                // Preload the icon to reduce latency b/w swapping the floating view with the
-                // original.
-                FloatingIconView.fetchIcon(launcher, v, item, true /* isOpening */);
-            }
-            launcher.startActivitySafely(v, finalIntent, item);
-        };
         if (launcher instanceof LawnchairLauncher
                 && isSystemSettingsPackage(launcher, finalIntent)) {
-            // Gate before doing anything else: fetchIcon() above sets up floating-icon
-            // transition state that assumes startActivitySafely() runs immediately after, so
-            // it must stay inside the same deferred Runnable as the PIN prompt, not run early.
-            ((LawnchairLauncher) launcher).requestSettingsUnlock(startActivity);
+            // Skip the icon-morph preload below: it sets up a floating-icon transition tied to
+            // the view's on-screen state at the moment of the tap, which is no longer meaningful
+            // once a whole PIN-prompt Activity has been shown and dismissed in between. The other
+            // settings-lock gates (App info, the "System settings" long-press item) don't use
+            // this animation either, for the same reason.
+            ((LawnchairLauncher) launcher).requestSettingsUnlock(() -> {
+                // The view may have been recycled (drawer) or detached while the PIN prompt was
+                // shown; startActivitySafely() falls back to default launch options when v is
+                // null, which is safer than passing it a stale view.
+                View launchView = (v != null && v.getWindowToken() != null) ? v : null;
+                launcher.startActivitySafely(launchView, finalIntent, item);
+            });
             return;
         }
-        startActivity.run();
+        if (v != null && launcher.supportsAdaptiveIconAnimation(v)
+                && !item.shouldUseBackgroundAnimation()) {
+            // Preload the icon to reduce latency b/w swapping the floating view with the
+            // original.
+            FloatingIconView.fetchIcon(launcher, v, item, true /* isOpening */);
+        }
+        launcher.startActivitySafely(v, intent, item);
     }
 
     /**
