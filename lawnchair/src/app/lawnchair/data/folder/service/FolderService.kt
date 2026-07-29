@@ -21,9 +21,12 @@ import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -35,6 +38,22 @@ class FolderService(val context: Context) : SafeCloseable {
     private val userCache = UserCache.INSTANCE.get(context)
     private val appFilter = AppFilter(context)
     private val converters = Converters()
+    private val scope = MainScope()
+
+    // Kept warm for the lifetime of this (app-scoped) singleton, updated only when the folder
+    // tables actually change (Room's Flow only emits on writes, not on a timer) - so search, which
+    // needs this on every keystroke, never blocks on a DB query.
+    @Volatile
+    private var folderNameByComponentKey: Map<String, String> = emptyMap()
+
+    init {
+        folderDao.getComponentKeyToFolderTitleFlow()
+            .onEach { tuples -> folderNameByComponentKey = tuples.associate { it.componentKey to it.folderTitle } }
+            .launchIn(scope)
+    }
+
+    /** Which drawer folder (if any) currently contains [componentKey], for search result labels. */
+    fun getFolderNameForComponentKey(componentKey: String): String? = folderNameByComponentKey[componentKey]
 
     fun getFoldersFlow(): Flow<List<FolderInfo>> = flow {
         // Cache the componentKey -> AppInfo lookup for the lifetime of this collection instead
