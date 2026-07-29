@@ -1,6 +1,7 @@
 package app.lawnchair.theme.drawable
 
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
@@ -52,6 +53,13 @@ object DrawableTokens {
     @JvmField
     val RoundRectFolder = ResourceDrawableToken<GradientDrawable>(R.drawable.round_rect_folder)
         .setColor(ColorTokens.FolderBackgroundColor)
+
+    // Transparent fill, drawn on top of RoundRectFolder separately so the outline isn't
+    // attenuated by the folder background opacity preference (see Folder.mBorder).
+    @JvmField
+    val RoundRectFolderOutline = ResourceDrawableToken<GradientDrawable>(R.drawable.round_rect_folder)
+        .mutate { _, _, _ -> setColor(Color.TRANSPARENT) }
+        .setStroke(1f, ColorTokens.FolderOutlineColor)
 
     @JvmField
     val RoundRectPrimary = ResourceDrawableToken<GradientDrawable>(R.drawable.round_rect_primary)

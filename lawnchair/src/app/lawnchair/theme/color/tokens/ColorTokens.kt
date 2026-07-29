@@ -106,6 +106,9 @@ object ColorTokens {
 
     @JvmField val FolderIconBorderColor = ColorPrimary
 
+    /** Plain neutral gray outline for folders, independent of theme color and background opacity. */
+    @JvmField val FolderOutlineColor = StaticColorToken(0xFF9E9E9E)
+
     @JvmField val FolderPaginationColor = DayNightColorToken(Accent1_600, Accent2_100)
 
     @JvmField val FolderPreviewColor = DayNightColorToken(Accent2_50.setLStar(80.0), Accent2_50.setLStar(30.0))
