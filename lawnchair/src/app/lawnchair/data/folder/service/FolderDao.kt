@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface FolderDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFolder(folder: FolderInfoEntity)
+    suspend fun insertFolder(folder: FolderInfoEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFolderItems(items: List<FolderItemEntity>)
@@ -45,6 +45,14 @@ interface FolderDao {
 
     @Query("DELETE FROM FolderItems WHERE folderId = :folderId")
     suspend fun deleteFolderItemsByFolderId(folderId: Int)
+
+    /** Inserts a brand-new folder (auto-generated id) with its items, e.g. for import. */
+    @Transaction
+    suspend fun insertNewFolderWithItems(title: String, items: List<FolderItemEntity>): Int {
+        val folderId = insertFolder(FolderInfoEntity(title = title)).toInt()
+        insertFolderItems(items.map { it.copy(folderId = folderId) })
+        return folderId
+    }
 
     @Query(
         value = """
