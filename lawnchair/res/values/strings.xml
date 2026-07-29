@@ -499,7 +499,7 @@
     <string name="privacy_policy">Privacy policy</string>
 
     <string name="about_developed_by">Developed by %1$s</string>
-    <string name="about_fork_disclosure">BlownChart is an independent, unofficial fork of Lawnchair, an open-source Android launcher. It is not affiliated with or endorsed by the Lawnchair project.</string>
+    <string name="about_fork_disclosure">BlownChart is an independent, unofficial fork of Lawnchair (based on Lawnchair 15 Beta 3), an open-source Android launcher. It is not affiliated with or endorsed by the Lawnchair project.</string>
     <string name="about_whats_new_heading">What\'s new in this fork</string>
     <string name="about_change_1">Faster \"App drawer folders\" screen and folder editing with large numbers of installed apps</string>
     <string name="about_change_2">Folders and their contents are sorted alphabetically automatically, instead of manual drag-and-drop ordering</string>

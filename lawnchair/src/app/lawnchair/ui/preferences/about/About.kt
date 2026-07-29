@@ -256,23 +256,28 @@ fun About(
                 cutTop = true,
                 cutBottom = true,
             ) {
-                PreferenceDivider()
-                Text(
-                    text = stringResource(id = R.string.about_privacy_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
-                ClickablePreference(
-                    label = stringResource(id = R.string.privacy_policy),
-                    onClick = {
-                        val webpage = PRIVACY_POLICY.toUri()
-                        val intent = Intent(Intent.ACTION_VIEW, webpage)
-                        if (intent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(intent)
-                        }
-                    },
-                )
+                // PreferenceGroupItem's content sits directly in a Surface/Box, so multiple
+                // real (non-divider) children need an explicit Column or they'd overlap
+                // instead of stacking.
+                Column {
+                    PreferenceDivider()
+                    Text(
+                        text = stringResource(id = R.string.about_privacy_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                    ClickablePreference(
+                        label = stringResource(id = R.string.privacy_policy),
+                        onClick = {
+                            val webpage = PRIVACY_POLICY.toUri()
+                            val intent = Intent(Intent.ACTION_VIEW, webpage)
+                            if (intent.resolveActivity(context.packageManager) != null) {
+                                context.startActivity(intent)
+                            }
+                        },
+                    )
+                }
             }
         }
     }

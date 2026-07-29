@@ -19,7 +19,7 @@
     <string name="accessibility_smartspace_page">Страница %1$d из %2$d</string>
 
     <string name="about_developed_by">Разработчик: %1$s</string>
-    <string name="about_fork_disclosure">BlownChart — независимый неофициальный форк Lawnchair, лончера для Android с открытым исходным кодом. Не связан с проектом Lawnchair и не одобрен им.</string>
+    <string name="about_fork_disclosure">BlownChart — независимый неофициальный форк Lawnchair (на основе Lawnchair 15 Beta 3), лончера для Android с открытым исходным кодом. Не связан с проектом Lawnchair и не одобрен им.</string>
     <string name="about_whats_new_heading">Что нового в этом форке</string>
     <string name="about_change_1">Ускорено открытие экрана «Папки в меню приложений» и редактирование папок при большом количестве установленных приложений</string>
     <string name="about_change_2">Папки и их содержимое сортируются по алфавиту автоматически, вместо ручной сортировки перетаскиванием</string>
