@@ -436,18 +436,11 @@ public class ItemClickHandler {
         final Intent finalIntent = intent;
         if (launcher instanceof LawnchairLauncher
                 && isSystemSettingsPackage(launcher, finalIntent)) {
-            // Skip the icon-morph preload below: it sets up a floating-icon transition tied to
-            // the view's on-screen state at the moment of the tap, which is no longer meaningful
-            // once a whole PIN-prompt Activity has been shown and dismissed in between. The other
-            // settings-lock gates (App info, the "System settings" long-press item) don't use
-            // this animation either, for the same reason.
-            ((LawnchairLauncher) launcher).requestSettingsUnlock(() -> {
-                // The view may have been recycled (drawer) or detached while the PIN prompt was
-                // shown; startActivitySafely() falls back to default launch options when v is
-                // null, which is safer than passing it a stale view.
-                View launchView = (v != null && v.getWindowToken() != null) ? v : null;
-                launcher.startActivitySafely(launchView, finalIntent, item);
-            });
+            // requestSettingsUnlockForIntent() has SettingsLockUnlockActivity launch
+            // finalIntent itself once unlocked, instead of this code launching it from an
+            // ActivityResultCallback after the unlock screen returns control here - the latter
+            // turned out to silently no-op for a plain icon tap.
+            ((LawnchairLauncher) launcher).requestSettingsUnlockForIntent(finalIntent);
             return;
         }
         if (v != null && launcher.supportsAdaptiveIconAnimation(v)
