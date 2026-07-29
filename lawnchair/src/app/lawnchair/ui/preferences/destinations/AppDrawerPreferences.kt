@@ -87,6 +87,11 @@ fun AppDrawerPreferences(
             )
             SearchBarPreference(SearchRoute.DRAWER_SEARCH, showLabel = false)
             SuggestionsPreference()
+            SwitchPreference(
+                adapter = prefs2.lockAppDrawer.getAdapter(),
+                label = stringResource(id = R.string.app_drawer_lock),
+                description = stringResource(id = R.string.app_drawer_lock_description),
+            )
         }
         PreferenceGroup(heading = stringResource(R.string.style)) {
             ColorPreference(preference = prefs2.appDrawerBackgroundColor)
