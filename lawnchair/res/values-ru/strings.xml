@@ -21,6 +21,11 @@
     <string name="security_label">Безопасность</string>
     <string name="app_drawer_lock">Блокировка меню приложений</string>
     <string name="app_drawer_lock_description">Запретить переименование, скрытие, смену иконки и удаление приложений из меню приложений</string>
+    <string name="battery_optimization_prompt_title">Стабильная работа лончера в фоне</string>
+    <string name="battery_optimization_prompt_message">Управление батареей в Android может замедлять или прерывать работу лончера в фоновом режиме. Для наиболее стабильной работы разрешите ему игнорировать оптимизацию батареи и проверьте, что неиспользуемые разрешения не удаляются автоматически. У некоторых производителей (Xiaomi, Huawei, Samsung и др.) есть также собственная отдельная настройка автозапуска/фоновой активности — если после этого лончер всё ещё работает нестабильно, проверьте настройки батареи или приложений на вашем телефоне.</string>
+    <string name="battery_optimization_prompt_allow">Игнорировать оптимизацию батареи</string>
+    <string name="battery_optimization_prompt_auto_revoke">Настройки автоудаления разрешений</string>
+    <string name="battery_optimization_prompt_skip">Пропустить</string>
     <string name="settings_lock_label">Блокировка настроек лончера</string>
     <string name="settings_lock_status_on">Вкл</string>
     <string name="settings_lock_status_off">Выкл</string>
