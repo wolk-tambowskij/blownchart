@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import app.lawnchair.data.folder.backup.FolderImportResult
 import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.preferences2.ReloadHelper
 import com.android.launcher3.model.data.AppInfo
@@ -92,5 +93,19 @@ class FolderViewModel(
             repository.deleteFolderInfo(id)
         }
         reloadHelper.reloadGrid()
+    }
+
+    fun exportFolders(onResult: (Result<String>) -> Unit) {
+        viewModelScope.launch {
+            onResult(runCatching { repository.exportFoldersToJson() })
+        }
+    }
+
+    fun importFolders(json: String, onResult: (Result<FolderImportResult>) -> Unit) {
+        viewModelScope.launch {
+            val result = runCatching { repository.importFoldersFromJson(json) }
+            if (result.isSuccess) reloadHelper.reloadGrid()
+            onResult(result)
+        }
     }
 }
