@@ -33,6 +33,22 @@ interface FolderDao {
     @Transaction
     fun getAllFoldersWithItems(): Flow<List<FolderWithItems>>
 
+    /**
+     * Lightweight component-key -> folder-title lookup for search result labels - avoids
+     * pulling the full [FolderWithItems] (and, downstream, an [AppInfo] resolve per item) just to
+     * answer "which folder is this app in". Folders marked [FolderInfoEntity.hide] are excluded:
+     * if a folder is meant to stay out of sight, its membership shouldn't leak via search either.
+     */
+    @Query(
+        """
+        SELECT fi.item_info AS componentKey, f.title AS folderTitle
+        FROM FolderItems fi
+        JOIN Folders f ON fi.folderId = f.id
+        WHERE fi.item_info IS NOT NULL AND f.hide = 0
+        """,
+    )
+    fun getComponentKeyToFolderTitleFlow(): Flow<List<ComponentKeyToFolderTitle>>
+
     @Transaction
     suspend fun insertFolderWithItems(folder: FolderInfoEntity, items: List<FolderItemEntity>) {
         insertFolder(folder)
@@ -82,4 +98,9 @@ data class FolderWithItems(
         entityColumn = "folderId",
     )
     val items: List<FolderItemEntity>,
+)
+
+data class ComponentKeyToFolderTitle(
+    val componentKey: String,
+    val folderTitle: String,
 )

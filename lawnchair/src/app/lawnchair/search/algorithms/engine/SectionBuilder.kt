@@ -202,7 +202,9 @@ data object AppsAndShortcutsSectionBuilder : SectionBuilder {
             targets.add(factory.createAppSearchTarget(singleApp.data, asRow = true))
             targets.addAll(shortcuts.map { factory.createShortcutTarget(it.data) })
         } else {
-            targets.addAll(apps.map { factory.createAppSearchTarget(it.data, asRow = false) })
+            // Rows (not the plain icon grid) so a matching app can show which drawer folder it's
+            // in, if any - the grid layout has no room for that second line of text at all.
+            targets.addAll(apps.map { factory.createAppSearchTarget(it.data, asRow = true) })
         }
         targets.add(factory.createHeaderTarget(SPACE))
 
