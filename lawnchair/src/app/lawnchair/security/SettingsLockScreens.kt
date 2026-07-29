@@ -111,7 +111,10 @@ fun SettingsLockUnlockScreen(
 
             OutlinedTextField(
                 value = pin,
-                onValueChange = { pin = it; errorRes = null },
+                onValueChange = {
+                    pin = it
+                    errorRes = null
+                },
                 label = { Text(stringResource(R.string.settings_lock_pin_label)) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -124,7 +127,10 @@ fun SettingsLockUnlockScreen(
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = confirmPin,
-                    onValueChange = { confirmPin = it; errorRes = null },
+                    onValueChange = {
+                        confirmPin = it
+                        errorRes = null
+                    },
                     label = { Text(stringResource(R.string.settings_lock_confirm_pin_label)) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
