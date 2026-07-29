@@ -79,6 +79,12 @@ class LawnchairShortcut {
 
             PauseApps(activity, itemInfo, originalView)
         }
+
+        // Replaces the base SystemShortcut.APP_INFO: same "App info" shortcut, but gated behind
+        // the settings lock, since it launches system Settings.
+        val APP_INFO = SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo: ItemInfo, originalView: View ->
+            GatedAppInfo(activity, itemInfo, originalView)
+        }
     }
 
     class Customize(
@@ -113,6 +119,17 @@ class LawnchairShortcut {
                 Toast.makeText(launcher, R.string.activity_not_found, Toast.LENGTH_SHORT).show()
                 AbstractFloatingView.closeAllOpenViews(launcher)
             }
+        }
+    }
+
+    class GatedAppInfo(
+        private val launcher: LawnchairLauncher,
+        itemInfo: ItemInfo,
+        originalView: View,
+    ) : SystemShortcut.AppInfo<LawnchairLauncher>(launcher, itemInfo, originalView) {
+
+        override fun onClick(view: View) {
+            launcher.requestSettingsUnlock { super@GatedAppInfo.onClick(view) }
         }
     }
 

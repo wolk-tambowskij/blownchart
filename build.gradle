@@ -398,6 +398,7 @@ dependencies {
 
     implementation libs.androidx.recyclerview
     implementation libs.androidx.preference.ktx
+    implementation libs.androidx.biometric
 
     implementation libs.kotlinx.coroutines.android
     implementation libs.kotlinx.serialization.json

@@ -31,6 +31,7 @@ import android.view.ViewTreeObserver
 import android.window.SplashScreen
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
@@ -47,6 +48,8 @@ import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.root.RootHelperManager
 import app.lawnchair.root.RootNotAvailableException
+import app.lawnchair.security.SettingsLockGate
+import app.lawnchair.security.SettingsLockUnlockActivity
 import app.lawnchair.theme.ThemeProvider
 import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.ui.popup.LawnchairShortcut
@@ -94,6 +97,33 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class LawnchairLauncher : QuickstepLauncher() {
+    // Runnable (rather than a Kotlin function type) so this can also be called cleanly from the
+    // Java call sites in Launcher3 (e.g. OptionsPopupView's "System settings" long-press item).
+    private var pendingSettingsUnlockCallback: Runnable? = null
+    private val settingsUnlockLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        val callback = pendingSettingsUnlockCallback
+        pendingSettingsUnlockCallback = null
+        if (result.resultCode == RESULT_OK) {
+            callback?.run()
+        }
+    }
+
+    /**
+     * Runs [onUnlocked] immediately if the settings lock is disabled, otherwise shows the
+     * settings-lock unlock prompt first and only runs it if that succeeds. Used to gate any
+     * exit into system Settings from within the launcher (e.g. "App info").
+     */
+    fun requestSettingsUnlock(onUnlocked: Runnable) {
+        if (!SettingsLockGate.isEnabled(this)) {
+            onUnlocked.run()
+            return
+        }
+        pendingSettingsUnlockCallback = onUnlocked
+        settingsUnlockLauncher.launch(SettingsLockUnlockActivity.createUnlockIntent(this))
+    }
+
     private val defaultOverlay by unsafeLazy { OverlayCallbackImpl(this) }
     private val prefs by unsafeLazy { PreferenceManager.getInstance(this) }
     private val preferenceManager2 by unsafeLazy { PreferenceManager2.getInstance(this) }
@@ -260,9 +290,11 @@ class LawnchairLauncher : QuickstepLauncher() {
     }
 
     override fun getSupportedShortcuts(): Stream<SystemShortcut.Factory<*>> = Stream.concat(
-        super.getSupportedShortcuts(),
+        // Replace the base APP_INFO with LawnchairShortcut.APP_INFO, which gates the "App info"
+        // shortcut behind the settings lock (the base one launches system Settings directly).
+        super.getSupportedShortcuts().filter { it !== SystemShortcut.APP_INFO },
         Stream.concat(
-            Stream.of(LawnchairShortcut.UNINSTALL, LawnchairShortcut.CUSTOMIZE),
+            Stream.of(LawnchairShortcut.UNINSTALL, LawnchairShortcut.CUSTOMIZE, LawnchairShortcut.APP_INFO),
             if (LawnchairApp.isRecentsEnabled) Stream.of(LawnchairShortcut.PAUSE_APPS) else Stream.empty(),
         ),
     )

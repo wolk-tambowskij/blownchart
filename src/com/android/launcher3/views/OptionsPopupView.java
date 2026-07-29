@@ -54,6 +54,7 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.lawnchair.LawnchairLauncher;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.ui.popup.LauncherOptionsPopup;
 
@@ -280,8 +281,16 @@ public class OptionsPopupView<T extends Context & ActivityContext> extends Arrow
 
     private static boolean startSystemSettings(View v) {
         final Launcher launcher = Launcher.getLauncher(v.getContext());
-        final Intent intent = new Intent(Settings.ACTION_SETTINGS);
-        return launcher.startActivitySafely(v, intent, placeholderInfo(intent)) != null;
+        final Runnable openSettings = () -> {
+            final Intent intent = new Intent(Settings.ACTION_SETTINGS);
+            launcher.startActivitySafely(v, intent, placeholderInfo(intent));
+        };
+        if (launcher instanceof LawnchairLauncher) {
+            ((LawnchairLauncher) launcher).requestSettingsUnlock(openSettings);
+        } else {
+            openSettings.run();
+        }
+        return true;
     }
 
     static WorkspaceItemInfo placeholderInfo(Intent intent) {
