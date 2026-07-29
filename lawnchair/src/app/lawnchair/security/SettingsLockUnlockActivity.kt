@@ -98,12 +98,11 @@ class SettingsLockUnlockActivity : FragmentActivity() {
          * [launchIntentAfterUnlock] is given, this Activity starts it directly on success instead
          * of relying on the caller to do so from an `ActivityResultCallback`.
          */
-        fun createUnlockIntent(context: Context, launchIntentAfterUnlock: Intent? = null): Intent =
-            Intent(context, SettingsLockUnlockActivity::class.java).apply {
-                if (launchIntentAfterUnlock != null) {
-                    putExtra(EXTRA_LAUNCH_INTENT, launchIntentAfterUnlock)
-                }
+        fun createUnlockIntent(context: Context, launchIntentAfterUnlock: Intent? = null): Intent = Intent(context, SettingsLockUnlockActivity::class.java).apply {
+            if (launchIntentAfterUnlock != null) {
+                putExtra(EXTRA_LAUNCH_INTENT, launchIntentAfterUnlock)
             }
+        }
 
         /** First-time (or "forgot PIN") PIN creation; succeeds by setting a brand new PIN. */
         fun createSetupIntent(context: Context): Intent = Intent(context, SettingsLockUnlockActivity::class.java)
