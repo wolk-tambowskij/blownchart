@@ -117,7 +117,10 @@ class FolderService(val context: Context) : SafeCloseable {
             .flatMap { launcherApps.getActivityList(null, it) }
             .filter { appFilter.shouldShowApp(it.componentName) }
             .map { AppInfo(context, it, it.user) }
-            .associateBy { it.componentName.packageName to it.componentName.className }
+            .mapNotNull { appInfo ->
+                appInfo.componentName?.let { component -> (component.packageName to component.className) to appInfo }
+            }
+            .toMap()
     }
 
     suspend fun exportFoldersToJson(): String = withContext(Dispatchers.IO) {
