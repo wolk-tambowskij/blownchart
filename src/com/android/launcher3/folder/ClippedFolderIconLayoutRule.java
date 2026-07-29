@@ -115,6 +115,18 @@ public class ClippedFolderIconLayoutRule {
         // We bump the radius up between 0 and MAX_RADIUS_DILATION % as the number of items increase
         float radius = mRadius * (1 + MAX_RADIUS_DILATION * (curNumItems -
                 MIN_NUM_ITEMS_IN_PREVIEW) / (MAX_NUM_ITEMS_IN_PREVIEW - MIN_NUM_ITEMS_IN_PREVIEW));
+
+        if (curNumItems == 3) {
+            // With exactly 3 items ("pyramid": one on top, two below), the generic circle
+            // model above pushes the top icon's top edge, and the two bottom icons' outer
+            // edges, past mAvailableSpace (icon size + halfIconSize offset works out to
+            // MAX_SCALE * mAvailableSpace regardless of icon size, so this bound is exact).
+            // Shrink the radius (not the icon size) so the three icons stay fully within the
+            // preview bounds.
+            float maxRadiusWithinBounds = mAvailableSpace * (1f - MAX_SCALE) * 0.96f;
+            radius = Math.min(radius, maxRadiusWithinBounds);
+        }
+
         double theta = theta0 + index * (2 * Math.PI / curNumItems) * direction;
 
         float halfIconSize = (mIconSize * scaleForItem(curNumItems)) / 2;
