@@ -1,8 +1,10 @@
 package app.lawnchair.security
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.biometric.BiometricManager
@@ -42,6 +44,7 @@ class SettingsLockUnlockActivity : FragmentActivity() {
                     onCreatePin = { pin -> SettingsLockGate.setPin(this, pin) },
                     onRequestBiometric = { onSuccess -> showBiometricPrompt(onSuccess) },
                     onUnlock = {
+                        launchIntentAfterUnlock?.let { startIntentSafely(it) }
                         setResult(RESULT_OK)
                         finish()
                     },
@@ -79,14 +82,40 @@ class SettingsLockUnlockActivity : FragmentActivity() {
     private val isSetupMode: Boolean
         get() = intent?.getBooleanExtra(EXTRA_SETUP_MODE, false) == true
 
+    // Launched directly by this Activity (which is already in the foreground with focus) right
+    // before it finishes, instead of having the caller launch it from an ActivityResultCallback
+    // after this Activity returns control - avoids a launch-after-round-trip that turned out to
+    // silently no-op for a plain home/drawer/dock icon tap.
+    private val launchIntentAfterUnlock: Intent?
+        get() = intent?.getParcelableExtra(EXTRA_LAUNCH_INTENT)
+
     companion object {
         private const val EXTRA_SETUP_MODE = "app.lawnchair.security.EXTRA_SETUP_MODE"
+        private const val EXTRA_LAUNCH_INTENT = "app.lawnchair.security.EXTRA_LAUNCH_INTENT"
 
-        /** Unlock an already-configured PIN before proceeding to something gated. */
-        fun createUnlockIntent(context: Context): Intent = Intent(context, SettingsLockUnlockActivity::class.java)
+        /**
+         * Unlock an already-configured PIN before proceeding to something gated. If
+         * [launchIntentAfterUnlock] is given, this Activity starts it directly on success instead
+         * of relying on the caller to do so from an `ActivityResultCallback`.
+         */
+        fun createUnlockIntent(context: Context, launchIntentAfterUnlock: Intent? = null): Intent =
+            Intent(context, SettingsLockUnlockActivity::class.java).apply {
+                if (launchIntentAfterUnlock != null) {
+                    putExtra(EXTRA_LAUNCH_INTENT, launchIntentAfterUnlock)
+                }
+            }
 
         /** First-time (or "forgot PIN") PIN creation; succeeds by setting a brand new PIN. */
         fun createSetupIntent(context: Context): Intent = Intent(context, SettingsLockUnlockActivity::class.java)
             .putExtra(EXTRA_SETUP_MODE, true)
+    }
+}
+
+/** Launches [intent], showing a toast instead of crashing if nothing can handle it. */
+fun Context.startIntentSafely(intent: Intent) {
+    try {
+        startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(this, R.string.activity_not_found, Toast.LENGTH_SHORT).show()
     }
 }

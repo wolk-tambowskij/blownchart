@@ -50,6 +50,7 @@ import app.lawnchair.root.RootHelperManager
 import app.lawnchair.root.RootNotAvailableException
 import app.lawnchair.security.SettingsLockGate
 import app.lawnchair.security.SettingsLockUnlockActivity
+import app.lawnchair.security.startIntentSafely
 import app.lawnchair.theme.ThemeProvider
 import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.ui.popup.LawnchairShortcut
@@ -122,6 +123,21 @@ class LawnchairLauncher : QuickstepLauncher() {
         }
         pendingSettingsUnlockCallback = onUnlocked
         settingsUnlockLauncher.launch(SettingsLockUnlockActivity.createUnlockIntent(this))
+    }
+
+    /**
+     * Like [requestSettingsUnlock], but for the common case of "just launch this Intent once
+     * unlocked": [SettingsLockUnlockActivity] starts [intentToLaunch] itself, directly, while
+     * still in the foreground, rather than this Activity launching it from an
+     * `ActivityResultCallback` after the unlock screen has already returned control here. Used to
+     * gate a direct tap on the Settings app's own icon (home screen, drawer, or dock).
+     */
+    fun requestSettingsUnlockForIntent(intentToLaunch: Intent) {
+        if (!SettingsLockGate.isEnabled(this)) {
+            startIntentSafely(intentToLaunch)
+            return
+        }
+        startActivity(SettingsLockUnlockActivity.createUnlockIntent(this, intentToLaunch))
     }
 
     private val defaultOverlay by unsafeLazy { OverlayCallbackImpl(this) }
