@@ -60,4 +60,7 @@
     <string name="folder_export_error">Не удалось экспортировать папки</string>
     <string name="folder_import_success">Импортировано папок: %1$d, приложений: %2$d (пропущено: %3$d)</string>
     <string name="folder_import_error">Не удалось импортировать папки: неверный файл</string>
+    <string name="folder_manual_order_label">Ручной порядок</string>
+    <string name="folder_manual_order_description">Перетаскивание для изменения порядка папок и приложений внутри них, вместо сортировки по алфавиту</string>
+    <string name="folder_contents_heading">В этой папке</string>
 </resources>

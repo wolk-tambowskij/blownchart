@@ -40,6 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
+import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalNavController
@@ -48,6 +49,8 @@ import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.components.reorderable.ReorderableDragHandle
+import app.lawnchair.ui.preferences.components.reorderable.ReorderablePreferenceGroup
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppListToFolder
 import app.lawnchair.ui.preferences.navigation.AppDrawerFolder
 import app.lawnchair.ui.util.bottomSheetHandler
@@ -150,6 +153,9 @@ fun AppDrawerFoldersPreference(
         onDeleteFolder = {
             viewModel.deleteFolder(it.id)
         },
+        onReorderFolders = {
+            viewModel.updateFolderOrder(it)
+        },
         onExportFolders = {
             val fileName = "lawnchair_folders_${SimpleDateFormat.getDateTimeInstance().format(Date())}.json"
             Intent(Intent.ACTION_CREATE_DOCUMENT)
@@ -174,15 +180,19 @@ fun AppDrawerFoldersPreference(
     onEditFolderItems: (Int) -> Unit,
     onRenameFolder: (FolderInfo, String) -> Unit,
     onDeleteFolder: (FolderInfo) -> Unit,
+    onReorderFolders: (List<Int>) -> Unit,
     onExportFolders: () -> Unit,
     onImportFolders: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val bottomSheetHandler = bottomSheetHandler
     val prefs = preferenceManager()
+    val manualOrderAdapter = preferenceManager2().folderManualOrder.getAdapter()
+    val manualOrder by manualOrderAdapter.state
 
-    // Folders are sorted alphabetically on display; no manual order is stored.
-    val sortedDisplayList = remember(folders) {
+    // folders already arrives ordered (rank in manual mode, alphabetical otherwise) - see
+    // FolderService.getFoldersFlow().
+    val alphabeticalOrder = remember(folders) {
         folders.sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
     }
 
@@ -217,6 +227,11 @@ fun AppDrawerFoldersPreference(
                 label = stringResource(id = R.string.apps_in_folder_label),
                 description = stringResource(id = R.string.apps_in_folder_description),
             )
+            SwitchPreference(
+                adapter = manualOrderAdapter,
+                label = stringResource(id = R.string.folder_manual_order_label),
+                description = stringResource(id = R.string.folder_manual_order_description),
+            )
         }
         PreferenceGroup(heading = stringResource(R.string.folders_label)) {
             PreferenceTemplate(
@@ -247,9 +262,14 @@ fun AppDrawerFoldersPreference(
                 },
             )
         }
-        if (sortedDisplayList.isNotEmpty()) {
-            PreferenceGroup {
-                sortedDisplayList.forEach { folderInfo ->
+        if (folders.isNotEmpty()) {
+            if (manualOrder) {
+                ReorderablePreferenceGroup(
+                    label = null,
+                    items = folders,
+                    defaultList = alphabeticalOrder,
+                    onOrderChange = { onReorderFolders(it.map { folderInfo -> folderInfo.id }) },
+                ) { folderInfo, _, _, onDraggingChange ->
                     FolderItem(
                         folderInfo = folderInfo,
                         onItemClick = {
@@ -268,7 +288,37 @@ fun AppDrawerFoldersPreference(
                             }
                         },
                         onItemDelete = onDeleteFolder,
+                        dragHandle = {
+                            ReorderableDragHandle(
+                                scope = this,
+                                onDragStop = { onDraggingChange(false) },
+                            )
+                        },
                     )
+                }
+            } else {
+                PreferenceGroup {
+                    folders.forEach { folderInfo ->
+                        FolderItem(
+                            folderInfo = folderInfo,
+                            onItemClick = {
+                                bottomSheetHandler.show {
+                                    FolderEditSheet(
+                                        folderInfo,
+                                        onRename = onRenameFolder,
+                                        onNavigate = {
+                                            onEditFolderItems(it)
+                                            bottomSheetHandler.hide()
+                                        },
+                                        onDismiss = {
+                                            bottomSheetHandler.hide()
+                                        },
+                                    )
+                                }
+                            },
+                            onItemDelete = onDeleteFolder,
+                        )
+                    }
                 }
             }
         }
@@ -344,6 +394,7 @@ fun FolderItem(
     onItemDelete: (FolderInfo) -> Unit,
     modifier: Modifier = Modifier,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    dragHandle: (@Composable () -> Unit)? = null,
 ) {
     val resources = LocalContext.current.resources
     PreferenceTemplate(
@@ -357,6 +408,7 @@ fun FolderItem(
                 text = resources.getQuantityString(R.plurals.apps_count, folderInfo.getContents().size, folderInfo.getContents().size),
             )
         },
+        startWidget = dragHandle,
         endWidget = {
             Row {
                 IconButton(
