@@ -42,7 +42,7 @@ class LawnchairShortcut {
 
         val CUSTOMIZE =
             SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo, originalView ->
-                if (PreferenceManager2.getInstance(activity).lockHomeScreen.firstBlocking()) {
+                if (isLockedForItem(activity, itemInfo)) {
                     null
                 } else {
                     getAppInfo(activity, itemInfo)?.let { Customize(activity, it, itemInfo, originalView) }
@@ -54,6 +54,18 @@ class LawnchairShortcut {
             if (itemInfo.itemType != ITEM_TYPE_APPLICATION) return null
             val key = ComponentKey(itemInfo.targetComponent, itemInfo.user)
             return launcher.appsView.appsStore.getApp(key)
+        }
+
+        // Drawer icons are bound from AppInfo directly; home screen/hotseat/folder icons never
+        // are (they use WorkspaceItemInfo) - so this tells the two lock toggles apart by which
+        // surface the long-press menu was actually opened from.
+        private fun isLockedForItem(context: Context, itemInfo: ItemInfo): Boolean {
+            val prefs = PreferenceManager2.getInstance(context)
+            return if (itemInfo is ModelAppInfo) {
+                prefs.lockAppDrawer.firstBlocking()
+            } else {
+                prefs.lockHomeScreen.firstBlocking()
+            }
         }
 
         val UNINSTALL =
@@ -68,9 +80,9 @@ class LawnchairShortcut {
                 ) {
                     return@Factory null
                 }
-                // Lock home screen also blocks uninstalling, everywhere a long-press menu can
-                // show this shortcut (home screen, hotseat, folders, and the drawer).
-                if (PreferenceManager2.getInstance(activity).lockHomeScreen.firstBlocking()) {
+                // Home screen lock blocks uninstalling from the home screen, hotseat, or a
+                // folder; app drawer lock blocks it from the drawer's own long-press menu.
+                if (isLockedForItem(activity, itemInfo)) {
                     return@Factory null
                 }
                 UnInstall(activity, itemInfo, view)
