@@ -23,7 +23,7 @@ import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -36,13 +36,20 @@ class FolderService(val context: Context) : SafeCloseable {
     private val appFilter = AppFilter(context)
     private val converters = Converters()
 
-    fun getFoldersFlow(): Flow<List<FolderInfo>> {
-        return folderDao.getAllFoldersWithItems().map { foldersWithItems ->
-            // Build the componentKey -> AppInfo lookup once per emission instead of once per
-            // folder item: LauncherApps.getActivityList() enumerates every installed app, so
-            // doing it per item was O(total folder items * installed apps).
-            val appInfoByComponentKey = buildAppInfoByComponentKey()
-            foldersWithItems.mapNotNull { mapToFolderInfo(it, true, appInfoByComponentKey) }
+    fun getFoldersFlow(): Flow<List<FolderInfo>> = flow {
+        // Cache the componentKey -> AppInfo lookup for the lifetime of this collection instead
+        // of rebuilding it (a full LauncherApps.getActivityList() enumeration of every installed
+        // app) on every single emission: editing a folder's items writes to the same tables this
+        // flow observes, so without the cache, every checkbox toggle re-scanned all apps. The
+        // cache resets whenever a fresh collection starts (e.g. the screen is reopened after the
+        // StateFlow's WhileSubscribed window drops the subscription), matching how the rest of
+        // the app already treats the installed-app list as a per-visit snapshot rather than
+        // something tracked live.
+        var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
+        folderDao.getAllFoldersWithItems().collect { foldersWithItems ->
+            val appInfoByComponentKey = cachedAppInfoByComponentKey
+                ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
+            emit(foldersWithItems.mapNotNull { mapToFolderInfo(it, true, appInfoByComponentKey) })
         }
     }
 
