@@ -82,11 +82,16 @@ class FolderViewModel(
         reloadHelper.reloadGrid()
     }
 
-    /** Persists a manual drag order for the folder list itself; doesn't reload the grid. */
+    /**
+     * Persists a manual drag order for the folder list itself. Unlike [updateFolderItems], this
+     * only ever touches a handful of rank values (no per-app enumeration), so reloading the grid
+     * on every settle - keeping the live app drawer in sync - is cheap enough to do immediately.
+     */
     fun updateFolderOrder(orderedFolderIds: List<Int>) {
         viewModelScope.launch {
             repository.updateFolderOrder(orderedFolderIds)
         }
+        reloadHelper.reloadGrid()
     }
 
     /** Persists a manual drag order for the apps within one folder; doesn't reload the grid. */
