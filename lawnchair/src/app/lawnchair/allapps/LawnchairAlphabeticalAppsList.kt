@@ -6,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.launcher
 import app.lawnchair.preferences.PreferenceManager
@@ -41,9 +40,10 @@ class LawnchairAlphabeticalAppsList<T>(
 
     private val viewModel: FolderViewModel by (context as ComponentActivity).viewModels()
     private var folderList = mutableListOf<FolderInfo>()
-    private val filteredList = mutableListOf<AppInfo>()
 
-    private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
+    // A Set gives O(1) membership checks; this is rebuilt on every apps update and checked
+    // once per installed app, so a List here would make the filter below quadratic.
+    private val filteredSet = mutableSetOf<AppInfo>()
 
     init {
         context.launcher.deviceProfile.inv.addOnChangeListener(this)
@@ -61,7 +61,7 @@ class LawnchairAlphabeticalAppsList<T>(
     private fun observeFolders() {
         viewModel.foldersLiveData.observe(context as LifecycleOwner) { folders ->
             folderList = folders
-                .sortedBy { folderOrder.indexOf(it.id) }
+                .sortedBy { it.title.toString().lowercase() }
                 .toMutableList()
             updateAdapterItems()
         }
@@ -79,7 +79,7 @@ class LawnchairAlphabeticalAppsList<T>(
     override fun addAppsWithSections(appList: List<AppInfo?>?, startPosition: Int): Int {
         if (appList.isNullOrEmpty()) return startPosition
         val drawerListDefault = prefs.drawerList.get()
-        filteredList.clear()
+        filteredSet.clear()
         var position = startPosition
 
         // Show app drawer folders only on main profile, to prevent state complexity
@@ -110,13 +110,13 @@ class LawnchairAlphabeticalAppsList<T>(
                     folder.getContents().forEach { app ->
                         (appsStore.getApp(app.componentKey) as? AppInfo)?.let {
                             folderInfo.add(it)
-                            if (prefs.folderApps.get()) filteredList.add(it)
+                            if (prefs.folderApps.get()) filteredSet.add(it)
                         }
                     }
                 }
                 position++
             }
-            val remainingApps = appList.filterNot { app -> filteredList.contains(app) && prefs.folderApps.get() }
+            val remainingApps = appList.filterNot { app -> filteredSet.contains(app) && prefs.folderApps.get() }
             position = super.addAppsWithSections(remainingApps, position)
         }
 
