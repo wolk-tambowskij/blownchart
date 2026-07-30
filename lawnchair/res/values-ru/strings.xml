@@ -21,7 +21,7 @@
     <string name="security_label">Безопасность</string>
     <string name="app_drawer_lock">Блокировка меню приложений</string>
     <string name="app_drawer_lock_description">Запретить переименование, скрытие, смену иконки и удаление приложений из меню приложений</string>
-    <string name="battery_optimization_tip">Для наиболее стабильной работы в фоне разрешите лончеру игнорировать оптимизацию батареи. У некоторых производителей (Xiaomi, Huawei, Samsung и др.) есть также собственная отдельная настройка автозапуска/фоновой активности — стоит её проверить.</string>
+    <string name="battery_optimization_tip">Для стабильной работы в фоне нажмите, чтобы разрешить лончеру игнорировать оптимизацию батареи</string>
     <string name="settings_lock_label">Блокировка настроек лончера</string>
     <string name="settings_lock_status_on">Вкл</string>
     <string name="settings_lock_status_off">Выкл</string>
