@@ -66,10 +66,17 @@ class FolderService(val context: Context) : SafeCloseable {
         // the app already treats the installed-app list as a per-visit snapshot rather than
         // something tracked live.
         var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
+        // getAllFoldersWithItems() only returns top-level folders; Room's table-level
+        // invalidation still re-emits this Flow when a subfolder's own row or items change; since
+        // its query touches the same Folders/FolderItems tables (see getSubfoldersWithItems()).
         folderDao.getAllFoldersWithItems().collect { foldersWithItems ->
             val appInfoByComponentKey = cachedAppInfoByComponentKey
                 ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
-            emit(foldersWithItems.mapNotNull { mapToFolderInfo(it, true, appInfoByComponentKey) })
+            val mapped = foldersWithItems.mapNotNull { topFolder ->
+                val subfolders = folderDao.getSubfoldersWithItems(topFolder.folder.id)
+                mapToFolderInfo(topFolder, true, appInfoByComponentKey, subfolders)
+            }
+            emit(mapped)
         }
     }
 
@@ -119,6 +126,7 @@ class FolderService(val context: Context) : SafeCloseable {
         folderWithItems: FolderWithItems,
         hasId: Boolean,
         appInfoByComponentKey: Map<String, AppInfo>,
+        subfolders: List<FolderWithItems> = emptyList(),
     ): FolderInfo? {
         return try {
             val domainFolderInfo = FolderInfo().apply {
@@ -132,6 +140,15 @@ class FolderService(val context: Context) : SafeCloseable {
                 .mapNotNull { itemEntity -> itemEntity.componentKey?.let { appInfoByComponentKey[it] } }
                 .sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
                 .forEach { appInfo -> domainFolderInfo.add(appInfo, false) }
+
+            // One level of folder-in-folder nesting: subfolders are appended after apps.
+            // Recursing with no subfolders of their own keeps this to exactly one level deep -
+            // enforced upstream by getNestableFoldersFlow() only offering childless folders as
+            // valid nesting targets, not by anything here.
+            subfolders.forEach { subfolderWithItems ->
+                mapToFolderInfo(subfolderWithItems, hasId = true, appInfoByComponentKey)
+                    ?.let { domainFolderInfo.add(it, false) }
+            }
             domainFolderInfo
         } catch (e: Exception) {
             Log.e("FolderService", "Failed to map FolderWithItems for id: ${folderWithItems.folder.id}", e)
@@ -167,7 +184,10 @@ class FolderService(val context: Context) : SafeCloseable {
     }
 
     suspend fun exportFoldersToJson(): String = withContext(Dispatchers.IO) {
-        val foldersWithItems = folderDao.getAllFoldersWithItems().first()
+        val topLevelFolders = folderDao.getAllFoldersWithItems().first()
+        // Subfolders are exported as their own flat entries - the backup format has no nesting
+        // concept, so re-importing loses the "was nested" relationship, but not the apps/folder.
+        val foldersWithItems = topLevelFolders + topLevelFolders.flatMap { folderDao.getSubfoldersWithItems(it.folder.id) }
         val backup = FolderBackup(
             folders = foldersWithItems.map { folderWithItems ->
                 FolderBackupEntry(

@@ -107,10 +107,17 @@ class LawnchairAlphabeticalAppsList<T>(
                     val folderInfo = FolderInfo()
                     folderInfo.title = folder.title
                     mAdapterItems.add(AdapterItem.asFolder(folderInfo))
-                    folder.getContents().forEach { app ->
-                        (appsStore.getApp(app.componentKey) as? AppInfo)?.let {
-                            folderInfo.add(it)
-                            if (prefs.folderApps.get()) filteredSet.add(it)
+                    folder.getContents().forEach { item ->
+                        // A nested subfolder (one level of folder-in-folder) has no
+                        // componentKey/AllAppsStore entry to re-resolve against - add it as-is,
+                        // same object, or it would otherwise be silently dropped below.
+                        if (item is FolderInfo) {
+                            folderInfo.add(item)
+                        } else {
+                            (appsStore.getApp(item.componentKey) as? AppInfo)?.let {
+                                folderInfo.add(it)
+                                if (prefs.folderApps.get()) filteredSet.add(it)
+                            }
                         }
                     }
                 }

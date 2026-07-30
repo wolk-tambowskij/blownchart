@@ -91,6 +91,7 @@ import com.android.launcher3.widget.PendingAddShortcutInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * An icon that can appear on in the workspace representing an {@link Folder}.
@@ -683,7 +684,14 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
      * Returns the list of items which should be visible in the preview
      */
     public List<ItemInfo> getPreviewItemsOnPage(int page) {
-        return mPreviewVerifier.setFolderInfo(mInfo).previewItemsForPage(page, mInfo.getContents());
+        // A nested subfolder (one level of folder-in-folder, app drawer only) has no static
+        // preview drawable of its own yet, so it's excluded here rather than crashing in
+        // PreviewItemManager#setDrawable - the parent's closed-icon preview simply shows the
+        // plain apps/app-pairs it contains and omits the subfolder glyph.
+        List<ItemInfo> contents = mInfo.getContents().stream()
+                .filter(item -> !(item instanceof FolderInfo))
+                .collect(Collectors.toList());
+        return mPreviewVerifier.setFolderInfo(mInfo).previewItemsForPage(page, contents);
     }
 
     @Override

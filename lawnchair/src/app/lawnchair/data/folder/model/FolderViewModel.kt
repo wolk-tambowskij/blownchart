@@ -12,12 +12,14 @@ import app.lawnchair.preferences2.ReloadHelper
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import java.util.Locale
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -95,6 +97,19 @@ class FolderViewModel(
         reloadHelper.reloadGrid()
     }
 
+    /** Folders [folderId] could be nested inside (excludes itself and anything already a parent). */
+    fun nestableFolders(folderId: Int): Flow<List<NestableFolder>> =
+        repository.getNestableFoldersFlow(excludingFolderId = folderId)
+            .map { entities -> entities.map { NestableFolder(it.id, it.title) } }
+
+    /** Nests [folderId] inside [parentId], or moves it back to the top level if null. */
+    fun setParentFolder(folderId: Int, parentId: Int?) {
+        viewModelScope.launch {
+            repository.setParentFolder(folderId, parentId)
+        }
+        reloadHelper.reloadGrid()
+    }
+
     fun exportFolders(onResult: (Result<String>) -> Unit) {
         viewModelScope.launch {
             onResult(runCatching { repository.exportFoldersToJson() })
@@ -109,3 +124,6 @@ class FolderViewModel(
         }
     }
 }
+
+/** UI-friendly stand-in for a [app.lawnchair.data.folder.FolderInfoEntity] nesting candidate. */
+data class NestableFolder(val id: Int, val title: String)
