@@ -146,12 +146,6 @@ interface FolderDao {
     @Query("UPDATE FolderItems SET rank = :rank WHERE folderId = :folderId AND item_info = :componentKey")
     suspend fun updateFolderItemRank(folderId: Int, componentKey: String, rank: Int)
 
-    /** Persists a manual drag order for the apps within one folder. */
-    @Transaction
-    suspend fun updateFolderItemRanks(folderId: Int, orderedComponentKeys: List<String>) {
-        orderedComponentKeys.forEachIndexed { index, key -> updateFolderItemRank(folderId, key, index) }
-    }
-
     @RawQuery
     suspend fun checkpoint(supportSQLiteQuery: SupportSQLiteQuery): Int
 }

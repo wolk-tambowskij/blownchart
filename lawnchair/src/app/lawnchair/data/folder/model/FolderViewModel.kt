@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import app.lawnchair.data.folder.backup.FolderImportResult
+import app.lawnchair.data.folder.service.FolderContentRef
 import app.lawnchair.data.folder.service.FolderListEntry
 import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.preferences2.ReloadHelper
@@ -110,10 +111,13 @@ class FolderViewModel(
         }
     }
 
-    /** Persists a manual drag order for the apps within one folder; doesn't reload the grid. */
-    fun updateFolderItemOrder(folderId: Int, orderedComponentKeys: List<String>) {
+    /**
+     * Persists a manual drag order for one folder's own contents (apps, and its one nested
+     * subfolder if it has one); doesn't reload the grid.
+     */
+    fun updateFolderItemOrder(folderId: Int, orderedRefs: List<FolderContentRef>) {
         viewModelScope.launch {
-            repository.updateFolderItemOrder(folderId, orderedComponentKeys)
+            repository.updateFolderItemOrder(folderId, orderedRefs)
         }
     }
 

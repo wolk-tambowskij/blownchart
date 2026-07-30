@@ -139,8 +139,19 @@ class FolderService(val context: Context) : SafeCloseable {
         folderDao.updateFolderRanks(orderedFolderIds)
     }
 
-    suspend fun updateFolderItemOrder(folderId: Int, orderedComponentKeys: List<String>) = withContext(Dispatchers.IO) {
-        folderDao.updateFolderItemRanks(folderId, orderedComponentKeys)
+    /**
+     * Persists a manual drag order for one folder's own contents - apps and, if present, its one
+     * nested subfolder mixed in together. A subfolder's rank lives in the Folders table rather
+     * than FolderItems, but stamping both from this same position sequence is what lets
+     * mapToFolderInfo() sort them back into a single, correct combined order later.
+     */
+    suspend fun updateFolderItemOrder(folderId: Int, orderedRefs: List<FolderContentRef>) = withContext(Dispatchers.IO) {
+        orderedRefs.forEachIndexed { index, ref ->
+            when (ref) {
+                is FolderContentRef.AppRef -> folderDao.updateFolderItemRank(folderId, ref.componentKey, index)
+                is FolderContentRef.SubfolderRef -> folderDao.updateFolderRank(ref.folderId, index)
+            }
+        }
     }
 
     suspend fun saveFolderInfo(folderInfo: FolderInfo): Unit = withContext(Dispatchers.IO) {
@@ -173,7 +184,10 @@ class FolderService(val context: Context) : SafeCloseable {
     suspend fun getFolderInfo(folderId: Int, hasId: Boolean = false): FolderInfo? = withContext(Dispatchers.Default) {
         val manualOrder = prefs2.folderManualOrder.firstBlocking()
         folderDao.getFolderWithItems(folderId)?.let {
-            mapToFolderInfo(it, hasId, buildAppInfoByComponentKey(), manualOrder)
+            // Includes this folder's own subfolder (if any), so the app-picker screen can show
+            // and let the user drag-reorder it alongside the folder's apps.
+            val subfolders = folderDao.getSubfoldersWithItems(folderId)
+            mapToFolderInfo(it, hasId, buildAppInfoByComponentKey(), manualOrder, subfolders)
         }
     }
 
@@ -191,27 +205,31 @@ class FolderService(val context: Context) : SafeCloseable {
                 title = folderWithItems.folder.title
             }
 
-            // One level of folder-in-folder nesting: subfolders are added first, so they always
-            // sort to the front of the folder rather than being interspersed with apps.
             // Recursing with no subfolders of their own keeps this to exactly one level deep -
             // enforced upstream by getNestableFoldersFlow() refusing to offer any nesting targets
             // for a folder that already has subfolders of its own, not by anything here.
-            subfolders.forEach { subfolderWithItems ->
+            val mappedSubfolders = subfolders.mapNotNull { subfolderWithItems ->
                 mapToFolderInfo(subfolderWithItems, hasId = true, appInfoByComponentKey, manualOrder)
-                    ?.let { domainFolderInfo.add(it, false) }
+                    ?.let { subfolderWithItems.folder.rank to it }
             }
-
-            val orderedItems = if (manualOrder) {
-                folderWithItems.items.sortedBy { it.rank }
+            val mappedApps = folderWithItems.items.mapNotNull { itemEntity ->
+                itemEntity.componentKey?.let { appInfoByComponentKey[it] }?.let { itemEntity.rank to it }
+            }
+            if (manualOrder) {
+                // A subfolder's own rank lives in a different table (Folders) than an app's
+                // (FolderItems), but both are stamped from the same shared position sequence by
+                // updateFolderItemOrder(), so sorting the two together by rank reproduces
+                // whatever order the user actually dragged them into.
+                (mappedSubfolders + mappedApps).sortedBy { it.first }
+                    .forEach { (_, item) -> domainFolderInfo.add(item, false) }
             } else {
-                folderWithItems.items
+                // No manual order: subfolders always sort to the front, apps alphabetically
+                // after - simpler and enough, since there's no drag-order to preserve here.
+                mappedSubfolders.forEach { (_, item) -> domainFolderInfo.add(item, false) }
+                mappedApps.map { it.second }
+                    .sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
+                    .forEach { domainFolderInfo.add(it, false) }
             }
-            orderedItems
-                .mapNotNull { itemEntity -> itemEntity.componentKey?.let { appInfoByComponentKey[it] } }
-                .let { apps ->
-                    if (manualOrder) apps else apps.sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
-                }
-                .forEach { appInfo -> domainFolderInfo.add(appInfo, false) }
             domainFolderInfo
         } catch (e: Exception) {
             Log.e("FolderService", "Failed to map FolderWithItems for id: ${folderWithItems.folder.id}", e)
@@ -333,3 +351,9 @@ class FolderService(val context: Context) : SafeCloseable {
 
 /** A folder from the flat management list, paired with its parent's id if it's nested. */
 data class FolderListEntry(val folderInfo: FolderInfo, val parentFolderId: Int?)
+
+/** One slot in a folder's manually-ordered contents, for [FolderService.updateFolderItemOrder]. */
+sealed interface FolderContentRef {
+    data class AppRef(val componentKey: String) : FolderContentRef
+    data class SubfolderRef(val folderId: Int) : FolderContentRef
+}
