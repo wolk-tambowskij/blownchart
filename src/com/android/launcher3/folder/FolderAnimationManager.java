@@ -53,6 +53,7 @@ import com.androidinternal.graphics.ColorUtils;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import app.lawnchair.theme.color.ColorOption;
 import app.lawnchair.theme.color.tokens.ColorTokens;
@@ -360,10 +361,20 @@ public class FolderAnimationManager {
 
     /**
      * Returns the list of "preview items" on {@param page}.
+     *
+     * A nested subfolder (one level of folder-in-folder, app drawer only) is excluded here, same
+     * as in {@link FolderIcon#getPreviewItemsOnPage}, so it never participates in the open/close
+     * preview-icon animation - it has no static preview slot on the collapsed icon to animate
+     * to/from, and its view is a FolderIcon rather than a BubbleTextView/AppPairIcon. The grid is
+     * sized off the filtered count (not the raw content size) so rank math lines up with the
+     * filtered list actually being laid out.
      */
     private List<View> getPreviewIconsOnPage(int page) {
-        return mPreviewVerifier.setFolderInfo(mFolder.mInfo)
-                .previewItemsForPage(page, mFolder.getIconsInReadingOrder());
+        List<View> nonFolderViews = mFolder.getIconsInReadingOrder().stream()
+                .filter(v -> !(v instanceof FolderIcon))
+                .collect(Collectors.toList());
+        return mPreviewVerifier.setContentSize(nonFolderViews.size())
+                .previewItemsForPage(page, nonFolderViews);
     }
 
     /**
@@ -512,8 +523,13 @@ public class FolderAnimationManager {
      * only serves to store the title text.
      */
     private BubbleTextView getBubbleTextView(View v) {
-        return v instanceof AppPairIcon
-                ? ((AppPairIcon) v).getTitleTextView()
-                : (BubbleTextView) v;
+        if (v instanceof AppPairIcon) {
+            return ((AppPairIcon) v).getTitleTextView();
+        } else if (v instanceof FolderIcon) {
+            // A nested subfolder (one level of folder-in-folder, app drawer only): its own name
+            // label doubles as its title text, same role AppPairIcon's title view plays above.
+            return ((FolderIcon) v).getFolderName();
+        }
+        return (BubbleTextView) v;
     }
 }
