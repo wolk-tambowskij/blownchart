@@ -271,10 +271,13 @@ class FolderService(val context: Context) : SafeCloseable {
                                 FolderBackupApp(
                                     packageName = key.componentName.packageName,
                                     className = key.componentName.className,
+                                    rank = item.rank,
                                 )
                             }
                     },
                     parentIndex = parentIndexByFolderId[folderWithItems.folder.id],
+                    rank = folderWithItems.folder.rank,
+                    hide = folderWithItems.folder.hide,
                 )
             },
         )
@@ -296,14 +299,17 @@ class FolderService(val context: Context) : SafeCloseable {
         val newFolderIdByIndex = mutableMapOf<Int, Int>()
 
         backup.folders.forEachIndexed { index, entry ->
-            val resolvedApps = entry.apps.mapNotNull { app ->
-                appInfoByPackageAndClass[app.packageName to app.className]
+            val resolvedItems = entry.apps.mapNotNull { app ->
+                appInfoByPackageAndClass[app.packageName to app.className]?.toEntity(0, app.rank)
             }
-            skippedApps += entry.apps.size - resolvedApps.size
-            if (resolvedApps.isNotEmpty()) {
-                newFolderIdByIndex[index] = folderDao.insertNewFolderWithItems(entry.title, resolvedApps.map { it.toEntity(0) })
+            skippedApps += entry.apps.size - resolvedItems.size
+            if (resolvedItems.isNotEmpty()) {
+                val newId = folderDao.insertNewFolderWithItems(entry.title, resolvedItems)
+                folderDao.updateFolderInfo(newId, entry.title, entry.hide)
+                folderDao.updateFolderRank(newId, entry.rank)
+                newFolderIdByIndex[index] = newId
                 importedFolders++
-                importedApps += resolvedApps.size
+                importedApps += resolvedItems.size
             }
         }
         backup.folders.forEachIndexed { index, entry ->
