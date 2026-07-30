@@ -82,6 +82,25 @@ class FolderViewModel(
         reloadHelper.reloadGrid()
     }
 
+    /**
+     * Persists a manual drag order for the folder list itself; doesn't reload the grid. Reloading
+     * immediately on every settle raced with this write (the grid could reload before the new
+     * ranks were committed) and caused the dragged folder to visibly snap back. Like
+     * [updateFolderItemOrder], the reload is deferred to [onFolderEditingFinished] on screen exit.
+     */
+    fun updateFolderOrder(orderedFolderIds: List<Int>) {
+        viewModelScope.launch {
+            repository.updateFolderOrder(orderedFolderIds)
+        }
+    }
+
+    /** Persists a manual drag order for the apps within one folder; doesn't reload the grid. */
+    fun updateFolderItemOrder(folderId: Int, orderedComponentKeys: List<String>) {
+        viewModelScope.launch {
+            repository.updateFolderItemOrder(folderId, orderedComponentKeys)
+        }
+    }
+
     fun createFolder(folderInfo: FolderInfo) {
         viewModelScope.launch {
             repository.saveFolderInfo(folderInfo)

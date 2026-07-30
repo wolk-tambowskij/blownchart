@@ -60,9 +60,11 @@ class LawnchairAlphabeticalAppsList<T>(
 
     private fun observeFolders() {
         viewModel.foldersLiveData.observe(context as LifecycleOwner) { folders ->
-            folderList = folders
-                .sortedBy { it.title.toString().lowercase() }
-                .toMutableList()
+            // FolderService.getFoldersFlow() already emits folders in the right order for the
+            // current folderManualOrder setting (by rank, or alphabetically) - re-sorting here
+            // unconditionally used to silently discard manual order and explains why dragging
+            // folders in settings never changed anything in the live drawer.
+            folderList = folders.toMutableList()
             updateAdapterItems()
         }
     }
