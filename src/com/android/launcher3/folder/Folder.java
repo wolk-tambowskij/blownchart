@@ -24,6 +24,7 @@ import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT;
+import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER;
 import static com.android.launcher3.LauncherState.EDIT_MODE;
 import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.compat.AccessibilityManagerCompat.sendCustomAccessibilityEvent;
@@ -198,7 +199,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     public static boolean willAcceptItemType(int itemType) {
         return itemType == ITEM_TYPE_APPLICATION
                 || itemType == ITEM_TYPE_DEEP_SHORTCUT
-                || itemType == ITEM_TYPE_APP_PAIR;
+                || itemType == ITEM_TYPE_APP_PAIR
+                // Allows one level of folder-in-folder nesting (app drawer folders only; the
+                // subfolder itself never accepts another subfolder - enforced upstream where
+                // subfolders are created, not here).
+                || itemType == ITEM_TYPE_FOLDER;
     }
 
     private Alarm mReorderAlarm = new Alarm(Looper.getMainLooper());

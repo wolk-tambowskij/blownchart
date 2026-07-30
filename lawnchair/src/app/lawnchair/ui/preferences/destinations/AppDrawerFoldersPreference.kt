@@ -13,9 +13,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.DriveFileMove
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -26,6 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.data.folder.model.FolderViewModel
+import app.lawnchair.data.folder.model.NestableFolder
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.ModalBottomSheetContent
@@ -57,6 +62,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun AppDrawerFolderPreferenceItem(
@@ -150,6 +156,18 @@ fun AppDrawerFoldersPreference(
         onDeleteFolder = {
             viewModel.deleteFolder(it.id)
         },
+        onNestFolder = { folderInfo ->
+            bottomSheetHandler.show {
+                NestFolderSheet(
+                    nestableFolders = viewModel.nestableFolders(folderInfo.id),
+                    onSelect = { parentId ->
+                        viewModel.setParentFolder(folderInfo.id, parentId)
+                        bottomSheetHandler.hide()
+                    },
+                    onDismiss = { bottomSheetHandler.hide() },
+                )
+            }
+        },
         onExportFolders = {
             val fileName = "lawnchair_folders_${SimpleDateFormat.getDateTimeInstance().format(Date())}.json"
             Intent(Intent.ACTION_CREATE_DOCUMENT)
@@ -174,6 +192,7 @@ fun AppDrawerFoldersPreference(
     onEditFolderItems: (Int) -> Unit,
     onRenameFolder: (FolderInfo, String) -> Unit,
     onDeleteFolder: (FolderInfo) -> Unit,
+    onNestFolder: (FolderInfo) -> Unit,
     onExportFolders: () -> Unit,
     onImportFolders: () -> Unit,
     modifier: Modifier = Modifier,
@@ -268,6 +287,7 @@ fun AppDrawerFoldersPreference(
                             }
                         },
                         onItemDelete = onDeleteFolder,
+                        onItemNest = onNestFolder,
                     )
                 }
             }
@@ -342,6 +362,7 @@ fun FolderItem(
     folderInfo: FolderInfo,
     onItemClick: (FolderInfo) -> Unit,
     onItemDelete: (FolderInfo) -> Unit,
+    onItemNest: (FolderInfo) -> Unit,
     modifier: Modifier = Modifier,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
@@ -361,6 +382,13 @@ fun FolderItem(
             Row {
                 IconButton(
                     onClick = {
+                        onItemNest(folderInfo)
+                    },
+                ) {
+                    Icon(Icons.Rounded.DriveFileMove, contentDescription = stringResource(R.string.folder_nest_action), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                IconButton(
+                    onClick = {
                         onItemDelete(folderInfo)
                     },
                 ) {
@@ -375,4 +403,40 @@ fun FolderItem(
             onItemClick(folderInfo)
         },
     )
+}
+
+@Composable
+fun NestFolderSheet(
+    nestableFolders: Flow<List<NestableFolder>>,
+    onSelect: (Int?) -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val folders by nestableFolders.collectAsState(initial = emptyList())
+
+    ModalBottomSheetContent(
+        buttons = {
+            OutlinedButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+        modifier = modifier,
+    ) {
+        LazyColumn {
+            item {
+                ClickablePreference(
+                    label = stringResource(R.string.folder_nest_top_level),
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    onClick = { onSelect(null) },
+                )
+            }
+            items(folders) { folder ->
+                ClickablePreference(
+                    label = folder.title,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    onClick = { onSelect(folder.id) },
+                )
+            }
+        }
+    }
 }

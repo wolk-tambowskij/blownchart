@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~     This file is part of Lawnchair Launcher.
+  ~
+  ~     Lawnchair Launcher is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     Lawnchair Launcher is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with Lawnchair Launcher.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+<!-- A subfolder cell shown inside another (drawer) folder's own FolderPagedView - sized like
+     folder_icon.xml/folder_app_pair.xml (one grid cell), not like all_apps_folder_icon.xml
+     (which is sized for a RecyclerView row in the top-level drawer list). -->
+<com.android.launcher3.folder.FolderIcon
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:focusable="true"
+    android:defaultFocusHighlightEnabled="false">
+    <com.android.launcher3.BubbleTextView
+        style="@style/BaseIcon"
+        android:id="@+id/folder_icon_name"
+        android:focusable="false"
+        android:layout_gravity="top"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        launcher:iconDisplay="drawer_folder" />
+</com.android.launcher3.folder.FolderIcon>
