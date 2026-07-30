@@ -647,9 +647,12 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     }
 
     /**
-     * Draws a small static folder glyph over the bottom-right corner of the preview when this
+     * Draws a small static folder glyph straddling the bottom-right edge of the preview when this
      * folder contains a nested subfolder (app drawer only, one level deep) - a quick visual cue
-     * that there's more to open here, distinct from the notification dot's own corner.
+     * that there's more to open here, distinct from the notification dot's own corner. Centered
+     * ON the (inset) edge, rather than tucked entirely inside it, so the background's own border
+     * passes through roughly the middle of the badge instead of running along its edge, where a
+     * solid-colored badge would otherwise be hard to tell apart from the border itself.
      */
     private void drawNestedFolderBadge(Canvas canvas) {
         boolean hasNestedFolder = mInfo.getContents().stream().anyMatch(item -> item instanceof FolderInfo);
@@ -657,15 +660,16 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
             return;
         }
         if (mNestedFolderBadge == null) {
-            mNestedFolderBadge = getContext().getDrawable(R.drawable.ic_folder).mutate();
+            mNestedFolderBadge = getContext().getDrawable(R.drawable.ic_folder_badge).mutate();
         }
         Rect bounds = new Rect();
         mBackground.getBounds(bounds);
         int badgeSize = Math.round(bounds.width() * 0.3f);
+        int half = badgeSize / 2;
         int inset = Math.round(bounds.width() * 0.04f);
-        int right = bounds.right - inset;
-        int bottom = bounds.bottom - inset;
-        mNestedFolderBadge.setBounds(right - badgeSize, bottom - badgeSize, right, bottom);
+        int centerX = bounds.right - inset;
+        int centerY = bounds.bottom - inset;
+        mNestedFolderBadge.setBounds(centerX - half, centerY - half, centerX + half, centerY + half);
         mNestedFolderBadge.draw(canvas);
     }
 
