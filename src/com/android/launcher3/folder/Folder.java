@@ -98,6 +98,7 @@ import com.android.launcher3.logger.LauncherAtom.FromState;
 import com.android.launcher3.logger.LauncherAtom.ToState;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
+import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.FolderInfo.FolderListener;
 import com.android.launcher3.model.data.ItemInfo;
@@ -434,6 +435,19 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         return mInfo.container == ItemInfo.NO_ID;
     }
 
+    /**
+     * App-drawer folders aren't tracked in the real LauncherModel at all - they're persisted
+     * entirely through app.lawnchair.data.folder's own Room database, whose ids come from a
+     * separate autoincrement sequence that can coincidentally collide with a real, unrelated
+     * item's id in the model (e.g. a hotseat app). Passing one of these FolderInfo objects to
+     * ModelWriter validates it against whatever real item happens to share that id and throws
+     * when it doesn't match. Use this in place of mLauncherDelegate.getModelWriter() for the
+     * (null-safe) FolderInfo.setTitle()/setOption() calls elsewhere in this class.
+     */
+    private ModelWriter getModelWriterOrNull() {
+        return isInAppDrawer() ? null : mLauncherDelegate.getModelWriter();
+    }
+
     @Override
     public void onDragEnd() {
         if (mIsExternalDrag && mIsDragInProgress) {
@@ -457,7 +471,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (DEBUG) {
             Log.d(TAG, "onBackKey newTitle=" + newTitle);
         }
-        mInfo.setTitle(newTitle, mLauncherDelegate.getModelWriter());
+        mInfo.setTitle(newTitle, getModelWriterOrNull());
         mFolderIcon.onTitleChanged(newTitle);
 
         if (TextUtils.isEmpty(mInfo.title)) {
@@ -817,7 +831,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
                     if (updateAnimationFlag) {
                         mInfo.setOption(FolderInfo.FLAG_MULTI_PAGE_ANIMATION, true,
-                                mLauncherDelegate.getModelWriter());
+                                getModelWriterOrNull());
                     }
                 }
             });
@@ -1236,7 +1250,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (getItemCount() <= mContent.itemsPerPage()) {
             // Show the animation, next time something is added to the folder.
             mInfo.setOption(FolderInfo.FLAG_MULTI_PAGE_ANIMATION, false,
-                    mLauncherDelegate.getModelWriter());
+                    getModelWriterOrNull());
         }
     }
 
@@ -1253,7 +1267,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             }
         }
 
-        if (!items.isEmpty()) {
+        if (!items.isEmpty() && !isInAppDrawer()) {
             mLauncherDelegate.getModelWriter().moveItemsInDatabase(items, mInfo.id, 0);
         }
         if (!isBind && total > 1 /* no need to update if there's one icon */) {
@@ -1476,8 +1490,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
                 // Actually move the item in the database if it was an external drag. Call this
                 // before creating the view, so that the ItemInfo is updated appropriately.
-                mLauncherDelegate.getModelWriter().addOrMoveItemInDatabase(
-                        si, mInfo.id, 0, si.cellX, si.cellY);
+                // (Skipped for app-drawer folders - see getModelWriterOrNull().)
+                if (!isInAppDrawer()) {
+                    mLauncherDelegate.getModelWriter().addOrMoveItemInDatabase(
+                            si, mInfo.id, 0, si.cellX, si.cellY);
+                }
                 mIsExternalDrag = false;
             } else {
                 currentDragView = mCurrentDragView;
@@ -1520,7 +1537,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (mContent.getPageCount() > 1) {
             // The animation has already been shown while opening the folder.
             mInfo.setOption(FolderInfo.FLAG_MULTI_PAGE_ANIMATION, true,
-                    mLauncherDelegate.getModelWriter());
+                    getModelWriterOrNull());
         }
 
         if (!launcher.isInState(EDIT_MODE)) {
@@ -1556,8 +1573,10 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         FolderGridOrganizer verifier = createFolderGridOrganizer(
                 mActivityContext.getDeviceProfile()).setFolderInfo(mInfo);
         verifier.updateRankAndPos(item, rank);
-        mLauncherDelegate.getModelWriter().addOrMoveItemInDatabase(item, mInfo.id, 0, item.cellX,
-                item.cellY);
+        if (!isInAppDrawer()) {
+            mLauncherDelegate.getModelWriter().addOrMoveItemInDatabase(item, mInfo.id, 0,
+                    item.cellX, item.cellY);
+        }
         updateItemLocationsInDatabaseBatch(false);
 
         if (mContent.areViewsBound()) {
