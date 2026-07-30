@@ -98,9 +98,8 @@ class FolderViewModel(
     }
 
     /** Folders [folderId] could be nested inside (excludes itself and anything already a parent). */
-    fun nestableFolders(folderId: Int): Flow<List<NestableFolder>> =
-        repository.getNestableFoldersFlow(excludingFolderId = folderId)
-            .map { entities -> entities.map { NestableFolder(it.id, it.title) } }
+    fun nestableFolders(folderId: Int): Flow<List<NestableFolder>> = repository.getNestableFoldersFlow(excludingFolderId = folderId)
+        .map { entities -> entities.map { NestableFolder(it.id, it.title) } }
 
     /** Nests [folderId] inside [parentId], or moves it back to the top level if null. */
     fun setParentFolder(folderId: Int, parentId: Int?) {
