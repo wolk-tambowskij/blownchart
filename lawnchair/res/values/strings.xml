@@ -149,7 +149,8 @@
     <string name="folder_import_action">Import folders</string>
     <string name="folder_nest_action">Move to folder</string>
     <string name="folder_nest_top_level">Top level (no parent folder)</string>
-    <string name="folder_nested_in">%1$s · nested in \"%2$s\"</string>
+    <string name="folder_nested_in">nested in \"%1$s\"</string>
+    <string name="folder_nested_count">(%1$d nested)</string>
     <string name="folder_export_success">Folders exported</string>
     <string name="folder_export_error">Failed to export folders</string>
     <string name="folder_import_success">Imported %1$d folder(s), %2$d app(s) (%3$d skipped)</string>

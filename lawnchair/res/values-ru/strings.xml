@@ -66,5 +66,6 @@
     <string name="folder_contents_heading">В этой папке</string>
     <string name="folder_nest_action">Переместить в папку</string>
     <string name="folder_nest_top_level">Верхний уровень (без родительской папки)</string>
-    <string name="folder_nested_in">%1$s · вложена в «%2$s»</string>
+    <string name="folder_nested_in">вложена в «%1$s»</string>
+    <string name="folder_nested_count">(вложено: %1$d)</string>
 </resources>

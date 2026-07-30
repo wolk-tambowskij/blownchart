@@ -39,7 +39,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -259,11 +263,12 @@ fun AppDrawerFoldersPreference(
 
     // folderEntries already arrives ordered (rank in manual mode, alphabetical otherwise) - see
     // FolderService.getAllFoldersFlatFlow().
-    val alphabeticalOrder = remember(folderEntries) {
-        folderEntries.sortedBy { it.folderInfo.title.toString().lowercase(Locale.getDefault()) }
+    val topLevelEntries = remember(folderEntries) { folderEntries.filter { it.parentFolderId == null } }
+    val childrenByParentId = remember(folderEntries) {
+        folderEntries.filter { it.parentFolderId != null }.groupBy { it.parentFolderId }
     }
-    val parentTitleById = remember(folderEntries) {
-        folderEntries.associate { it.folderInfo.id to it.folderInfo.title.toString() }
+    val topLevelAlphabeticalOrder = remember(topLevelEntries) {
+        topLevelEntries.sortedBy { it.folderInfo.title.toString().lowercase(Locale.getDefault()) }
     }
 
     PreferenceLayout(
@@ -332,50 +337,88 @@ fun AppDrawerFoldersPreference(
                 },
             )
         }
-        if (folderEntries.isNotEmpty()) {
+        if (topLevelEntries.isNotEmpty()) {
             if (manualOrder) {
+                // Only top-level folders are individually draggable here - a nested folder's
+                // display position isn't independently tracked (it always renders as the first
+                // item inside its parent, see FolderService.mapToFolderInfo()), so letting it be
+                // dragged around this list would look like reordering without doing anything.
+                // Instead each nested folder is rendered as part of its parent's own list cell
+                // (below), so it moves along with its parent and can't end up outside its block.
                 ReorderablePreferenceGroup(
                     label = null,
-                    items = folderEntries,
-                    defaultList = alphabeticalOrder,
+                    items = topLevelEntries,
+                    defaultList = topLevelAlphabeticalOrder,
                     onOrderChange = { onReorderFolders(it.map { entry -> entry.folderInfo.id }) },
                 ) { entry, _, _, onDraggingChange ->
+                    // Captured before entering the Column below, whose own content lambda has a
+                    // ColumnScope receiver that would otherwise shadow this ReorderableScope.
+                    val reorderableScope = this
                     val folderInfo = entry.folderInfo
-                    FolderItem(
-                        folderInfo = folderInfo,
-                        parentFolderTitle = entry.parentFolderId?.let { parentTitleById[it] },
-                        onItemClick = {
-                            bottomSheetHandler.show {
-                                FolderEditSheet(
-                                    folderInfo,
-                                    onRename = onRenameFolder,
-                                    onNavigate = {
-                                        onEditFolderItems(it)
-                                        bottomSheetHandler.hide()
-                                    },
-                                    onDismiss = {
-                                        bottomSheetHandler.hide()
-                                    },
+                    val children = childrenByParentId[folderInfo.id].orEmpty()
+                    Column {
+                        FolderItem(
+                            folderInfo = folderInfo,
+                            childCount = children.size,
+                            onItemClick = {
+                                bottomSheetHandler.show {
+                                    FolderEditSheet(
+                                        folderInfo,
+                                        onRename = onRenameFolder,
+                                        onNavigate = {
+                                            onEditFolderItems(it)
+                                            bottomSheetHandler.hide()
+                                        },
+                                        onDismiss = {
+                                            bottomSheetHandler.hide()
+                                        },
+                                    )
+                                }
+                            },
+                            onItemDelete = onDeleteFolder,
+                            onItemNest = onNestFolder,
+                            dragHandle = {
+                                ReorderableDragHandle(
+                                    scope = reorderableScope,
+                                    onDragStop = { onDraggingChange(false) },
                                 )
-                            }
-                        },
-                        onItemDelete = onDeleteFolder,
-                        onItemNest = onNestFolder,
-                        dragHandle = {
-                            ReorderableDragHandle(
-                                scope = this,
-                                onDragStop = { onDraggingChange(false) },
+                            },
+                        )
+                        children.forEach { child ->
+                            val childInfo = child.folderInfo
+                            FolderItem(
+                                folderInfo = childInfo,
+                                parentFolderTitle = folderInfo.title.toString(),
+                                modifier = Modifier.padding(start = 24.dp),
+                                onItemClick = {
+                                    bottomSheetHandler.show {
+                                        FolderEditSheet(
+                                            childInfo,
+                                            onRename = onRenameFolder,
+                                            onNavigate = {
+                                                onEditFolderItems(it)
+                                                bottomSheetHandler.hide()
+                                            },
+                                            onDismiss = {
+                                                bottomSheetHandler.hide()
+                                            },
+                                        )
+                                    }
+                                },
+                                onItemDelete = onDeleteFolder,
+                                onItemNest = onNestFolder,
                             )
-                        },
-                    )
+                        }
+                    }
                 }
             } else {
                 PreferenceGroup {
-                    folderEntries.forEach { entry ->
+                    topLevelEntries.forEach { entry ->
                         val folderInfo = entry.folderInfo
+                        val children = childrenByParentId[folderInfo.id].orEmpty()
                         FolderItem(
                             folderInfo = folderInfo,
-                            parentFolderTitle = entry.parentFolderId?.let { parentTitleById[it] },
+                            childCount = children.size,
                             onItemClick = {
                                 bottomSheetHandler.show {
                                     FolderEditSheet(
@@ -394,6 +437,31 @@ fun AppDrawerFoldersPreference(
                             onItemDelete = onDeleteFolder,
                             onItemNest = onNestFolder,
                         )
+                        children.forEach { child ->
+                            val childInfo = child.folderInfo
+                            FolderItem(
+                                folderInfo = childInfo,
+                                parentFolderTitle = folderInfo.title.toString(),
+                                modifier = Modifier.padding(start = 24.dp),
+                                onItemClick = {
+                                    bottomSheetHandler.show {
+                                        FolderEditSheet(
+                                            childInfo,
+                                            onRename = onRenameFolder,
+                                            onNavigate = {
+                                                onEditFolderItems(it)
+                                                bottomSheetHandler.hide()
+                                            },
+                                            onDismiss = {
+                                                bottomSheetHandler.hide()
+                                            },
+                                        )
+                                    }
+                                },
+                                onItemDelete = onDeleteFolder,
+                                onItemNest = onNestFolder,
+                            )
+                        }
                     }
                 }
             }
@@ -471,23 +539,40 @@ fun FolderItem(
     onItemNest: (FolderInfo) -> Unit,
     modifier: Modifier = Modifier,
     parentFolderTitle: String? = null,
+    childCount: Int = 0,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     dragHandle: (@Composable () -> Unit)? = null,
 ) {
     val resources = LocalContext.current.resources
     PreferenceTemplate(
         title = {
+            val nestedCountText = if (childCount > 0) stringResource(R.string.folder_nested_count, childCount) else null
             Text(
-                text = folderInfo.title.toString(),
+                text = buildAnnotatedString {
+                    if (nestedCountText != null) {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(folderInfo.title.toString())
+                        }
+                        append(" ")
+                        append(nestedCountText)
+                    } else {
+                        append(folderInfo.title.toString())
+                    }
+                },
             )
         },
         description = {
             val appsCount = resources.getQuantityString(R.plurals.apps_count, folderInfo.getContents().size, folderInfo.getContents().size)
+            val nestedInText = parentFolderTitle?.let { stringResource(R.string.folder_nested_in, it) }
             Text(
-                text = if (parentFolderTitle != null) {
-                    stringResource(R.string.folder_nested_in, appsCount, parentFolderTitle)
-                } else {
-                    appsCount
+                text = buildAnnotatedString {
+                    append(appsCount)
+                    if (nestedInText != null) {
+                        append(" · ")
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(nestedInText)
+                        }
+                    }
                 },
             )
         },
