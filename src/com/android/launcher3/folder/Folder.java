@@ -856,16 +856,25 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     }
 
     /**
-     * If there's a folder already open, we want to close it before opening another one.
+     * If there's a folder already open, we want to close it before opening another one - unless
+     * it's this folder's own parent (we're a nested subfolder being opened from inside it), in
+     * which case we leave it open behind us instead. Closing it would tear down its content view
+     * tree (see hasOpenNestedFolder()/closeComplete()), and DragLayer has no problem hosting both
+     * at once - only one of them needs to actually be the active drop target/handle back presses.
      */
     @VisibleForTesting
     boolean closeOpenFolder(Folder openFolder) {
-        if (openFolder != null && openFolder != this) {
+        if (openFolder != null && openFolder != this && !openFolder.isParentOf(this)) {
             // Close any open folder before opening a folder.
             openFolder.close(true);
             return true;
         }
         return false;
+    }
+
+    /** True if [child]'s FolderInfo is one of this folder's own (one level of nesting) contents. */
+    private boolean isParentOf(Folder child) {
+        return mInfo.getContents().contains(child.mInfo);
     }
 
     @Override

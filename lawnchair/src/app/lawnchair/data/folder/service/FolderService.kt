@@ -248,11 +248,20 @@ class FolderService(val context: Context) : SafeCloseable {
 
     suspend fun exportFoldersToJson(): String = withContext(Dispatchers.IO) {
         val topLevelFolders = folderDao.getAllFoldersWithItems().first()
-        // Subfolders are exported as their own flat entries - the backup format has no nesting
-        // concept, so re-importing loses the "was nested" relationship, but not the apps/folder.
-        val foldersWithItems = topLevelFolders + topLevelFolders.flatMap { folderDao.getSubfoldersWithItems(it.folder.id) }
+        // Each top-level folder is immediately followed by its own subfolders, so a subfolder's
+        // parentIndex can reference the top-level entry that was just added before it.
+        val orderedFoldersWithItems = mutableListOf<FolderWithItems>()
+        val parentIndexByFolderId = mutableMapOf<Int, Int>()
+        topLevelFolders.forEach { top ->
+            val topIndex = orderedFoldersWithItems.size
+            orderedFoldersWithItems.add(top)
+            folderDao.getSubfoldersWithItems(top.folder.id).forEach { sub ->
+                parentIndexByFolderId[sub.folder.id] = topIndex
+                orderedFoldersWithItems.add(sub)
+            }
+        }
         val backup = FolderBackup(
-            folders = foldersWithItems.map { folderWithItems ->
+            folders = orderedFoldersWithItems.map { folderWithItems ->
                 FolderBackupEntry(
                     title = folderWithItems.folder.title,
                     apps = folderWithItems.items.mapNotNull { item ->
@@ -265,6 +274,7 @@ class FolderService(val context: Context) : SafeCloseable {
                                 )
                             }
                     },
+                    parentIndex = parentIndexByFolderId[folderWithItems.folder.id],
                 )
             },
         )
@@ -273,7 +283,8 @@ class FolderService(val context: Context) : SafeCloseable {
 
     /**
      * Imports folders as new entries; existing folders are left untouched. Apps not installed
-     * on this device are skipped.
+     * on this device are skipped. A subfolder's nesting (backed by [FolderBackupEntry.parentIndex])
+     * is restored in a second pass, once every entry's new id is known.
      */
     suspend fun importFoldersFromJson(json: String): FolderImportResult = withContext(Dispatchers.IO) {
         val backup = kotlinxJson.decodeFromString<FolderBackup>(json)
@@ -282,17 +293,23 @@ class FolderService(val context: Context) : SafeCloseable {
         var importedFolders = 0
         var importedApps = 0
         var skippedApps = 0
+        val newFolderIdByIndex = mutableMapOf<Int, Int>()
 
-        backup.folders.forEach { entry ->
+        backup.folders.forEachIndexed { index, entry ->
             val resolvedApps = entry.apps.mapNotNull { app ->
                 appInfoByPackageAndClass[app.packageName to app.className]
             }
             skippedApps += entry.apps.size - resolvedApps.size
             if (resolvedApps.isNotEmpty()) {
-                folderDao.insertNewFolderWithItems(entry.title, resolvedApps.map { it.toEntity(0) })
+                newFolderIdByIndex[index] = folderDao.insertNewFolderWithItems(entry.title, resolvedApps.map { it.toEntity(0) })
                 importedFolders++
                 importedApps += resolvedApps.size
             }
+        }
+        backup.folders.forEachIndexed { index, entry ->
+            val newId = newFolderIdByIndex[index] ?: return@forEachIndexed
+            val newParentId = entry.parentIndex?.let { newFolderIdByIndex[it] } ?: return@forEachIndexed
+            folderDao.setParentFolder(newId, newParentId)
         }
 
         FolderImportResult(importedFolders, importedApps, skippedApps)
