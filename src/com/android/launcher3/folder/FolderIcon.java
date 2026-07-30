@@ -473,7 +473,10 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         CharSequence newTitle = nameInfos.getLabels()[0];
         FromState fromState = mInfo.getFromLabelState();
 
-        mInfo.setTitle(newTitle, mFolder.mLauncherDelegate.getModelWriter());
+        // App-drawer folders aren't tracked in the real LauncherModel - their ids come from a
+        // separate database and can coincidentally collide with a real item's id, so never pass
+        // one to ModelWriter (setTitle() is null-safe and just skips the DB write).
+        mInfo.setTitle(newTitle, isInAppDrawer() ? null : mFolder.mLauncherDelegate.getModelWriter());
         onTitleChanged(mInfo.title);
         mFolder.getFolderName().setText(mInfo.title);
 
