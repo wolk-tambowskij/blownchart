@@ -34,19 +34,35 @@ interface FolderDao {
     @Transaction
     fun getAllFoldersWithItems(): Flow<List<FolderWithItems>>
 
+    /**
+     * Every folder regardless of nesting - unlike [getAllFoldersWithItems], this includes
+     * subfolders as their own top-level-looking entries, for the flat Settings management list
+     * where a nested folder must stay individually reachable to rename, delete, or un-nest.
+     */
+    @Query("SELECT * FROM Folders")
+    @Transaction
+    fun getAllFoldersFlatWithItems(): Flow<List<FolderWithItems>>
+
     /** Folders nested one level inside [parentId]. */
     @Query("SELECT * FROM Folders WHERE parentFolderId = :parentId")
     @Transaction
     suspend fun getSubfoldersWithItems(parentId: Int): List<FolderWithItems>
 
-    /** Folders eligible to become a subfolder: top-level and not already a parent themselves. */
+    /**
+     * Valid nesting targets for [folderId]: other top-level folders (nesting under an
+     * already-nested folder would put [folderId] two levels deep). A top-level folder can
+     * receive any number of subfolders, so already having one doesn't disqualify it as a target.
+     * If [folderId] itself already has subfolders, nesting it further would push those subfolders
+     * two levels deep, so no targets are offered at all in that case.
+     */
     @Query(
         """
         SELECT * FROM Folders
-        WHERE parentFolderId IS NULL AND id NOT IN (SELECT DISTINCT parentFolderId FROM Folders WHERE parentFolderId IS NOT NULL)
+        WHERE parentFolderId IS NULL AND id != :folderId
+        AND NOT EXISTS (SELECT 1 FROM Folders c WHERE c.parentFolderId = :folderId)
         """,
     )
-    fun getNestableFoldersFlow(): Flow<List<FolderInfoEntity>>
+    fun getNestableFoldersFlow(folderId: Int): Flow<List<FolderInfoEntity>>
 
     @Query("UPDATE Folders SET parentFolderId = :parentFolderId WHERE id = :folderId")
     suspend fun setParentFolder(folderId: Int, parentFolderId: Int?)
