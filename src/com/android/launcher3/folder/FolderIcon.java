@@ -142,6 +142,10 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
 
     private float mScaleForReorderBounce = 1f;
 
+    // Small static badge marking a folder that has a nested subfolder among its contents (app
+    // drawer only, one level deep) - lazily created, cached for the life of this icon view.
+    private Drawable mNestedFolderBadge;
+
     private static final Property<FolderIcon, Float> DOT_SCALE_PROPERTY
             = new Property<FolderIcon, Float>(Float.TYPE, "dotScale") {
         @Override
@@ -631,6 +635,30 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         }
 
         drawDot(canvas);
+        drawNestedFolderBadge(canvas);
+    }
+
+    /**
+     * Draws a small static folder glyph over the bottom-right corner of the preview when this
+     * folder contains a nested subfolder (app drawer only, one level deep) - a quick visual cue
+     * that there's more to open here, distinct from the notification dot's own corner.
+     */
+    private void drawNestedFolderBadge(Canvas canvas) {
+        boolean hasNestedFolder = mInfo.getContents().stream().anyMatch(item -> item instanceof FolderInfo);
+        if (!hasNestedFolder) {
+            return;
+        }
+        if (mNestedFolderBadge == null) {
+            mNestedFolderBadge = getContext().getDrawable(R.drawable.ic_folder).mutate();
+        }
+        Rect bounds = new Rect();
+        mBackground.getBounds(bounds);
+        int badgeSize = Math.round(bounds.width() * 0.3f);
+        int inset = Math.round(bounds.width() * 0.04f);
+        int right = bounds.right - inset;
+        int bottom = bounds.bottom - inset;
+        mNestedFolderBadge.setBounds(right - badgeSize, bottom - badgeSize, right, bottom);
+        mNestedFolderBadge.draw(canvas);
     }
 
     public void drawDot(Canvas canvas) {
