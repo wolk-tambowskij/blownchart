@@ -90,6 +90,7 @@ fun AppDrawerFoldersPreference(
 ) {
     val navController = LocalNavController.current
     val context = LocalContext.current
+    val bottomSheetHandler = bottomSheetHandler
     val folders by viewModel.folders.collectAsStateWithLifecycle()
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->

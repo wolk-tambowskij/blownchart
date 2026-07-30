@@ -101,10 +101,9 @@ class FolderService(val context: Context) : SafeCloseable {
     }
 
     /** Folders that could accept [excludingFolderId] (or any folder, if null) as a subfolder. */
-    fun getNestableFoldersFlow(excludingFolderId: Int? = null): Flow<List<FolderInfoEntity>> =
-        folderDao.getNestableFoldersFlow().map { folders ->
-            folders.filter { it.id != excludingFolderId }
-        }
+    fun getNestableFoldersFlow(excludingFolderId: Int? = null): Flow<List<FolderInfoEntity>> = folderDao.getNestableFoldersFlow().map { folders ->
+        folders.filter { it.id != excludingFolderId }
+    }
 
     /**
      * Nests [folderId] one level inside [parentId], or un-nests it back to the top level if
