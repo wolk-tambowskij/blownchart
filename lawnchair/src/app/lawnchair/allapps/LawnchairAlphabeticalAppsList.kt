@@ -109,23 +109,39 @@ class LawnchairAlphabeticalAppsList<T>(
                     val folderInfo = FolderInfo()
                     folderInfo.title = folder.title
                     mAdapterItems.add(AdapterItem.asFolder(folderInfo))
+                    // Folder.bind() re-sorts a folder's contents by rank (falling back to
+                    // cellY/cellX) every time it's opened, ignoring list-insertion order - and the
+                    // apps re-resolved below are long-lived, shared AllAppsStore instances that
+                    // may carry a stale rank left over from a previous bind of this or any other
+                    // folder containing the same app. Stamping a fresh, strictly increasing rank
+                    // here, in the exact order we want (subfolder first, then apps), guarantees
+                    // that resort always reproduces this order instead of occasionally reshuffling
+                    // around leftover state on a shared item.
+                    var rank = 0
                     folder.getContents().forEach { item ->
-                        // A nested subfolder (one level of folder-in-folder) has no
-                        // componentKey/AllAppsStore entry to re-resolve against - add it as-is,
-                        // same object, or it would otherwise be silently dropped below.
                         if (item is FolderInfo) {
-                            folderInfo.add(item)
-                            // "Hide apps in folders" should apply to a subfolder's own apps too -
-                            // re-resolve each one the same way as a direct child app (below), just
-                            // for the filteredSet side effect, since the subfolder keeps its own
-                            // already-resolved contents as-is above.
-                            if (prefs.folderApps.get()) {
-                                item.getContents().forEach { subItem ->
-                                    (appsStore.getApp(subItem.componentKey) as? AppInfo)?.let { filteredSet.add(it) }
+                            // Rebuild the nested subfolder the same way as the top-level folder
+                            // above, re-resolving its own apps against the live AllAppsStore
+                            // instance - otherwise they'd keep FolderService's own AppInfo objects
+                            // (built straight from LauncherApps, with no icon/label populated)
+                            // forever, since nothing else in the app ever refreshes them the way
+                            // this re-resolution keeps a direct folder item current.
+                            val subfolderInfo = FolderInfo()
+                            subfolderInfo.id = item.id
+                            subfolderInfo.title = item.title
+                            var subRank = 0
+                            item.getContents().forEach { subItem ->
+                                (appsStore.getApp(subItem.componentKey) as? AppInfo)?.let {
+                                    it.rank = subRank++
+                                    subfolderInfo.add(it)
+                                    if (prefs.folderApps.get()) filteredSet.add(it)
                                 }
                             }
+                            subfolderInfo.rank = rank++
+                            folderInfo.add(subfolderInfo)
                         } else {
                             (appsStore.getApp(item.componentKey) as? AppInfo)?.let {
+                                it.rank = rank++
                                 folderInfo.add(it)
                                 if (prefs.folderApps.get()) filteredSet.add(it)
                             }
