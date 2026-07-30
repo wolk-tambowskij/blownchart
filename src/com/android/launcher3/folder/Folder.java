@@ -995,13 +995,36 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             } else if (mIsDragInProgress) {
                 mDeleteFolderOnDropCompleted = true;
             }
-        } else if (!mIsDragInProgress) {
+        } else if (!mIsDragInProgress && !hasOpenNestedFolder()) {
             mContent.unbindItems();
         }
         mSuppressFolderDeletion = false;
         clearDragInfo();
         setState(STATE_CLOSED);
         mContent.setCurrentPage(0);
+    }
+
+    /**
+     * True if one of this folder's own content items is a nested subfolder that's currently open
+     * (its own {@link Folder} popup is attached elsewhere, e.g. the user tapped it, which closes
+     * this folder as a side effect). Its {@link FolderIcon} view - the exact one the open nested
+     * Folder still references as its own mFolderIcon, e.g. for its close animation's position math
+     * - must not be torn down by {@link FolderPagedView#unbindItems()} while that's the case, or
+     * closing the nested folder later crashes trying to use a view that's been detached out from
+     * under it. Deferred cleanup is safe: {@link FolderPagedView#bindItems} already unbinds first
+     * if items are still bound, so this folder's content gets torn down properly the next time
+     * it's reopened instead.
+     */
+    private boolean hasOpenNestedFolder() {
+        for (View view : getIconsInReadingOrder()) {
+            if (view instanceof FolderIcon) {
+                Folder nested = ((FolderIcon) view).getFolder();
+                if (nested != null && nested.getIsOpen()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
