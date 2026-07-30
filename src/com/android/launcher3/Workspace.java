@@ -2080,7 +2080,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             return false;
         }
 
+        // Folder.willAccept() now also accepts FolderInfo (for app-drawer subfolder nesting),
+        // so without this exclusion, dropping an app onto an existing folder on the home screen
+        // would satisfy this check and wrap that folder in a brand-new one instead of falling
+        // through to willAddToExistingUserFolder(), which is the intended behavior here.
         boolean aboveShortcut = Folder.willAccept(dropOverView.getTag())
+                && !(dropOverView.getTag() instanceof FolderInfo)
                 && ((ItemInfo) dropOverView.getTag()).container != CONTAINER_HOTSEAT_PREDICTION;
         boolean willBecomeShortcut = Folder.willAcceptItemType(info.itemType);
 

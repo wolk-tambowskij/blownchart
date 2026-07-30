@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.data.folder.model.NestableFolder
+import app.lawnchair.data.folder.service.FolderListEntry
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.ModalBottomSheetContent
@@ -91,7 +92,7 @@ fun AppDrawerFoldersPreference(
     val navController = LocalNavController.current
     val context = LocalContext.current
     val bottomSheetHandler = bottomSheetHandler
-    val folders by viewModel.folders.collectAsStateWithLifecycle()
+    val folderEntries by viewModel.allFoldersFlat.collectAsStateWithLifecycle()
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
@@ -137,7 +138,7 @@ fun AppDrawerFoldersPreference(
 
     AppDrawerFoldersPreference(
         modifier = modifier,
-        folders = folders,
+        folderEntries = folderEntries,
         onCreateFolder = { folderInfo, label ->
             val newInfo = folderInfo.apply {
                 title = label
@@ -188,7 +189,7 @@ fun AppDrawerFoldersPreference(
 
 @Composable
 fun AppDrawerFoldersPreference(
-    folders: List<FolderInfo>,
+    folderEntries: List<FolderListEntry>,
     onCreateFolder: (FolderInfo, String) -> Unit,
     onEditFolderItems: (Int) -> Unit,
     onRenameFolder: (FolderInfo, String) -> Unit,
@@ -202,8 +203,11 @@ fun AppDrawerFoldersPreference(
     val prefs = preferenceManager()
 
     // Folders are sorted alphabetically on display; no manual order is stored.
-    val sortedDisplayList = remember(folders) {
-        folders.sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
+    val sortedDisplayList = remember(folderEntries) {
+        folderEntries.sortedBy { it.folderInfo.title.toString().lowercase(Locale.getDefault()) }
+    }
+    val parentTitleById = remember(folderEntries) {
+        folderEntries.associate { it.folderInfo.id to it.folderInfo.title.toString() }
     }
 
     PreferenceLayout(
@@ -269,9 +273,11 @@ fun AppDrawerFoldersPreference(
         }
         if (sortedDisplayList.isNotEmpty()) {
             PreferenceGroup {
-                sortedDisplayList.forEach { folderInfo ->
+                sortedDisplayList.forEach { entry ->
+                    val folderInfo = entry.folderInfo
                     FolderItem(
                         folderInfo = folderInfo,
+                        parentFolderTitle = entry.parentFolderId?.let { parentTitleById[it] },
                         onItemClick = {
                             bottomSheetHandler.show {
                                 FolderEditSheet(
@@ -365,6 +371,7 @@ fun FolderItem(
     onItemDelete: (FolderInfo) -> Unit,
     onItemNest: (FolderInfo) -> Unit,
     modifier: Modifier = Modifier,
+    parentFolderTitle: String? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
     val resources = LocalContext.current.resources
@@ -375,8 +382,13 @@ fun FolderItem(
             )
         },
         description = {
+            val appsCount = resources.getQuantityString(R.plurals.apps_count, folderInfo.getContents().size, folderInfo.getContents().size)
             Text(
-                text = resources.getQuantityString(R.plurals.apps_count, folderInfo.getContents().size, folderInfo.getContents().size),
+                text = if (parentFolderTitle != null) {
+                    stringResource(R.string.folder_nested_in, appsCount, parentFolderTitle)
+                } else {
+                    appsCount
+                },
             )
         },
         endWidget = {

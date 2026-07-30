@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import app.lawnchair.data.folder.backup.FolderImportResult
+import app.lawnchair.data.folder.service.FolderListEntry
 import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.preferences2.ReloadHelper
 import com.android.launcher3.model.data.AppInfo
@@ -41,6 +42,19 @@ class FolderViewModel(
         )
 
     val foldersLiveData: LiveData<List<FolderInfo>> = folders.asLiveData(viewModelScope.coroutineContext)
+
+    /** Flat folder list (including nested ones) for the Settings management screen. */
+    val allFoldersFlat: StateFlow<List<FolderListEntry>> = repository.getAllFoldersFlatFlow()
+        .distinctUntilChanged()
+        .catch { exception ->
+            Log.e("FolderViewModel", "Error in allFoldersFlat flow", exception)
+            emit(emptyList())
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
     private val _folderInfo = MutableStateFlow<FolderInfo?>(null)
     val folderInfo = _folderInfo.asStateFlow()
@@ -97,8 +111,8 @@ class FolderViewModel(
         reloadHelper.reloadGrid()
     }
 
-    /** Folders [folderId] could be nested inside (excludes itself and anything already a parent). */
-    fun nestableFolders(folderId: Int): Flow<List<NestableFolder>> = repository.getNestableFoldersFlow(excludingFolderId = folderId)
+    /** Folders [folderId] could be nested inside - see [FolderService.getNestableFoldersFlow]. */
+    fun nestableFolders(folderId: Int): Flow<List<NestableFolder>> = repository.getNestableFoldersFlow(folderId)
         .map { entities -> entities.map { NestableFolder(it.id, it.title) } }
 
     /** Nests [folderId] inside [parentId], or moves it back to the top level if null. */

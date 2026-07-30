@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
@@ -80,6 +79,25 @@ class FolderService(val context: Context) : SafeCloseable {
         }
     }
 
+    /**
+     * Every folder (top-level and nested) as a flat list, each paired with its parent's id if
+     * any. [getFoldersFlow] embeds a nested folder inside its parent's own contents, which is
+     * right for building the drawer but means a nested folder has no entry of its own to manage
+     * (rename, delete, un-nest) in a flat list - this is that flat list.
+     */
+    fun getAllFoldersFlatFlow(): Flow<List<FolderListEntry>> = flow {
+        var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
+        folderDao.getAllFoldersFlatWithItems().collect { foldersWithItems ->
+            val appInfoByComponentKey = cachedAppInfoByComponentKey
+                ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
+            val mapped = foldersWithItems.mapNotNull { withItems ->
+                mapToFolderInfo(withItems, true, appInfoByComponentKey)
+                    ?.let { FolderListEntry(it, withItems.folder.parentFolderId) }
+            }
+            emit(mapped)
+        }
+    }
+
     suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>) = withContext(Dispatchers.IO) {
         folderDao.insertFolderWithItems(
             FolderInfoEntity(id = folderInfoId, title = title),
@@ -100,16 +118,15 @@ class FolderService(val context: Context) : SafeCloseable {
         folderDao.deleteFolder(id)
     }
 
-    /** Folders that could accept [excludingFolderId] (or any folder, if null) as a subfolder. */
-    fun getNestableFoldersFlow(excludingFolderId: Int? = null): Flow<List<FolderInfoEntity>> = folderDao.getNestableFoldersFlow().map { folders ->
-        folders.filter { it.id != excludingFolderId }
-    }
+    /** Folders that could accept [folderId] as a subfolder - see [FolderDao.getNestableFoldersFlow]. */
+    fun getNestableFoldersFlow(folderId: Int): Flow<List<FolderInfoEntity>> = folderDao.getNestableFoldersFlow(folderId)
 
     /**
      * Nests [folderId] one level inside [parentId], or un-nests it back to the top level if
      * [parentId] is null. Only one level of nesting is supported: a folder that already has
-     * subfolders of its own can't be nested (checked by the caller via [getNestableFoldersFlow],
-     * which excludes such folders), and nesting doesn't cascade to any existing children.
+     * subfolders of its own can't be nested further (checked by the caller via
+     * [getNestableFoldersFlow], which offers no targets at all in that case), and nesting doesn't
+     * cascade to any existing children.
      */
     suspend fun setParentFolder(folderId: Int, parentId: Int?) = withContext(Dispatchers.IO) {
         folderDao.setParentFolder(folderId, parentId)
@@ -134,20 +151,21 @@ class FolderService(val context: Context) : SafeCloseable {
                 title = folderWithItems.folder.title
             }
 
+            // One level of folder-in-folder nesting: subfolders are added first, so they always
+            // sort to the front of the folder rather than being interspersed with apps.
+            // Recursing with no subfolders of their own keeps this to exactly one level deep -
+            // enforced upstream by getNestableFoldersFlow() refusing to offer any nesting targets
+            // for a folder that already has subfolders of its own, not by anything here.
+            subfolders.forEach { subfolderWithItems ->
+                mapToFolderInfo(subfolderWithItems, hasId = true, appInfoByComponentKey)
+                    ?.let { domainFolderInfo.add(it, false) }
+            }
+
             // Folder contents are sorted alphabetically on read; no manual order is persisted.
             folderWithItems.items
                 .mapNotNull { itemEntity -> itemEntity.componentKey?.let { appInfoByComponentKey[it] } }
                 .sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
                 .forEach { appInfo -> domainFolderInfo.add(appInfo, false) }
-
-            // One level of folder-in-folder nesting: subfolders are appended after apps.
-            // Recursing with no subfolders of their own keeps this to exactly one level deep -
-            // enforced upstream by getNestableFoldersFlow() only offering childless folders as
-            // valid nesting targets, not by anything here.
-            subfolders.forEach { subfolderWithItems ->
-                mapToFolderInfo(subfolderWithItems, hasId = true, appInfoByComponentKey)
-                    ?.let { domainFolderInfo.add(it, false) }
-            }
             domainFolderInfo
         } catch (e: Exception) {
             Log.e("FolderService", "Failed to map FolderWithItems for id: ${folderWithItems.folder.id}", e)
@@ -243,3 +261,6 @@ class FolderService(val context: Context) : SafeCloseable {
         val INSTANCE = MainThreadInitializedObject(::FolderService)
     }
 }
+
+/** A folder from the flat management list, paired with its parent's id if it's nested. */
+data class FolderListEntry(val folderInfo: FolderInfo, val parentFolderId: Int?)
