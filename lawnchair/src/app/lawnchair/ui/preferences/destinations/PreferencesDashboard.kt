@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -76,6 +77,7 @@ import app.lawnchair.ui.theme.preferenceGroupColor
 import app.lawnchair.ui.util.addIf
 import app.lawnchair.util.isDefaultLauncher
 import app.lawnchair.util.isIgnoringBatteryOptimizations
+import app.lawnchair.util.lifecycleState
 import app.lawnchair.util.restartLauncher
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
@@ -106,7 +108,12 @@ fun PreferencesDashboard(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        if (!context.isIgnoringBatteryOptimizations()) {
+        // Unlike the default-launcher warning, this screen doesn't finish() itself when the user
+        // taps through to system settings and back - so a plain function call here would only
+        // ever be evaluated once and never notice the permission was granted. Re-check on every
+        // lifecycle change (e.g. the ON_RESUME when returning from that settings screen).
+        val ignoringBatteryOptimizations = remember(lifecycleState()) { context.isIgnoringBatteryOptimizations() }
+        if (!ignoringBatteryOptimizations) {
             PreferencesBatteryOptimizationWarning()
             Spacer(modifier = Modifier.height(8.dp))
         }
