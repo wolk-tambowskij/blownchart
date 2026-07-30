@@ -14,7 +14,6 @@ import app.lawnchair.data.toEntity
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.util.kotlinxJson
 import com.android.launcher3.AppFilter
-import com.android.launcher3.LauncherAppState
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
@@ -40,7 +39,6 @@ class FolderService(val context: Context) : SafeCloseable {
     private val launcherApps = context.getSystemService(LauncherApps::class.java)
     private val userCache = UserCache.INSTANCE.get(context)
     private val appFilter = AppFilter(context)
-    private val iconCache = LauncherAppState.getInstance(context).iconCache
     private val converters = Converters()
     private val scope = MainScope()
     private val prefs2 = PreferenceManager2.getInstance(context)
@@ -226,12 +224,7 @@ class FolderService(val context: Context) : SafeCloseable {
         return userCache.userProfiles.asSequence()
             .flatMap { launcherApps.getActivityList(null, it) }
             .filter { appFilter.shouldShowApp(it.componentName) }
-            // AppInfo's own constructor leaves title/icon at cold defaults; without this, a
-            // folder's icons/labels stay blank until something else happens to warm the icon
-            // cache for the same components (e.g. the drawer's own AllAppsStore finishing its
-            // own load) - unlike the rest of this app, which always follows AppInfo construction
-            // with a cache populate (see app.lawnchair.util.AppsList.App's init block).
-            .map { AppInfo(context, it, it.user).also { appInfo -> iconCache.getTitleAndIcon(appInfo, false) } }
+            .map { AppInfo(context, it, it.user) }
             .mapNotNull { appInfo -> converters.fromComponentKey(appInfo.componentKey)?.let { key -> key to appInfo } }
             .toMap()
     }
@@ -246,7 +239,7 @@ class FolderService(val context: Context) : SafeCloseable {
         return userCache.userProfiles.asSequence()
             .flatMap { launcherApps.getActivityList(null, it) }
             .filter { appFilter.shouldShowApp(it.componentName) }
-            .map { AppInfo(context, it, it.user).also { appInfo -> iconCache.getTitleAndIcon(appInfo, false) } }
+            .map { AppInfo(context, it, it.user) }
             .mapNotNull { appInfo ->
                 appInfo.componentName?.let { component -> (component.packageName to component.className) to appInfo }
             }
