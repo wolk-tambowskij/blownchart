@@ -308,6 +308,12 @@ class PreferenceManager2 private constructor(private val context: Context) :
         defaultValue = context.resources.getBoolean(R.bool.config_default_lock_app_drawer),
     )
 
+    // Applies to both the order of folders themselves and the order of apps within a folder.
+    val folderManualOrder = preference(
+        key = booleanPreferencesKey(name = "folder_manual_order"),
+        defaultValue = false,
+    )
+
     val legacyPopupOptionsMigrated = preference(
         key = booleanPreferencesKey(name = "legacy_popup_options_migrated"),
         defaultValue = false,
