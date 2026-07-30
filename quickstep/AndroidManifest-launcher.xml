@@ -42,6 +42,7 @@
         android:theme="@style/AppTheme"
         android:largeHeap="@bool/config_largeHeap"
         android:restoreAnyVersion="true"
+        android:autoRevokePermissions="discouraged"
         android:supportsRtl="true" >
 
         <!--

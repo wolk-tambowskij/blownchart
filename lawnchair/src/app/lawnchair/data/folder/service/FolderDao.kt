@@ -29,6 +29,9 @@ interface FolderDao {
     @Transaction
     suspend fun getItems(folderId: Int): List<FolderItemEntity>
 
+    @Query("SELECT * FROM FolderItems WHERE folderId = :folderId")
+    suspend fun getItemsForFolder(folderId: Int): List<FolderItemEntity>
+
     /** Top-level folders only - a nested folder is reached through its parent's own items. */
     @Query("SELECT * FROM Folders WHERE parentFolderId IS NULL")
     @Transaction
@@ -130,6 +133,24 @@ interface FolderDao {
 
     @Query("DELETE FROM Folders WHERE id = :folderId")
     suspend fun deleteFolderRow(folderId: Int)
+
+    @Query("UPDATE Folders SET rank = :rank WHERE id = :folderId")
+    suspend fun updateFolderRank(folderId: Int, rank: Int)
+
+    /** Persists a manual drag order for the folder list itself. */
+    @Transaction
+    suspend fun updateFolderRanks(orderedFolderIds: List<Int>) {
+        orderedFolderIds.forEachIndexed { index, id -> updateFolderRank(id, index) }
+    }
+
+    @Query("UPDATE FolderItems SET rank = :rank WHERE folderId = :folderId AND item_info = :componentKey")
+    suspend fun updateFolderItemRank(folderId: Int, componentKey: String, rank: Int)
+
+    /** Persists a manual drag order for the apps within one folder. */
+    @Transaction
+    suspend fun updateFolderItemRanks(folderId: Int, orderedComponentKeys: List<String>) {
+        orderedComponentKeys.forEachIndexed { index, key -> updateFolderItemRank(folderId, key, index) }
+    }
 
     @RawQuery
     suspend fun checkpoint(supportSQLiteQuery: SupportSQLiteQuery): Int

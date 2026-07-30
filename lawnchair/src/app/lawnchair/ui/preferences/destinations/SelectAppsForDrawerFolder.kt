@@ -43,10 +43,13 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
+import app.lawnchair.ui.preferences.components.reorderable.ReorderableDragHandle
+import app.lawnchair.ui.preferences.components.reorderable.ReorderablePreferenceGroup
 import app.lawnchair.util.App
 import app.lawnchair.util.appsState
 import com.android.launcher3.R
 import com.android.launcher3.util.ComponentKey
+import java.util.Locale
 
 @Composable
 fun SelectAppsForDrawerFolder(
@@ -74,6 +77,7 @@ fun SelectAppsForDrawerFolder(
     var filterNonUniqueItems by remember { mutableStateOf(true) }
     var hasChanges by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    val manualOrder by preferenceManager2().folderManualOrder.getAdapter().state
 
     var selectedIds by remember(folderInfo) {
         mutableStateOf(
@@ -82,6 +86,25 @@ fun SelectAppsForDrawerFolder(
                 ?.toSet()
                 ?: emptySet(),
         )
+    }
+
+    // Ordered view of the selected apps, for manual-order dragging. Seeded once from the
+    // folder's current (already rank-ordered, see FolderService) contents, then maintained by
+    // hand as checkboxes toggle - re-deriving it from folderInfo on every change would pick up
+    // FolderViewModel's alphabetically-rebuilt local state and undo any in-progress drag.
+    var selectedOrder by remember(folderInfoId) { mutableStateOf<List<App>>(emptyList()) }
+    var orderInitialized by remember(folderInfoId) { mutableStateOf(false) }
+    var hasOrderChanges by remember { mutableStateOf(false) }
+
+    LaunchedEffect(folderInfo, apps) {
+        val info = folderInfo
+        if (!orderInitialized && info != null && apps.isNotEmpty()) {
+            selectedOrder = info.getContents().mapNotNull { itemInfo ->
+                val key = ComponentKey(itemInfo.targetComponent, itemInfo.user).toString()
+                apps.find { it.key.toString() == key }
+            }
+            orderInitialized = true
+        }
     }
 
     // Excludes the folder being edited: its own membership is already tracked via selectedIds,
@@ -101,8 +124,14 @@ fun SelectAppsForDrawerFolder(
 
     // Applying every toggle to the grid immediately would mean a full launcher model reload
     // per checkbox tap; instead apply them all once, when the user actually leaves this screen.
+    // The manual item order is likewise only written once here, not per drag settle.
     DisposableEffect(Unit) {
-        onDispose { if (hasChanges) viewModel.onFolderEditingFinished() }
+        onDispose {
+            if (hasOrderChanges) {
+                viewModel.updateFolderItemOrder(folderInfoId, selectedOrder.map { it.key.toString() })
+            }
+            if (hasChanges || hasOrderChanges) viewModel.onFolderEditingFinished()
+        }
     }
 
     // Apps are already sorted alphabetically by appsState(); folder membership is a filter/toggle
@@ -121,6 +150,13 @@ fun SelectAppsForDrawerFolder(
     fun persistSelection(newSelectedIds: Set<String>) {
         selectedIds = newSelectedIds
         hasChanges = true
+        // Keep the drag-order list in sync: drop deselected apps, append newly selected ones at
+        // the end (their position can be dragged into place afterward).
+        selectedOrder = selectedOrder.filter { newSelectedIds.contains(it.key.toString()) } +
+            apps.filter { app ->
+                newSelectedIds.contains(app.key.toString()) &&
+                    selectedOrder.none { it.key.toString() == app.key.toString() }
+            }
         val newSelection = newSelectedIds.mapNotNull { keyString ->
             apps.find { it.key.toString() == keyString }?.toAppInfo(context)
         }
@@ -210,6 +246,32 @@ fun SelectAppsForDrawerFolder(
                             singleLine = true,
                             shape = RoundedCornerShape(32.dp),
                         )
+                    }
+                    if (manualOrder && selectedOrder.isNotEmpty()) {
+                        item {
+                            ReorderablePreferenceGroup(
+                                label = stringResource(R.string.folder_contents_heading),
+                                items = selectedOrder,
+                                defaultList = remember(selectedOrder) {
+                                    selectedOrder.sortedBy { it.label.lowercase(Locale.getDefault()) }
+                                },
+                                onOrderChange = {
+                                    selectedOrder = it
+                                    hasOrderChanges = true
+                                },
+                            ) { app, _, _, onDraggingChange ->
+                                AppItem(
+                                    app = app,
+                                    onClick = {},
+                                    widget = {
+                                        ReorderableDragHandle(
+                                            scope = this,
+                                            onDragStop = { onDraggingChange(false) },
+                                        )
+                                    },
+                                )
+                            }
+                        }
                     }
                     preferenceGroupItems(
                         items = displayedApps,

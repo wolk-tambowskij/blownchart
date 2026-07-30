@@ -11,6 +11,7 @@ import app.lawnchair.data.folder.backup.FolderBackupApp
 import app.lawnchair.data.folder.backup.FolderBackupEntry
 import app.lawnchair.data.folder.backup.FolderImportResult
 import app.lawnchair.data.toEntity
+import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.util.kotlinxJson
 import com.android.launcher3.AppFilter
 import com.android.launcher3.model.data.AppInfo
@@ -19,6 +20,7 @@ import com.android.launcher3.pm.UserCache
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
+import com.patrykmichalik.opto.core.firstBlocking
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -39,6 +41,7 @@ class FolderService(val context: Context) : SafeCloseable {
     private val appFilter = AppFilter(context)
     private val converters = Converters()
     private val scope = MainScope()
+    private val prefs2 = PreferenceManager2.getInstance(context)
 
     // Kept warm for the lifetime of this (app-scoped) singleton, updated only when the folder
     // tables actually change (Room's Flow only emits on writes, not on a timer) - so search, which
@@ -65,15 +68,25 @@ class FolderService(val context: Context) : SafeCloseable {
         // the app already treats the installed-app list as a per-visit snapshot rather than
         // something tracked live.
         var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
+        // Read once per collection (same lifetime as the cache above) rather than reactively -
+        // flipping the order-mode toggle takes effect the next time this screen opens, not live.
+        val manualOrder = prefs2.folderManualOrder.firstBlocking()
         // getAllFoldersWithItems() only returns top-level folders; Room's table-level
         // invalidation still re-emits this Flow when a subfolder's own row or items change; since
         // its query touches the same Folders/FolderItems tables (see getSubfoldersWithItems()).
         folderDao.getAllFoldersWithItems().collect { foldersWithItems ->
             val appInfoByComponentKey = cachedAppInfoByComponentKey
                 ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
-            val mapped = foldersWithItems.mapNotNull { topFolder ->
+            // Sort the entities (which carry .rank) before mapping to the domain FolderInfo
+            // (which doesn't), so the emitted list order is already correct either way.
+            val orderedFoldersWithItems = if (manualOrder) {
+                foldersWithItems.sortedBy { it.folder.rank }
+            } else {
+                foldersWithItems.sortedBy { it.folder.title.lowercase(Locale.getDefault()) }
+            }
+            val mapped = orderedFoldersWithItems.mapNotNull { topFolder ->
                 val subfolders = folderDao.getSubfoldersWithItems(topFolder.folder.id)
-                mapToFolderInfo(topFolder, true, appInfoByComponentKey, subfolders)
+                mapToFolderInfo(topFolder, true, appInfoByComponentKey, manualOrder, subfolders)
             }
             emit(mapped)
         }
@@ -87,11 +100,19 @@ class FolderService(val context: Context) : SafeCloseable {
      */
     fun getAllFoldersFlatFlow(): Flow<List<FolderListEntry>> = flow {
         var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
+        val manualOrder = prefs2.folderManualOrder.firstBlocking()
         folderDao.getAllFoldersFlatWithItems().collect { foldersWithItems ->
             val appInfoByComponentKey = cachedAppInfoByComponentKey
                 ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
-            val mapped = foldersWithItems.mapNotNull { withItems ->
-                mapToFolderInfo(withItems, true, appInfoByComponentKey)
+            // Sort the entities (which carry .rank) before mapping, same as getFoldersFlow(), so
+            // the flat management list's order matches the manual-order toggle too.
+            val orderedFoldersWithItems = if (manualOrder) {
+                foldersWithItems.sortedBy { it.folder.rank }
+            } else {
+                foldersWithItems.sortedBy { it.folder.title.lowercase(Locale.getDefault()) }
+            }
+            val mapped = orderedFoldersWithItems.mapNotNull { withItems ->
+                mapToFolderInfo(withItems, true, appInfoByComponentKey, manualOrder)
                     ?.let { FolderListEntry(it, withItems.folder.parentFolderId) }
             }
             emit(mapped)
@@ -99,10 +120,27 @@ class FolderService(val context: Context) : SafeCloseable {
     }
 
     suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>) = withContext(Dispatchers.IO) {
-        folderDao.insertFolderWithItems(
-            FolderInfoEntity(id = folderInfoId, title = title),
-            appInfos.map { it.toEntity(folderInfoId) },
-        )
+        // Ordinary edits (ticking a checkbox in the app picker) replace every item row, since
+        // there's no stable id to update in place across saves - preserve whatever manual rank
+        // each app already had, and only assign fresh ranks (appended at the end) to apps that
+        // are newly added, so a plain selection change never silently resets the manual order.
+        val existingRankByComponentKey = folderDao.getItemsForFolder(folderInfoId)
+            .associate { it.componentKey to it.rank }
+        var nextRank = (existingRankByComponentKey.values.maxOrNull() ?: -1) + 1
+        val entities = appInfos.map { appInfo ->
+            val key = converters.fromComponentKey(appInfo.toComponentKey())
+            val rank = existingRankByComponentKey[key] ?: nextRank++
+            appInfo.toEntity(folderInfoId, rank)
+        }
+        folderDao.insertFolderWithItems(FolderInfoEntity(id = folderInfoId, title = title), entities)
+    }
+
+    suspend fun updateFolderOrder(orderedFolderIds: List<Int>) = withContext(Dispatchers.IO) {
+        folderDao.updateFolderRanks(orderedFolderIds)
+    }
+
+    suspend fun updateFolderItemOrder(folderId: Int, orderedComponentKeys: List<String>) = withContext(Dispatchers.IO) {
+        folderDao.updateFolderItemRanks(folderId, orderedComponentKeys)
     }
 
     suspend fun saveFolderInfo(folderInfo: FolderInfo): Unit = withContext(Dispatchers.IO) {
@@ -133,8 +171,9 @@ class FolderService(val context: Context) : SafeCloseable {
     }
 
     suspend fun getFolderInfo(folderId: Int, hasId: Boolean = false): FolderInfo? = withContext(Dispatchers.Default) {
+        val manualOrder = prefs2.folderManualOrder.firstBlocking()
         folderDao.getFolderWithItems(folderId)?.let {
-            mapToFolderInfo(it, hasId, buildAppInfoByComponentKey())
+            mapToFolderInfo(it, hasId, buildAppInfoByComponentKey(), manualOrder)
         }
     }
 
@@ -142,6 +181,7 @@ class FolderService(val context: Context) : SafeCloseable {
         folderWithItems: FolderWithItems,
         hasId: Boolean,
         appInfoByComponentKey: Map<String, AppInfo>,
+        manualOrder: Boolean,
         subfolders: List<FolderWithItems> = emptyList(),
     ): FolderInfo? {
         return try {
@@ -157,14 +197,20 @@ class FolderService(val context: Context) : SafeCloseable {
             // enforced upstream by getNestableFoldersFlow() refusing to offer any nesting targets
             // for a folder that already has subfolders of its own, not by anything here.
             subfolders.forEach { subfolderWithItems ->
-                mapToFolderInfo(subfolderWithItems, hasId = true, appInfoByComponentKey)
+                mapToFolderInfo(subfolderWithItems, hasId = true, appInfoByComponentKey, manualOrder)
                     ?.let { domainFolderInfo.add(it, false) }
             }
 
-            // Folder contents are sorted alphabetically on read; no manual order is persisted.
-            folderWithItems.items
+            val orderedItems = if (manualOrder) {
+                folderWithItems.items.sortedBy { it.rank }
+            } else {
+                folderWithItems.items
+            }
+            orderedItems
                 .mapNotNull { itemEntity -> itemEntity.componentKey?.let { appInfoByComponentKey[it] } }
-                .sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
+                .let { apps ->
+                    if (manualOrder) apps else apps.sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
+                }
                 .forEach { appInfo -> domainFolderInfo.add(appInfo, false) }
             domainFolderInfo
         } catch (e: Exception) {
