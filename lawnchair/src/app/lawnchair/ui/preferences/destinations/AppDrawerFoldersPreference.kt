@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,6 +89,16 @@ fun AppDrawerFoldersPreference(
     val navController = LocalNavController.current
     val context = LocalContext.current
     val folders by viewModel.folders.collectAsStateWithLifecycle()
+
+    // Reordering only writes ranks to the DB; the live app drawer is refreshed once when the
+    // user actually leaves this screen, same as app-level reordering inside a folder - reloading
+    // on every single drag settle raced with the write and made the dragged folder snap back.
+    var orderChanged by remember { mutableStateOf(false) }
+    DisposableEffect(Unit) {
+        onDispose {
+            if (orderChanged) viewModel.onFolderEditingFinished()
+        }
+    }
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
@@ -154,6 +165,7 @@ fun AppDrawerFoldersPreference(
             viewModel.deleteFolder(it.id)
         },
         onReorderFolders = {
+            orderChanged = true
             viewModel.updateFolderOrder(it)
         },
         onExportFolders = {
