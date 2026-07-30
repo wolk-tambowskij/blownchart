@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,7 +89,27 @@ fun AppDrawerFoldersPreference(
 ) {
     val navController = LocalNavController.current
     val context = LocalContext.current
-    val folders by viewModel.folders.collectAsStateWithLifecycle()
+    val liveFolders by viewModel.folders.collectAsStateWithLifecycle()
+
+    // FolderInfo doesn't implement structural equals(), and getFoldersFlow() maps fresh
+    // instances on every emission - so liveFolders is a "new" list even when nothing actually
+    // changed, e.g. right after this screen's own drag writes the new ranks and the DB flow
+    // echoes them back. Feeding that straight into the reorderable list as its source of truth
+    // made the just-dragged folder visibly snap back. Instead, track the displayed order
+    // locally by id - initialized once, then only re-synced when a folder is actually added or
+    // removed (not merely reordered) - and resolve each id against liveFolders at render time so
+    // renames/content-count changes still show up live.
+    var orderedIds by remember { mutableStateOf(liveFolders.map { it.id }) }
+    LaunchedEffect(liveFolders) {
+        val liveIds = liveFolders.map { it.id }
+        if (liveIds.toSet() != orderedIds.toSet()) {
+            orderedIds = orderedIds.filter { it in liveIds } + liveIds.filter { it !in orderedIds }
+        }
+    }
+    val folders = remember(orderedIds, liveFolders) {
+        val byId = liveFolders.associateBy { it.id }
+        orderedIds.mapNotNull { byId[it] }
+    }
 
     // Reordering only writes ranks to the DB; the live app drawer is refreshed once when the
     // user actually leaves this screen, same as app-level reordering inside a folder - reloading
@@ -165,6 +186,7 @@ fun AppDrawerFoldersPreference(
             viewModel.deleteFolder(it.id)
         },
         onReorderFolders = {
+            orderedIds = it
             orderChanged = true
             viewModel.updateFolderOrder(it)
         },
