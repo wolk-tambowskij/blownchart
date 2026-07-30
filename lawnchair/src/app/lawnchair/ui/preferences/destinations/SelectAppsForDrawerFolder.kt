@@ -111,10 +111,12 @@ fun SelectAppsForDrawerFolder(
             selectedOrder = info.getContents().mapNotNull { itemInfo ->
                 when (itemInfo) {
                     is FolderInfo -> FolderContentItem.SubfolderItem(itemInfo.id, itemInfo.title.toString())
+
                     is AppInfo -> {
                         val key = ComponentKey(itemInfo.targetComponent, itemInfo.user).toString()
                         apps.find { it.key.toString() == key }?.let { FolderContentItem.AppItem(it) }
                     }
+
                     else -> null
                 }
             }
@@ -307,6 +309,7 @@ fun SelectAppsForDrawerFolder(
                                             )
                                         },
                                     )
+
                                     is FolderContentItem.SubfolderItem -> PreferenceTemplate(
                                         title = { Text(item.title) },
                                         startWidget = {
