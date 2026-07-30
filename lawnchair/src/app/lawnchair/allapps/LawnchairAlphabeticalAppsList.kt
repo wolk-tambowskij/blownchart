@@ -115,6 +115,15 @@ class LawnchairAlphabeticalAppsList<T>(
                         // same object, or it would otherwise be silently dropped below.
                         if (item is FolderInfo) {
                             folderInfo.add(item)
+                            // "Hide apps in folders" should apply to a subfolder's own apps too -
+                            // re-resolve each one the same way as a direct child app (below), just
+                            // for the filteredSet side effect, since the subfolder keeps its own
+                            // already-resolved contents as-is above.
+                            if (prefs.folderApps.get()) {
+                                item.getContents().forEach { subItem ->
+                                    (appsStore.getApp(subItem.componentKey) as? AppInfo)?.let { filteredSet.add(it) }
+                                }
+                            }
                         } else {
                             (appsStore.getApp(item.componentKey) as? AppInfo)?.let {
                                 folderInfo.add(it)
