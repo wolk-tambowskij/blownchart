@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.data.folder.model.FolderViewModel
@@ -56,6 +57,7 @@ import app.lawnchair.ui.preferences.components.reorderable.ReorderablePreference
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppListToFolder
 import app.lawnchair.ui.preferences.navigation.AppDrawerFolder
 import app.lawnchair.ui.util.bottomSheetHandler
+import app.lawnchair.util.lifecycleState
 import com.android.launcher3.R
 import com.android.launcher3.model.data.FolderInfo
 import java.io.IOException
@@ -111,10 +113,20 @@ fun AppDrawerFoldersPreference(
         orderedIds.mapNotNull { byId[it] }
     }
 
-    // Reordering only writes ranks to the DB; the live app drawer is refreshed once when the
-    // user actually leaves this screen, same as app-level reordering inside a folder - reloading
-    // on every single drag settle raced with the write and made the dragged folder snap back.
+    // Reordering only writes ranks to the DB; the live app drawer is refreshed once the user
+    // leaves this screen, same as app-level reordering inside a folder - reloading on every
+    // single drag settle raced with the write and made the dragged folder snap back. Checking
+    // for that on dispose alone missed the common case of backgrounding the whole settings app
+    // (e.g. tapping home to look at the drawer) without navigating back within settings first,
+    // so also reload as soon as the screen is no longer resumed.
     var orderChanged by remember { mutableStateOf(false) }
+    val lifecycleState = lifecycleState()
+    LaunchedEffect(lifecycleState) {
+        if (orderChanged && lifecycleState != Lifecycle.State.RESUMED) {
+            viewModel.onFolderEditingFinished()
+            orderChanged = false
+        }
+    }
     DisposableEffect(Unit) {
         onDispose {
             if (orderChanged) viewModel.onFolderEditingFinished()
