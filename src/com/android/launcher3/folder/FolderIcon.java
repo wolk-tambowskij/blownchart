@@ -626,6 +626,12 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
             mBackground.drawBackground(canvas);
         }
 
+        // Neither depends on there being preview-item glyphs to draw, so both run regardless of
+        // the early return below - otherwise a folder whose only (non-subfolder) content is
+        // empty, e.g. one containing just a nested subfolder, would never show its dot or badge.
+        drawDot(canvas);
+        drawNestedFolderBadge(canvas);
+
         if (mCurrentPreviewItems.isEmpty() && !mAnimating) return;
 
         mPreviewItemManager.draw(canvas);
@@ -633,9 +639,6 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         if (!mBackground.drawingDelegated()) {
             mBackground.drawBackgroundStroke(canvas);
         }
-
-        drawDot(canvas);
-        drawNestedFolderBadge(canvas);
     }
 
     /**
@@ -719,7 +722,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         List<ItemInfo> contents = mInfo.getContents().stream()
                 .filter(item -> !(item instanceof FolderInfo))
                 .collect(Collectors.toList());
-        return mPreviewVerifier.setFolderInfo(mInfo).previewItemsForPage(page, contents);
+        return mPreviewVerifier.setContentSize(contents.size()).previewItemsForPage(page, contents);
     }
 
     @Override
