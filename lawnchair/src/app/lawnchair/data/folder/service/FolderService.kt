@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
@@ -90,6 +91,22 @@ class FolderService(val context: Context) : SafeCloseable {
 
     suspend fun deleteFolderInfo(id: Int) = withContext(Dispatchers.IO) {
         folderDao.deleteFolder(id)
+    }
+
+    /** Folders that could accept [excludingFolderId] (or any folder, if null) as a subfolder. */
+    fun getNestableFoldersFlow(excludingFolderId: Int? = null): Flow<List<FolderInfoEntity>> =
+        folderDao.getNestableFoldersFlow().map { folders ->
+            folders.filter { it.id != excludingFolderId }
+        }
+
+    /**
+     * Nests [folderId] one level inside [parentId], or un-nests it back to the top level if
+     * [parentId] is null. Only one level of nesting is supported: a folder that already has
+     * subfolders of its own can't be nested (checked by the caller via [getNestableFoldersFlow],
+     * which excludes such folders), and nesting doesn't cascade to any existing children.
+     */
+    suspend fun setParentFolder(folderId: Int, parentId: Int?) = withContext(Dispatchers.IO) {
+        folderDao.setParentFolder(folderId, parentId)
     }
 
     suspend fun getFolderInfo(folderId: Int, hasId: Boolean = false): FolderInfo? = withContext(Dispatchers.Default) {

@@ -29,9 +29,30 @@ interface FolderDao {
     @Transaction
     suspend fun getItems(folderId: Int): List<FolderItemEntity>
 
-    @Query("SELECT * FROM Folders")
+    /** Top-level folders only - a nested folder is reached through its parent's own items. */
+    @Query("SELECT * FROM Folders WHERE parentFolderId IS NULL")
     @Transaction
     fun getAllFoldersWithItems(): Flow<List<FolderWithItems>>
+
+    /** Folders nested one level inside [parentId]. */
+    @Query("SELECT * FROM Folders WHERE parentFolderId = :parentId")
+    @Transaction
+    suspend fun getSubfoldersWithItems(parentId: Int): List<FolderWithItems>
+
+    /** Folders eligible to become a subfolder: top-level and not already a parent themselves. */
+    @Query(
+        """
+        SELECT * FROM Folders
+        WHERE parentFolderId IS NULL AND id NOT IN (SELECT DISTINCT parentFolderId FROM Folders WHERE parentFolderId IS NOT NULL)
+        """,
+    )
+    fun getNestableFoldersFlow(): Flow<List<FolderInfoEntity>>
+
+    @Query("UPDATE Folders SET parentFolderId = :parentFolderId WHERE id = :folderId")
+    suspend fun setParentFolder(folderId: Int, parentFolderId: Int?)
+
+    @Query("SELECT id FROM Folders WHERE parentFolderId = :folderId")
+    suspend fun getChildFolderIds(folderId: Int): List<Int>
 
     /**
      * Lightweight component-key -> folder-title lookup for search result labels - avoids
@@ -84,8 +105,15 @@ interface FolderDao {
         timestamp: Long = System.currentTimeMillis(),
     )
 
+    /** Deleting a parent also deletes its (one level of) subfolders; each row's own items cascade via FolderItems' FK. */
+    @Transaction
+    suspend fun deleteFolder(folderId: Int) {
+        getChildFolderIds(folderId).forEach { deleteFolderRow(it) }
+        deleteFolderRow(folderId)
+    }
+
     @Query("DELETE FROM Folders WHERE id = :folderId")
-    suspend fun deleteFolder(folderId: Int)
+    suspend fun deleteFolderRow(folderId: Int)
 
     @RawQuery
     suspend fun checkpoint(supportSQLiteQuery: SupportSQLiteQuery): Int
