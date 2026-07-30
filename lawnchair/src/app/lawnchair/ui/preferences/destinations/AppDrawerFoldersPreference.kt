@@ -29,6 +29,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.data.folder.model.FolderViewModel
@@ -46,6 +49,7 @@ import app.lawnchair.data.folder.model.NestableFolder
 import app.lawnchair.data.folder.service.FolderListEntry
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
+import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalNavController
@@ -54,9 +58,12 @@ import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.components.reorderable.ReorderableDragHandle
+import app.lawnchair.ui.preferences.components.reorderable.ReorderablePreferenceGroup
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppListToFolder
 import app.lawnchair.ui.preferences.navigation.AppDrawerFolder
 import app.lawnchair.ui.util.bottomSheetHandler
+import app.lawnchair.util.lifecycleState
 import com.android.launcher3.R
 import com.android.launcher3.model.data.FolderInfo
 import java.io.IOException
@@ -92,7 +99,47 @@ fun AppDrawerFoldersPreference(
     val navController = LocalNavController.current
     val context = LocalContext.current
     val bottomSheetHandler = bottomSheetHandler
-    val folderEntries by viewModel.allFoldersFlat.collectAsStateWithLifecycle()
+    val liveFolderEntries by viewModel.allFoldersFlat.collectAsStateWithLifecycle()
+
+    // FolderInfo doesn't implement structural equals(), and getAllFoldersFlatFlow() maps fresh
+    // instances on every emission - so liveFolderEntries is a "new" list even when nothing
+    // actually changed, e.g. right after this screen's own drag writes the new ranks and the DB
+    // flow echoes them back. Feeding that straight into the reorderable list as its source of
+    // truth made the just-dragged folder visibly snap back. Instead, track the displayed order
+    // locally by id - initialized once, then only re-synced when a folder is actually added or
+    // removed (not merely reordered) - and resolve each id against liveFolderEntries at render
+    // time so renames/content-count changes still show up live.
+    var orderedIds by remember { mutableStateOf(liveFolderEntries.map { it.folderInfo.id }) }
+    LaunchedEffect(liveFolderEntries) {
+        val liveIds = liveFolderEntries.map { it.folderInfo.id }
+        if (liveIds.toSet() != orderedIds.toSet()) {
+            orderedIds = orderedIds.filter { it in liveIds } + liveIds.filter { it !in orderedIds }
+        }
+    }
+    val folderEntries = remember(orderedIds, liveFolderEntries) {
+        val byId = liveFolderEntries.associateBy { it.folderInfo.id }
+        orderedIds.mapNotNull { byId[it] }
+    }
+
+    // Reordering only writes ranks to the DB; the live app drawer is refreshed once the user
+    // leaves this screen, same as app-level reordering inside a folder - reloading on every
+    // single drag settle raced with the write and made the dragged folder snap back. Checking
+    // for that on dispose alone missed the common case of backgrounding the whole settings app
+    // (e.g. tapping home to look at the drawer) without navigating back within settings first,
+    // so also reload as soon as the screen is no longer resumed.
+    var orderChanged by remember { mutableStateOf(false) }
+    val lifecycleState = lifecycleState()
+    LaunchedEffect(lifecycleState) {
+        if (orderChanged && lifecycleState != Lifecycle.State.RESUMED) {
+            viewModel.onFolderEditingFinished()
+            orderChanged = false
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            if (orderChanged) viewModel.onFolderEditingFinished()
+        }
+    }
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
@@ -170,6 +217,11 @@ fun AppDrawerFoldersPreference(
                 )
             }
         },
+        onReorderFolders = {
+            orderedIds = it
+            orderChanged = true
+            viewModel.updateFolderOrder(it)
+        },
         onExportFolders = {
             val fileName = "lawnchair_folders_${SimpleDateFormat.getDateTimeInstance().format(Date())}.json"
             Intent(Intent.ACTION_CREATE_DOCUMENT)
@@ -195,15 +247,19 @@ fun AppDrawerFoldersPreference(
     onRenameFolder: (FolderInfo, String) -> Unit,
     onDeleteFolder: (FolderInfo) -> Unit,
     onNestFolder: (FolderInfo) -> Unit,
+    onReorderFolders: (List<Int>) -> Unit,
     onExportFolders: () -> Unit,
     onImportFolders: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val bottomSheetHandler = bottomSheetHandler
     val prefs = preferenceManager()
+    val manualOrderAdapter = preferenceManager2().folderManualOrder.getAdapter()
+    val manualOrder by manualOrderAdapter.state
 
-    // Folders are sorted alphabetically on display; no manual order is stored.
-    val sortedDisplayList = remember(folderEntries) {
+    // folderEntries already arrives ordered (rank in manual mode, alphabetical otherwise) - see
+    // FolderService.getAllFoldersFlatFlow().
+    val alphabeticalOrder = remember(folderEntries) {
         folderEntries.sortedBy { it.folderInfo.title.toString().lowercase(Locale.getDefault()) }
     }
     val parentTitleById = remember(folderEntries) {
@@ -241,6 +297,11 @@ fun AppDrawerFoldersPreference(
                 label = stringResource(id = R.string.apps_in_folder_label),
                 description = stringResource(id = R.string.apps_in_folder_description),
             )
+            SwitchPreference(
+                adapter = manualOrderAdapter,
+                label = stringResource(id = R.string.folder_manual_order_label),
+                description = stringResource(id = R.string.folder_manual_order_description),
+            )
         }
         PreferenceGroup(heading = stringResource(R.string.folders_label)) {
             PreferenceTemplate(
@@ -271,9 +332,14 @@ fun AppDrawerFoldersPreference(
                 },
             )
         }
-        if (sortedDisplayList.isNotEmpty()) {
-            PreferenceGroup {
-                sortedDisplayList.forEach { entry ->
+        if (folderEntries.isNotEmpty()) {
+            if (manualOrder) {
+                ReorderablePreferenceGroup(
+                    label = null,
+                    items = folderEntries,
+                    defaultList = alphabeticalOrder,
+                    onOrderChange = { onReorderFolders(it.map { entry -> entry.folderInfo.id }) },
+                ) { entry, _, _, onDraggingChange ->
                     val folderInfo = entry.folderInfo
                     FolderItem(
                         folderInfo = folderInfo,
@@ -295,7 +361,40 @@ fun AppDrawerFoldersPreference(
                         },
                         onItemDelete = onDeleteFolder,
                         onItemNest = onNestFolder,
+                        dragHandle = {
+                            ReorderableDragHandle(
+                                scope = this,
+                                onDragStop = { onDraggingChange(false) },
+                            )
+                        },
                     )
+                }
+            } else {
+                PreferenceGroup {
+                    folderEntries.forEach { entry ->
+                        val folderInfo = entry.folderInfo
+                        FolderItem(
+                            folderInfo = folderInfo,
+                            parentFolderTitle = entry.parentFolderId?.let { parentTitleById[it] },
+                            onItemClick = {
+                                bottomSheetHandler.show {
+                                    FolderEditSheet(
+                                        folderInfo,
+                                        onRename = onRenameFolder,
+                                        onNavigate = {
+                                            onEditFolderItems(it)
+                                            bottomSheetHandler.hide()
+                                        },
+                                        onDismiss = {
+                                            bottomSheetHandler.hide()
+                                        },
+                                    )
+                                }
+                            },
+                            onItemDelete = onDeleteFolder,
+                            onItemNest = onNestFolder,
+                        )
+                    }
                 }
             }
         }
@@ -373,6 +472,7 @@ fun FolderItem(
     modifier: Modifier = Modifier,
     parentFolderTitle: String? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    dragHandle: (@Composable () -> Unit)? = null,
 ) {
     val resources = LocalContext.current.resources
     PreferenceTemplate(
@@ -391,6 +491,7 @@ fun FolderItem(
                 },
             )
         },
+        startWidget = dragHandle,
         endWidget = {
             Row {
                 IconButton(

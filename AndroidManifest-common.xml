@@ -49,6 +49,7 @@
     <uses-permission android:name="android.permission.ROTATE_SURFACE_FLINGER" />
     <uses-permission android:name="android.permission.WAKEUP_SURFACE_FLINGER" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!--
     Permissions required for read/write access to the workspace data. These permission name

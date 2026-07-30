@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
+import android.net.Uri
 import android.os.Process
 import android.provider.Settings
 import androidx.compose.foundation.background
@@ -32,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -74,6 +76,8 @@ import app.lawnchair.ui.theme.isSelectedThemeDark
 import app.lawnchair.ui.theme.preferenceGroupColor
 import app.lawnchair.ui.util.addIf
 import app.lawnchair.util.isDefaultLauncher
+import app.lawnchair.util.isIgnoringBatteryOptimizations
+import app.lawnchair.util.lifecycleState
 import app.lawnchair.util.restartLauncher
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
@@ -101,6 +105,16 @@ fun PreferencesDashboard(
 
         if (!context.isDefaultLauncher()) {
             PreferencesSetDefaultLauncherWarning()
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // Unlike the default-launcher warning, this screen doesn't finish() itself when the user
+        // taps through to system settings and back - so a plain function call here would only
+        // ever be evaluated once and never notice the permission was granted. Re-check on every
+        // lifecycle change (e.g. the ON_RESUME when returning from that settings screen).
+        val ignoringBatteryOptimizations = remember(lifecycleState()) { context.isIgnoringBatteryOptimizations() }
+        if (!ignoringBatteryOptimizations) {
+            PreferencesBatteryOptimizationWarning()
             Spacer(modifier = Modifier.height(8.dp))
         }
 
@@ -390,6 +404,43 @@ fun PreferencesSetDefaultLauncherWarning(
             description = {
                 Text(
                     text = stringResource(id = R.string.set_default_launcher_tip),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            startWidget = {
+                Icon(
+                    imageVector = Icons.Rounded.TipsAndUpdates,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentDescription = null,
+                )
+            },
+        )
+    }
+}
+
+@Composable
+fun PreferencesBatteryOptimizationWarning(
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    Surface(
+        modifier = modifier.padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        PreferenceTemplate(
+            modifier = Modifier.clickable {
+                runCatching {
+                    Intent(
+                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        Uri.parse("package:${context.packageName}"),
+                    ).let { context.startActivity(it) }
+                }
+            },
+            title = {},
+            description = {
+                Text(
+                    text = stringResource(id = R.string.battery_optimization_tip),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },

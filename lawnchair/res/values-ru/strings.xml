@@ -21,6 +21,7 @@
     <string name="security_label">Безопасность</string>
     <string name="app_drawer_lock">Блокировка меню приложений</string>
     <string name="app_drawer_lock_description">Запретить переименование, скрытие, смену иконки и удаление приложений из меню приложений</string>
+    <string name="battery_optimization_tip">Для стабильной работы в фоне нажмите, чтобы разрешить лончеру игнорировать оптимизацию батареи</string>
     <string name="settings_lock_label">Блокировка настроек лончера</string>
     <string name="settings_lock_status_on">Вкл</string>
     <string name="settings_lock_status_off">Выкл</string>
@@ -60,4 +61,10 @@
     <string name="folder_export_error">Не удалось экспортировать папки</string>
     <string name="folder_import_success">Импортировано папок: %1$d, приложений: %2$d (пропущено: %3$d)</string>
     <string name="folder_import_error">Не удалось импортировать папки: неверный файл</string>
+    <string name="folder_manual_order_label">Ручной порядок</string>
+    <string name="folder_manual_order_description">Перетаскивание для изменения порядка папок и приложений внутри них, вместо сортировки по алфавиту</string>
+    <string name="folder_contents_heading">В этой папке</string>
+    <string name="folder_nest_action">Переместить в папку</string>
+    <string name="folder_nest_top_level">Верхний уровень (без родительской папки)</string>
+    <string name="folder_nested_in">%1$s · вложена в «%2$s»</string>
 </resources>

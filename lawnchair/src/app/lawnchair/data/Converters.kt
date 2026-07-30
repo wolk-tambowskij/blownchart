@@ -14,9 +14,10 @@ class Converters {
     fun toComponentKey(value: String?) = value?.let { ComponentKey.fromString(it) }
 }
 
-fun AppInfo.toEntity(folderId: Int): FolderItemEntity {
+fun AppInfo.toEntity(folderId: Int, rank: Int = 0): FolderItemEntity {
     return FolderItemEntity(
         folderId = folderId,
+        rank = rank,
         componentKey = Converters().fromComponentKey(this.toComponentKey()),
     )
 }
