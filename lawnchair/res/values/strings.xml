@@ -647,7 +647,7 @@
     <string name="app_drawer_lock">Lock app drawer</string>
     <string name="app_drawer_lock_description">Prevent renaming, hiding, changing the icon, or uninstalling apps from the app drawer</string>
 
-    <string name="battery_optimization_tip">For the most reliable background behavior, let the launcher ignore battery optimization. Some phone manufacturers (Xiaomi, Huawei, Samsung, etc.) also have their own separate autostart/background-activity setting worth checking.</string>
+    <string name="battery_optimization_tip">For stable background work, tap to let the launcher ignore battery optimization</string>
 
     <string name="security_label">Security</string>
     <string name="settings_lock_label">Lock launcher settings</string>
