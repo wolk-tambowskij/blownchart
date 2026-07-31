@@ -96,6 +96,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        @JvmField
         val INSTANCE = MainThreadInitializedObject { context ->
             Room.databaseBuilder(
                 context,
