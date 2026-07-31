@@ -1,0 +1,52 @@
+BlownChart
+Copyright (C) 2026 Wolk Tambowskij / BlownChart project
+
+This product is a modified version of Lawnchair, a free and open-source
+Android home screen launcher.
+
+  Original project: https://github.com/LawnchairLauncher/lawnchair
+  Original copyright: Copyright (C) Lawnchair team and contributors
+
+BlownChart is not affiliated with, endorsed by, or sponsored by the
+Lawnchair team.
+
+License structure
+==================
+
+This repository carries two licenses side by side, matching how the
+upstream Lawnchair project itself is licensed:
+
+1. Apache License, Version 2.0
+   ------------------------------
+   The AOSP-derived Launcher3 sources at the repository root (`src/`,
+   `src_no_quickstep/`, `res/`, `quickstep/`, and related root-level
+   modules) originate from the Android Open Source Project and are
+   distributed under the Apache License, Version 2.0. The full text is
+   in `LICENSE.txt`.
+
+     Copyright (c) 2005-2008, The Android Open Source Project
+     Copyright (c) 2024, Lawnchair
+
+2. GNU General Public License, Version 3
+   ---------------------------------------
+   The original Lawnchair application code under `lawnchair/` (features,
+   preferences, UI built on top of Launcher3) is distributed under the
+   GNU General Public License, version 3 or later. The full text is in
+   `LICENSE`.
+
+     Copyright (C) Lawnchair team and contributors
+
+Modifications made by the BlownChart project (fork-added and fork-modified
+files, primarily but not exclusively under `lawnchair/`) are:
+
+     Copyright (C) 2026 Wolk Tambowskij / BlownChart project
+
+and are likewise distributed under the GNU General Public License,
+version 3 or later, in keeping with the license of the code they modify
+or extend. See individual file headers for per-file copyright notices,
+and `THIRD_PARTY.md` for code carried over from other third-party
+projects.
+
+You should have received a copy of the GNU General Public License along
+with this program (see `LICENSE`). If not, see
+<https://www.gnu.org/licenses/>.
