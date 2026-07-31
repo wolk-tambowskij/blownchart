@@ -214,24 +214,32 @@ class LawnchairIconProvider @JvmOverloads constructor(
         return themeMap[componentName] ?: themeMap[ComponentName(componentName.packageName, "")]
     }
 
-    // Our own launcher icon has its wavy BlownChart border baked into the artwork itself - unlike
-    // every other app's icon, it's never meant to be reshaped by whatever icon shape the user has
-    // selected, so it skips the shape-mask wrapping entirely here.
+    // Our own launcher icon is pre-shaped to its wavy BlownChart outline - white fill inside the
+    // border, fully transparent outside - baked directly into a plain (non-adaptive) bitmap. It's
+    // never meant to be reshaped by any mask, whether the user's selected icon shape or even the
+    // system's own default adaptive-icon mask, so it's returned as-is instead of going through
+    // CustomAdaptiveIconDrawable (or the AdaptiveIconDrawable underneath it) at all.
     private fun isOwnPackage(packageName: String?) = packageName == context.packageName
 
+    private fun ownIconDrawable(iconDpi: Int? = null): Drawable = if (iconDpi != null) {
+        context.resources.getDrawableForDensity(R.mipmap.ic_launcher_home_true_shape, iconDpi, null)!!
+    } else {
+        context.resources.getDrawable(R.mipmap.ic_launcher_home_true_shape, null)
+    }
+
     override fun getIcon(info: ActivityInfo?): Drawable {
-        val icon = super.getIcon(info)
-        return if (isOwnPackage(info?.packageName)) icon else CustomAdaptiveIconDrawable.wrapNonNull(icon)
+        if (isOwnPackage(info?.packageName)) return ownIconDrawable()
+        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info))
     }
 
     override fun getIcon(info: ActivityInfo?, iconDpi: Int): Drawable {
-        val icon = super.getIcon(info, iconDpi)
-        return if (isOwnPackage(info?.packageName)) icon else CustomAdaptiveIconDrawable.wrapNonNull(icon)
+        if (isOwnPackage(info?.packageName)) return ownIconDrawable(iconDpi)
+        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info, iconDpi))
     }
 
     override fun getIcon(info: LauncherActivityInfo?, iconDpi: Int): Drawable {
-        val icon = super.getIcon(info, iconDpi)
-        return if (isOwnPackage(info?.componentName?.packageName)) icon else CustomAdaptiveIconDrawable.wrapNonNull(icon)
+        if (isOwnPackage(info?.componentName?.packageName)) return ownIconDrawable(iconDpi)
+        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info, iconDpi))
     }
 
     override fun getSystemStateForPackage(systemState: String, packageName: String): String {
