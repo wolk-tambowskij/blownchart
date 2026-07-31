@@ -238,6 +238,7 @@
     -->
 
     <string name="set_default_launcher_tip">To access shortcuts and additional features, set Lawnchair as your default launcher</string>
+    <string name="battery_optimization_tip">For stable background work, tap to let the launcher ignore battery optimization</string>
 
     <string name="notification_dots">Notification dots</string>
     <string name="show_notification_count">Show notification counter</string>
