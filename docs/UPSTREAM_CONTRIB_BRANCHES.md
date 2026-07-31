@@ -18,7 +18,7 @@ Fork point: `upstream/15-dev` @ `v15.0.0-beta3.0`. See
 | 3 | `feat/search-folder-label` | Search results show which folder an app is in (as a subtitle) - narrower than originally planned, see PR doc scope note | S | - | ready for review (pushed to `origin/feat/search-folder-label` - renamed from the originally planned `feat/drawer-search-folder-label`, which collides with an old stale fork branch of the same name, see cleanup list) |
 | 4 | `feat/folder-outline` | Thin gray outline on folder previews/backgrounds, independent of theme/opacity | S | - | ready for review (pushed to `origin/feat/folder-outline`) |
 | 5 | `feat/battery-optimization-banner` | Persistent (not one-shot) prompt to exempt the launcher from battery optimization | S | - | ready for review (pushed to `origin/feat/battery-optimization-banner` - renamed from the originally planned `feat/battery-optimization-prompt`, which collides with an old stale fork branch of the same name, see cleanup list) |
-| 6 | `feat/hide-launcher-self-entry` | Hide the launcher's own app-drawer entry by default | S | - | pending |
+| 6 | `feat/hide-launcher-self-entry` | Hide the launcher's own app-drawer entry by default | S | - | ready for review (pushed to `origin/feat/hide-launcher-self-entry`) |
 | 7 | `feat/folder-picker-search` | Search bar when choosing apps for a folder | S | - | pending |
 | 8 | `fix/home-lock-uninstall-widget-bypass` | lockHomeScreen didn't block the Uninstall shortcut (any surface) or new-widget placement/resize | S | - | pending |
 | 9 | `feat/split-drawer-home-lock` | Split the single lockHomeScreen toggle into independent app-drawer-lock and home-screen-lock | S/M | Fixes #5839 | pending |
@@ -35,6 +35,20 @@ favor of hand-maintained Russian (`4a77931`, `1ed9e17`) - upstream still
 uses Crowdin, this is a fork-specific tooling choice, not a fix. Also
 everything from Tasks 1/2/4 of this session (licensing, CI/release
 workflows, donations).
+
+## Open follow-up spotted while working branch #6
+
+While branch-switching back to `15-dev`, `PreferenceManager2.kt` there calls
+`L3IconShape.INSTANCE.get(context).pickBestShape(context)` (forces the
+cached shape-detection singleton to re-run) with a comment about folder
+icons keeping a stale shape until process restart otherwise - `.get(context)`
+alone only returns the already-cached instance from first launch. This
+looks like a second, separate bug from what `fix/folder-shape-geometry`
+(#2) already fixed, in the same problem area (icon shape not
+re-detected when the underlying preference/mask changes) but a
+different code path (the singleton isn't refreshed at all, vs. #2's
+wrong-shape-picked-in-the-first-place bugs). Not yet turned into its
+own branch - flagging here so it isn't lost.
 
 ## Commits that needed hunk-level splitting (not clean cherry-picks)
 
