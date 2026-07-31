@@ -69,10 +69,8 @@ Other:
   since it's easy to dismiss once and forget.
 - Rebranded identity (name, icon, `applicationId`) so it can be installed
   side by side with Lawnchair itself; hand-maintained Russian
-  translations instead of upstream's Crowdin-managed ones; optional
-  in-app donation links (PayPal, YooMoney — see
-  [`docs/DONATIONS.md`](docs/DONATIONS.md)); signed CI/release workflows
-  and periodic upstream-sync tracking (see
+  translations instead of upstream's Crowdin-managed ones; signed
+  CI/release workflows and periodic upstream-sync tracking (see
   [`.github/workflows/`](.github/workflows/)).
 
 ### Download
@@ -193,10 +191,8 @@ BlownChart появился из-за того, что на простое же�
   оптимизации батареи — одноразовое слишком легко закрыть и забыть.
 - Собственный брендинг (название, иконка, `applicationId`), чтобы можно
   было ставить рядом с оригинальным Lawnchair; переведено на русский
-  вручную, без CrowdIn, которым пользуется апстрим; опциональные ссылки
-  на поддержку проекта в приложении (PayPal, ЮMoney — см.
-  [`docs/DONATIONS.md`](docs/DONATIONS.md)); подписанные CI/release
-  workflow'ы и периодическое отслеживание апстрима (см.
+  вручную, без CrowdIn, которым пользуется апстрим; подписанные
+  CI/release workflow'ы и периодическое отслеживание апстрима (см.
   [`.github/workflows/`](.github/workflows/)).
 
 ### Скачать
