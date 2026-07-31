@@ -92,18 +92,44 @@ migrations for new keys — an upgrading user simply gets the defaults
 
 ## Backup/restore impact
 
-`settings_lock_pin_hash` lives in the same `preferences.preferences_pb`
-DataStore file that `LawnchairBackup.getFiles()` already includes in
-Lawnchair's manual `.lawnchairbackup` export (see the nested-folders
-proposal's backup section for the full file list — same file). That
-means a PIN hash would travel with a manual backup/restore. Worth
-flagging explicitly to reviewers as something to decide deliberately,
-not by accident: is restoring a locked device's PIN hash onto another
-device the intended behavior, or should `settings_lock_pin_hash`/`settings_lock_enabled`
-be excluded from `INCLUDE_LAYOUT_AND_SETTINGS` restores? The fork
-currently does *not* special-case it (restores it like any other
-preference). This is exactly the kind of design question to raise in
-the RFC rather than have picked silently.
+**Decision (updated 2026-07-31 per project owner feedback):** the
+original draft left this as an open question for the RFC. Settled
+instead: the settings-lock PIN must be excluded from backup/restore
+entirely — restoring onto a new device should come up unlocked, with
+the user opting back in and setting a fresh PIN by hand, not silently
+inheriting the old device's PIN hash and lock-enabled state.
+
+- **OS-level auto full-backup:** already excludes it today with no
+  change needed — `res/xml/backupscheme.xml` never listed the DataStore
+  file (`preferences.preferences_pb`) that `settings_lock_*` lives in to
+  begin with (see the nested-folders proposal; the file it *is* missing
+  is the Room `preferences` db, a different file despite the similar
+  name).
+- **Lawnchair's own manual backup/restore** (`LawnchairBackup.kt`,
+  `.lawnchairbackup` zip files) is the one that needs a real fix:
+  `getFiles()` raw-copies the *entire* `preferences.preferences_pb`
+  DataStore file, which holds every DataStore-backed preference in one
+  blob — there's no key-level granularity in a plain file copy, so
+  `settings_lock_enabled`/`settings_lock_pin_hash`/`settings_lock_biometric_enabled`
+  currently ride along with everything else.
+
+  Fix, in `LawnchairBackup.create()`: instead of copying
+  `prefsDataStoreFile(context)` straight into the zip, copy it to a
+  throwaway temp file first, open a scratch
+  `PreferenceDataStoreFactory.create(produceFile = { tempFile })`
+  pointed at that copy, `edit { it.remove(settingsLockEnabledKey);
+  it.remove(settingsLockPinHashKey); it.remove(settingsLockBiometricEnabledKey) }`
+  on it (all public, stable `androidx.datastore.preferences.core` APIs
+  — no need for internal/serializer access), write the now-redacted
+  temp file into the zip entry in place of the original, then delete
+  the temp file. On restore, the three keys are simply absent, so
+  `SettingsLockGate.isEnabled()` reads back `settingsLockEnabled =
+  false` / empty PIN hash — the lock comes up off, matching "the user
+  turns it on again manually on the new device," not just reset to a
+  disabled-but-still-present state.
+- No change needed on the restore side (`LawnchairBackup.restore()`):
+  since the keys were never written into the zip in the first place,
+  there's nothing to strip out when reading it back.
 
 ## Backward compatibility
 
@@ -133,11 +159,15 @@ opt in and set a PIN. No interaction with the existing
 M/L-class, and — per the UX note above — a legitimately contestable
 scope decision (whether the launcher should own a PIN gate at all, vs.
 delegating to the device credential). Recommend opening a GitHub
-Discussion/RFC issue describing the feature, the "third-party
-shortcuts/widgets are out of scope" boundary, and the backup/restore
-question above, before sending a PR — this one is more likely than the
-nested-folders proposal to get a maintainer "we'd rather not" answer,
-and that's worth learning before writing PR descriptions, not after.
+Discussion/RFC issue describing the feature and the "third-party
+shortcuts/widgets are out of scope" boundary before sending a PR — this
+one is more likely than the nested-folders proposal to get a maintainer
+"we'd rather not" answer, and that's worth learning before writing PR
+descriptions, not after. The backup/restore handling is no longer an
+open question to put to the RFC (see above — settled: excluded from
+backup entirely); worth one line in the RFC/PR description as a
+disclosed design choice, but it doesn't need maintainer input to
+proceed.
 
 ## Proposed PR chain
 
@@ -148,7 +178,9 @@ tightly coupled (three files: `PinHasher`, `SettingsLockGate`,
 **single PR**:
 
 1. `PinHasher` + `SettingsLockGate` + `SettingsLockUnlockActivity` +
-   `SettingsLockScreens` + the three preferences + the two call sites
+   `SettingsLockScreens` + the three preferences + the backup-exclusion
+   fix in `LawnchairBackup.kt` (same file, same PR — it's the PIN
+   lock's own backup behavior, not a separate topic) + the two call sites
    (`LawnchairLauncher` unlock helpers wired into `ItemClickHandler`'s
    system-Settings check and `LawnchairShortcut`'s "App info" shortcut,
    and `PreferenceActivity`'s own gate) + a settings toggle to
