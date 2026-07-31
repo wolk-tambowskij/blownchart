@@ -49,17 +49,28 @@ import okio.ByteString
 class SearchTargetFactory(
     private val context: Context,
 ) {
-    fun createAppSearchTarget(appInfo: AppInfo, asRow: Boolean = false): SearchTargetCompat {
+    fun createAppSearchTarget(appInfo: AppInfo, asRow: Boolean = false, folderTitle: String? = null): SearchTargetCompat {
         val componentName = appInfo.componentName
         val user = appInfo.user
+        val id = ComponentKey(componentName, user).toString()
         return SearchTargetCompat.Builder(
             SearchTargetCompat.RESULT_TYPE_APPLICATION,
             if (asRow) LayoutType.SMALL_ICON_HORIZONTAL_TEXT else LayoutType.ICON_SINGLE_VERTICAL_TEXT,
-            generateHashKey(ComponentKey(componentName, user).toString()),
+            generateHashKey(id),
         ).apply {
             setPackageName(componentName?.packageName ?: "")
             setUserHandle(user)
             setExtras(bundleOf("class" to (componentName?.className ?: "")))
+            // The row's own title always comes from a live icon.bind() lookup, not from this
+            // action - the action here exists only to carry the "which folder is this app in"
+            // subtitle through to SearchResultIconRow.
+            if (folderTitle != null) {
+                setSearchAction(
+                    SearchActionCompat.Builder(id, "")
+                        .setSubtitle(context.getString(R.string.search_result_in_folder, folderTitle))
+                        .build(),
+                )
+            }
         }.build()
     }
 
