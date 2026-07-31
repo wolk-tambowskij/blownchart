@@ -26,8 +26,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Link
 import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.QrCode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -110,7 +110,7 @@ private fun DonationMethodRow(method: DonationMethod) {
         DonationMethodType.QR -> R.string.donate_action_show_qr
     }
     val icon = when (method.type) {
-        DonationMethodType.LINK -> Icons.AutoMirrored.Rounded.Link
+        DonationMethodType.LINK -> Icons.Rounded.Link
         DonationMethodType.COPY_TEXT -> Icons.Rounded.ContentCopy
         DonationMethodType.QR -> Icons.Rounded.QrCode
     }
@@ -141,7 +141,7 @@ private fun DonateLinkRow(
         title = { Text(text = stringResource(id = titleRes)) },
         description = { Text(text = stringResource(id = descriptionRes)) },
         startWidget = {
-            Icon(imageVector = Icons.AutoMirrored.Rounded.Link, contentDescription = null)
+            Icon(imageVector = Icons.Rounded.Link, contentDescription = null)
         },
         modifier = Modifier.clickable { openDonationLink(context, url) },
     )
