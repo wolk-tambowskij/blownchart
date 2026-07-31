@@ -1,117 +1,171 @@
-# Lawnchair 15
+# BlownChart
 
-[![Build debug APK](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/ci.yml/badge.svg)](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/ci.yml)
-[![Build release APK](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/release_update.yml/badge.svg)](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/release_update.yml)
-[![Crowdin](https://badges.crowdin.net/e/188ba69d884418987f0b7f1dd55e3a4e/localized.svg)](https://lawnchair.crowdin.com/lawnchair)
-[![OpenCollective](https://img.shields.io/opencollective/all/lawnchair?label=financial%20contributors&logo=open-collective)](https://opencollective.com/lawnchair)
-[![Telegram](https://img.shields.io/endpoint?url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Flccommunity)](https://t.me/lccommunity)
-[![Discord](https://img.shields.io/discord/803299970169700402?label=server&logo=discord)](https://discord.gg/3x8qNWxgGZ)
-[![GitHub Downloads](https://img.shields.io/github/downloads/LawnchairLauncher/lawnchair/total.svg?label=GitHub%20Downloads&logo=github)](https://github.com/LawnchairLauncher/lawnchair/releases)
-[![Play Store Installs](https://img.shields.io/endpoint?color=green&logo=googleplay&logoColor=green&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dapp.lawnchair.play%26l%3DPlay%2520Store%2520Installs%26m%3D%24shortinstalls)](https://play.google.com/store/apps/details?id=app.lawnchair.play)
+A simple, fast Android home screen launcher with categorized folders in the
+app drawer and a real screen-lock mode — a fork of
+[Lawnchair](https://github.com/LawnchairLauncher/lawnchair).
 
-<picture>
-    <!-- Avoid image being clickable with slight workaround -->
-    <!-- ❤️ Credit to Raine for the original mockup on the Lawnchair Discord -->
-    <!-- ❤️ Credit to Lawrence Kayku for the current mockup on Unsplash 
-            https://unsplash.com/photos/photography-of-green-leaves-ZVKr8wADhpc 
-    -->
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/device-frame.png" width="250px">
-    <img alt="Google Pixel running Lawnchair Launcher with green wallpaper" src="docs/assets/device-frame.png" width="250px">
-</picture>
+**This is a fork of Lawnchair. Original project:
+https://github.com/LawnchairLauncher/lawnchair. Licensed under the GNU
+General Public License v3.0 (GPLv3), same as the original.** See
+[`LICENSE`](LICENSE), [`LICENSE.txt`](LICENSE.txt) and [`NOTICE`](NOTICE)
+for the full license text and the exact license boundaries between the
+AOSP-derived code and the GPLv3 Lawnchair/BlownChart code.
 
-Lawnchair is a free, open-source home app for Android. Taking Launcher3—Android’s default home app—as a starting point, it ports Pixel Launcher features and introduces rich customization options.
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Build debug APK](https://github.com/wolk-tambowskij/blownchart/actions/workflows/ci.yml/badge.svg?branch=15-dev)](https://github.com/wolk-tambowskij/blownchart/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/wolk-tambowskij/blownchart?include_prereleases&label=version)](https://github.com/wolk-tambowskij/blownchart/releases)
 
-This branch houses the codebase of Lawnchair 15, which is currently in beta and is based on Launcher3 from Android 15. For Lawnchair 9 to 14, see the branches with the `9-` to `14-` prefixes, respectively.
+---
 
-## Features
+## English
 
--   **Material You Theming:** Adapts to your wallpaper and system theme.
--   **At a Glance Widget:** Displays information *at a glance* with support for [Smartspacer](https://github.com/KieronQuinn/Smartspacer).
--   **QuickSwitch Support:** Integrates with Android Recents on Android 10 and newer. (requires root)
--   **Global Search:** Allows quick access to apps, contacts, and web results from the home screen.
--   **Customization Options:** Provides options to tweak icons, fonts, and colors to your liking.
--   And more!
+### Why this fork exists
 
-## Download
+BlownChart started because a simple wish had no ready-made answer: a
+launcher that categorizes apps into folders right in the app drawer, stays
+fast even with a large number of apps and categories, and can fully lock
+its settings and layout down (important once the drawer has grown large
+and you don't want to reorganize it by accident). Nothing off-the-shelf
+covered all three, so this fork builds on Lawnchair's solid Launcher3
+foundation to add them.
 
-<p align="left">
-  <a href="https://play.google.com/store/apps/details?id=app.lawnchair.play">
-    <picture>
-      <!-- Avoid image being clickable with slight workaround -->
-      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/badge-google-play.png" height="60">
-      <img alt="Get it on Google Play" src="docs/assets/badge-google-play.png" height="60">
-    </picture>
-  </a>
-  <a href="https://apt.izzysoft.de/fdroid/index/apk/app.lawnchair">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/badge-izzyondroid.png" height="60">
-      <img alt="Get it on IzzyOnDroid" src="docs/assets/badge-izzyondroid.png" height="60">
-    </picture>
-  </a>
-  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/LawnchairLauncher/lawnchair/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/badge-obtainium.png" height="60">
-      <img alt="Get it on Obtainium" src="docs/assets/badge-obtainium.png" height="60">
-    </picture>
-  </a>
-    <a href="https://github.com/LawnchairLauncher/lawnchair/releases">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/badge-github.png" height="60">
-      <img alt="Get it on GitHub" src="docs/assets/badge-github.png" height="60">
-    </picture>
-  </a>
-</p>
+### Differences from the original
 
-Lawnchair on Play Store will install as a different app from other sources. Some features may be restricted to comply with Google Play's publishing rules.
+<!-- TODO: describe recursive/nested folders in the app drawer -->
+<!-- TODO: describe the settings lock / screen-lock feature -->
+<!-- TODO: describe folder backup/restore -->
+<!-- TODO: describe icon shape changes -->
+<!-- TODO: describe branding/applicationId changes -->
+<!-- TODO: describe any other fork-specific fixes and features -->
 
-### Development builds
+### Download
 
-Interested in keeping yourself up-to-date with every Lawnchair development? Try our development builds!
+Not yet available — release packaging is being set up. This section will
+be filled in once signed GitHub Releases are live (see
+[`docs/UPSTREAM_SYNC.md`](docs/UPSTREAM_SYNC.md) once published, and the
+CI/release workflows under [`.github/workflows/`](.github/workflows/)).
 
-These builds offer the latest features and bug fixes at a cost of being slower and introducing new bugs. Ensure that you make backups before installing.
+### Build
 
-**Download:** [Obtainium][Obtainium link] • [GitHub][GitHub link] • [nightly.link][Nightly link]
+Requirements: JDK 17, Android SDK, and the NDK/CMake versions pinned in
+`build.gradle`.
 
-### Verification
+```sh
+git clone --recurse-submodules https://github.com/wolk-tambowskij/blownchart.git
+cd blownchart
+git checkout 15-dev
 
-Verify the integrity of your Lawnchair download using these SHA-256 hashes:
+# List all available build variants
+./gradlew tasks --group=build
 
-###### Google Play
-```
-47:AC:92:63:1C:60:35:13:CC:8D:26:DD:9C:FF:E0:71:9A:8B:36:55:44:DC:CE:C2:09:58:24:EC:25:61:20:A7
+# Debug build (unsigned), GitHub/FOSS channel
+./gradlew assembleLawnWithQuickstepGithubDebug
 ```
 
-###### Elsewhere
+You can also open the project directly in Android Studio and build/run any
+variant from the Build Variants panel.
+
+A signed **release** build additionally needs signing credentials. Create a
+`keystore.properties` file at the repository root (already covered by
+`.gitignore`, never commit it):
+
+```properties
+storeFile=/absolute/path/to/your.keystore
+storePassword=...
+keyAlias=...
+keyPassword=...
 ```
-74:7C:36:45:B3:57:25:8B:2E:23:E8:51:E5:3C:96:74:7F:E0:AD:D0:07:E5:BA:2C:D9:7E:8C:85:57:2E:4D:C5
+
+then run e.g. `./gradlew assembleLawnWithQuickstepGithubRelease`. In CI,
+the same signing config is fed from GitHub Secrets instead of this file.
+
+### Support the project
+
+Donations are voluntary — see [`docs/DONATIONS.md`](docs/DONATIONS.md)
+*(coming soon)* for supported channels. No feature of BlownChart is ever
+gated behind a payment; that would contradict both the spirit and the
+letter of the GPLv3.
+
+### License and attribution
+
+- Full license texts: [`LICENSE`](LICENSE) (GPLv3), [`LICENSE.txt`](LICENSE.txt) (Apache-2.0).
+- License boundaries and copyright: [`NOTICE`](NOTICE).
+- Third-party code carried over from other projects: [`THIRD_PARTY.md`](THIRD_PARTY.md).
+- Contributing to Lawnchair upstream: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+---
+
+## Русский
+
+### Зачем этот форк
+
+BlownChart появился из-за того, что на простое желание не нашлось готового
+ответа: лончер, который раскладывает приложения по категориям прямо в меню
+приложений (app drawer), остаётся быстрым даже при большом количестве
+приложений и категорий, и умеет полностью заблокировать свои настройки и
+раскладку (это важно, когда меню приложений уже разрослось и не хочется
+случайно всё переорганизовать). Готового решения, закрывающего все три
+пункта разом, в открытом доступе найти не удалось — поэтому форк строится
+поверх прочной базы Lawnchair/Launcher3.
+
+### Отличия от оригинала
+
+<!-- TODO: описать рекурсивные/вложенные папки в app drawer -->
+<!-- TODO: описать блокировку настроек / экрана блокировки -->
+<!-- TODO: описать резервное копирование/восстановление папок -->
+<!-- TODO: описать изменения формы иконок -->
+<!-- TODO: описать смену брендинга/applicationId -->
+<!-- TODO: описать прочие форк-специфичные фиксы и фичи -->
+
+### Скачать
+
+Пока недоступно — настраивается сборка релизов. Раздел заполнится после
+запуска подписанных GitHub Releases (см. `docs/UPSTREAM_SYNC.md`, когда
+появится, и workflow'ы в [`.github/workflows/`](.github/workflows/)).
+
+### Сборка
+
+Нужны: JDK 17, Android SDK, а также версии NDK/CMake, закреплённые в
+`build.gradle`.
+
+```sh
+git clone --recurse-submodules https://github.com/wolk-tambowskij/blownchart.git
+cd blownchart
+git checkout 15-dev
+
+# Список всех доступных вариантов сборки
+./gradlew tasks --group=build
+
+# Debug-сборка (неподписанная), канал GitHub/FOSS
+./gradlew assembleLawnWithQuickstepGithubDebug
 ```
 
-## Contributing
+Проект также можно открыть прямо в Android Studio и собрать/запустить
+любой вариант через панель Build Variants.
 
-Please visit the [Lawnchair Contributing Guidelines](CONTRIBUTING.md) for information and tips on contributing to Lawnchair.
+Для подписанной **release**-сборки дополнительно нужны реквизиты подписи.
+Создайте файл `keystore.properties` в корне репозитория (уже покрыт
+`.gitignore`, никогда не коммитьте его):
 
-## Supporting Lawnchair
+```properties
+storeFile=/absolute/path/to/your.keystore
+storePassword=...
+keyAlias=...
+keyPassword=...
+```
 
-If you love what we do, consider [supporting us on Open Collective](https://opencollective.com/lawnchair)! Your contributions help keep Lawnchair independent and enable us to develop faster.
+затем выполните, например, `./gradlew assembleLawnWithQuickstepGithubRelease`.
+В CI та же конфигурация подписи берётся из GitHub Secrets вместо этого файла.
 
-A huge thank you to our **Core Backers ($5+)**:
-*(These backers directly fund our Project Velocity Fund)*
+### Поддержать проект
 
-[![Core Backers](https://opencollective.com/lawnchair/tiers/backer.svg?avatarHeight=64&width=890&button=false)](https://opencollective.com/lawnchair)
+Донаты — исключительно добровольные, см. [`docs/DONATIONS.md`](docs/DONATIONS.md)
+*(скоро)* за списком способов. Ни одна функция BlownChart никогда не
+скрывается за оплатой — это противоречило бы и духу, и букве GPLv3.
 
-[Become a supporter](https://opencollective.com/lawnchair) to help us cover our operational costs, or become a Core Backer to be featured here!
+### Лицензия и авторство
 
-## Quick links
-
--   [Website](https://lawnchair.app)
--   [News on Telegram](https://t.me/lawnchairci)
--   [Discord](https://discord.com/invite/3x8qNWxgGZ)
--   [Lawnchair on X (formerly Twitter)](https://x.com/lawnchairapp)
--   [_XDA_ thread](https://xdaforums.com/t/lawnchair-customizable-pixel-launcher.3627137/)
-
-You can view all our links in the [Lawnchair Wiki](https://github.com/LawnchairLauncher/lawnchair/wiki).
-
-<!-- Download link -->
-[Nightly link]: https://nightly.link/LawnchairLauncher/lawnchair/workflows/ci/15-dev
-[Obtainium link]: https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22app.lawnchair.nightly%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Flawnchairlauncher%2Flawnchair%22%2C%22author%22%3A%22Lawnchair%20Launcher%22%2C%22name%22%3A%22Lawnchair%20(Debug)%22%2C%22preferredApkIndex%22%3A0%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Atrue%2C%5C%22fallbackToOlderReleases%5C%22%3Afalse%2C%5C%22filterReleaseTitlesByRegEx%5C%22%3A%5C%22Lawnchair%20Nightly%5C%22%2C%5C%22filterReleaseNotesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22verifyLatestTag%5C%22%3Afalse%2C%5C%22dontSortReleasesList%5C%22%3Afalse%2C%5C%22useLatestAssetDateAsReleaseDate%5C%22%3Afalse%2C%5C%22trackOnly%5C%22%3Afalse%2C%5C%22versionExtractionRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22matchGroupToUse%5C%22%3A%5C%22%5C%22%2C%5C%22versionDetection%5C%22%3Afalse%2C%5C%22releaseDateAsVersion%5C%22%3Atrue%2C%5C%22useVersionCodeAsOSVersion%5C%22%3Afalse%2C%5C%22apkFilterRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22invertAPKFilter%5C%22%3Afalse%2C%5C%22autoApkFilterByArch%5C%22%3Atrue%2C%5C%22appName%5C%22%3A%5C%22%5C%22%2C%5C%22shizukuPretendToBeGooglePlay%5C%22%3Afalse%2C%5C%22exemptFromBackgroundUpdates%5C%22%3Afalse%2C%5C%22skipUpdateNotifications%5C%22%3Afalse%2C%5C%22about%5C%22%3A%5C%22Lawnchair%20is%20a%20free%2C%20open-source%20home%20app%20for%20Android.%20(NOTE%3A%20This%20is%20the%20debug%20version%20of%20Lawnchair%2C%20for%20the%20beta%2Fstable%20versions%20see%20%5C%5C%5C%22Lawnchair%5C%5C%5C%22)%5C%22%7D%22%7D
-[GitHub link]: https://github.com/LawnchairLauncher/lawnchair/releases/tag/nightly
+- Полные тексты лицензий: [`LICENSE`](LICENSE) (GPLv3), [`LICENSE.txt`](LICENSE.txt) (Apache-2.0).
+- Границы лицензий и копирайты: [`NOTICE`](NOTICE).
+- Сторонний код из других проектов: [`THIRD_PARTY.md`](THIRD_PARTY.md).
+- Контрибуция в апстрим Lawnchair: [`CONTRIBUTING.md`](CONTRIBUTING.md).
