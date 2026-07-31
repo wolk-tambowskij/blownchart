@@ -1,6 +1,8 @@
 package app.lawnchair.allapps.views
 
 import android.content.Context
+import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -24,7 +26,6 @@ import app.lawnchair.util.copyToClipboard
 import com.android.app.search.LayoutType
 import com.android.launcher3.R
 import com.android.launcher3.views.BubbleTextHolder
-import kotlin.math.roundToInt
 
 class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
@@ -150,17 +151,21 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
         }
     }
 
-    // A nested folder's own row in the search result subtitle: an icon (matching the one shown
-    // in the folder list) followed by "Parent → Folder", with only the immediate (innermost)
-    // folder name bolded - the parent segment is context, not the actual answer to "which folder
-    // is this app in".
+    // A folder's own row in the search result subtitle: a solid folder icon (matching the one
+    // shown in the folder list), sized to the text's cap-height rather than its full line height,
+    // followed by the folder name - or, for an app inside a nested subfolder, "Parent → Folder"
+    // with the parent name bolded (the immediate/nested folder is context here, not the top-level
+    // answer to "which folder is this app in").
     private fun buildFolderSubtitle(folderName: String, parentName: String?): CharSequence {
         val text = if (parentName != null) "$parentName → $folderName" else folderName
         val builder = SpannableStringBuilder(" ").append(text)
 
-        val iconDrawable = ContextCompat.getDrawable(context, R.drawable.ic_folder)
+        val iconDrawable = ContextCompat.getDrawable(context, R.drawable.ic_folder_badge)?.mutate()
         if (iconDrawable != null) {
-            val size = subtitle.textSize.roundToInt()
+            iconDrawable.setTint(Color.BLACK)
+            val capHeightBounds = Rect()
+            subtitle.paint.getTextBounds("H", 0, 1, capHeightBounds)
+            val size = capHeightBounds.height()
             iconDrawable.setBounds(0, 0, size, size)
             builder.setSpan(
                 ImageSpan(iconDrawable, ImageSpan.ALIGN_BASELINE),
@@ -170,8 +175,8 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
             )
         }
 
-        val boldStart = builder.length - folderName.length
-        builder.setSpan(StyleSpan(Typeface.BOLD), boldStart, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        val boldEnd = if (parentName != null) 1 + parentName.length else builder.length
+        builder.setSpan(StyleSpan(Typeface.BOLD), 1, boldEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         return builder
     }
 
