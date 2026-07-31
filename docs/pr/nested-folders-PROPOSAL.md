@@ -114,23 +114,54 @@ ships as data model + UI only (two PRs, not three).
 
 ## Backup / restore impact
 
-Checked `upstream/15-dev`'s two backup paths directly:
+**Decision (updated 2026-07-31 per project owner feedback):** the
+original draft flagged the OS-level backup gap below only as a note for
+reviewers; the project owner asked to actually close it as part of this
+proposal, so nesting *and* folder/item ordering (`rank`) are covered by
+Android's own automatic device backup, not only by Lawnchair's manual
+export. Two sub-issues, both now in scope:
 
-- **Lawnchair's own manual backup/restore** (`LawnchairBackup.kt`,
-  `.lawnchairbackup` zip files): `getFiles()` includes
-  `PREFS_DB_FILE_NAME = "preferences"` — that's the same Room database
-  `Folders`/`FolderItems` live in. So folder data (including nesting,
-  once this lands) is already carried by Lawnchair's own backup feature
-  with zero extra work — it's a raw file copy of the whole db.
-- **Android OS-level auto full-backup** (`res/xml/backupscheme.xml`):
-  only lists `launcher.db` (grid layout databases) and the
-  `com.android.launcher3.prefs.xml` shared-prefs file. The Room
-  `preferences` db (icon overrides, wallpapers, *and* folders) is
-  **not** in that list, so it is not covered by Android's automatic
-  cloud backup today. This is true for the existing non-nested folder
-  feature already upstream — nesting doesn't change or regress
-  anything here, just worth flagging to reviewers so it isn't mistaken
-  for a new gap introduced by this PR.
+- **Missing from OS-level auto full-backup at all.**
+  `res/xml/backupscheme.xml` currently lists only `launcher.db` (grid
+  layout databases) and the `com.android.launcher3.prefs.xml`
+  shared-prefs file. The Room `preferences` db — where `Folders` and
+  `FolderItems` live, `rank` included — is **not** listed, so none of
+  it (nesting, manual order, or the plain non-nested folders already
+  upstream) survives Android's automatic full-device backup/restore
+  today. Fix: add `<include domain="database" path="preferences" />` to
+  `backupscheme.xml`. This is a real, pre-existing gap in the
+  already-upstream folder feature, not something nesting introduces —
+  but since this proposal is what makes "does folder structure survive
+  backup" a question actually worth answering carefully, the fix
+  belongs in front of PR 1.
+- **WAL not checkpointed before either backup path copies the db
+  file.** Room's `preferences` db runs in WAL mode; recently-written
+  rows can sit in the `-wal` file rather than the main db file until a
+  checkpoint happens. Neither backup path currently forces one first:
+  - OS-level: `LauncherBackupAgent` (`src/com/android/launcher3/LauncherBackupAgent.java`)
+    extends `BackupAgent` directly and doesn't override `onFullBackup()`,
+    so the default file-based full-backup runs with whatever's on disk
+    at that moment.
+  - Manual: `LawnchairBackup.create()` (`lawnchair/src/app/lawnchair/backup/LawnchairBackup.kt`)
+    raw-copies `getFiles()` (which includes the `preferences` db) into
+    the zip with no checkpoint step first, even though
+    `AppDatabase.checkpointSync()` already exists in this codebase and
+    is called elsewhere (`LawnchairLauncher.kt:300`).
+
+  Fix: override `LauncherBackupAgent.onFullBackup()` to call
+  `AppDatabase.INSTANCE.get(this).checkpointSync()` before
+  `super.onFullBackup(...)`, and add the same `checkpointSync()` call
+  at the top of `LawnchairBackup.create()` before it starts zipping
+  files. Without this, a folder nested or reordered moments before a
+  backup runs could silently be missing from that backup — worse for
+  nesting/ordering specifically than for the data that was already
+  covered (manual export/import), since there's no user-visible export
+  step where staleness would be noticed.
+
+Lawnchair's own manual backup/restore (`.lawnchairbackup` zip files) was
+already covering the `preferences` db via `getFiles()`'s
+`PREFS_DB_FILE_NAME = "preferences"` entry (a raw file copy) — that part
+needed no change beyond the WAL-checkpoint fix above.
 
 ## Backward compatibility
 
@@ -172,12 +203,23 @@ send the PRs").
 
 ## Proposed PR chain (sequential, each independently buildable/mergeable)
 
-1. **Data model.** `parentFolderId` column + `MIGRATION_3_4` +
-   `FolderDao`/`FolderService` support (`getChildFolders(parentId)`,
-   one-level validation on "set parent", explicit cascade delete of
-   children when a parent folder is deleted). No UI entry point yet —
-   inert until PR 2, but fully covered by DAO-level tests. Keeps PR 1
-   reviewable as "just the schema and data-layer contract."
+1. **Data model + backup coverage.** `parentFolderId` column +
+   `MIGRATION_3_4` + `FolderDao`/`FolderService` support
+   (`getChildFolders(parentId)`, one-level validation on "set parent",
+   explicit cascade delete of children when a parent folder is
+   deleted), **plus** the two backup fixes from the section above:
+   adding the `preferences` db to `backupscheme.xml`, and the
+   `checkpointSync()` calls in `LauncherBackupAgent.onFullBackup()` and
+   `LawnchairBackup.create()`. Bundled into this PR rather than split
+   out because it's the same "does this survive backup" question the
+   data model raises, and because touching `LauncherBackupAgent.java`/
+   `LawnchairBackup.kt`/`backupscheme.xml` for the WAL fix incidentally
+   also closes the gap for the plain non-nested folders already
+   upstream — worth calling out explicitly in the PR description as a
+   deliberate, small, separately-reviewable inclusion, not scope creep.
+   No UI entry point for nesting yet — inert until PR 2, but fully
+   covered by DAO-level tests. Keeps PR 1 reviewable as "schema,
+   data-layer contract, and backup correctness."
 2. **UI.** Render nested folders inside their parent's open view,
    nest/un-nest drag gesture, one-level guard in the drop-target check,
    parent/child indication in `AppDrawerFoldersPreference`.
