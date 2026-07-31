@@ -22,9 +22,17 @@ Fork point: `upstream/15-dev` @ `v15.0.0-beta3.0`. See
 | 7 | `feat/folder-picker-search` | Search bar when choosing apps for a folder | S | - | ready for review (pushed to `origin/feat/folder-picker-search`) |
 | 8 | `fix/home-lock-uninstall-widget-bypass` | lockHomeScreen didn't block the Uninstall shortcut (any surface) or new-widget placement/resize | S | - | ready for review (pushed to `origin/fix/home-lock-uninstall-widget-bypass`) |
 | 9 | `feat/split-drawer-home-lock` | Split the single lockHomeScreen toggle into independent app-drawer-lock and home-screen-lock | S/M | Fixes #5839 | ready for review (pushed to `origin/feat/split-drawer-home-lock` - **branched from #8, contains its commit too**, since UNINSTALL only has a lockHomeScreen check to split once #8 lands) |
-| 10 | `feat/folder-manual-order` | Optional manual drag-and-drop ordering of folders/folder contents (alphabetical stays default) | S/M | - | pending, after nested folders lands upstream |
-| 11 | `feat/settings-pin-lock` | New PIN/biometric lock gating launcher settings and any exit into system Settings (doesn't cover shortcuts/widgets from other apps) | M/L | - | pending, design doc first |
-| 12 | `feat/nested-folders` | One level of folder-in-folder nesting: data model (`parentFolderId`), UI, export/import, drag handles | L | - | pending, RFC first |
+| 10 | `feat/nested-folders` (chain, 3 PRs) | One level of folder-in-folder nesting: 1) data model (`parentFolderId`), 2) UI, 3) export/import + drag handles | L | - | pending, RFC + design doc first (reordered ahead of #11 - it's the blocking dependency for #11, see below) |
+| 11 | `feat/folder-manual-order` | Optional manual drag-and-drop ordering of folders/folder contents (alphabetical stays default) | S/M | - | pending, after #10's data-model PR lands upstream (the fork's manual-order code is entangled with nesting - folders always sort before apps in both) |
+| 12 | `feat/settings-pin-lock` | New PIN/biometric lock gating launcher settings and any exit into system Settings (doesn't cover shortcuts/widgets from other apps) | M/L | - | pending, design doc first - fully independent of #10/#11, can be built whenever regardless of their progress |
+
+**Reordering note (2026-07-31):** the original plan had PIN-lock (was #11)
+before nested folders (was #12). Swapped: `feat/folder-manual-order`
+(now #11) is code-dependent on nested folders (now #10), so #10 has to
+be tackled first regardless; PIN-lock has no dependency either way, so
+there's no cost to moving it last, and doing so groups the two
+folder-family items together instead of interleaving an unrelated
+security feature between them.
 
 ## Explicitly excluded - never propose upstream
 
