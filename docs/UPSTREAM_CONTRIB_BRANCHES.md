@@ -13,7 +13,7 @@ Fork point: `upstream/15-dev` @ `v15.0.0-beta3.0`. See
 
 | # | Branch | Topic | Class | Issue | Status |
 |---|---|---|---|---|---|
-| 1 | `fix/folder-list-performance` | O(apps×folders) folder-list loading and per-checkbox editing lag | S | Fixes #6147 | in progress |
+| 1 | `fix/folder-list-performance` | O(apps×folders) folder-list loading and per-checkbox editing lag | S | Fixes #6147 | ready for review (pushed to `origin/fix/folder-list-performance`) |
 | 2 | `fix/folder-shape-geometry` | Folder background shape approximated to 4 hardcoded shapes instead of the exact configured shape; preview icons overflow folder bounds for some shape/count combos | S | Related #6495 (closed, 16-dev - verify repro on 15-dev before citing) | pending |
 | 3 | `feat/drawer-search-folder-label` | Search results show which folder (with icon, bold name, parent path for nested) an app is in | S/M | - | pending |
 | 4 | `feat/folder-outline` | Thin gray outline on folder previews/backgrounds, independent of theme/opacity | S | - | pending |
