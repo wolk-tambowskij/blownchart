@@ -13,6 +13,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -88,6 +89,16 @@ fun SelectAppsForDrawerFolder(
 
     LaunchedEffect(folderInfoId) {
         viewModel.setFolderInfo(folderInfoId, false)
+    }
+
+    DisposableEffect(folderInfoId) {
+        onDispose {
+            // Reloading the launcher grid is expensive; do it once when the user actually
+            // leaves this screen instead of after every checkbox toggle (updateFolderItems()
+            // already persists each toggle immediately, this just skips the redundant
+            // full-grid reloads in between).
+            viewModel.onFolderEditingFinished()
+        }
     }
 
     val loading = folderInfo == null && apps.isEmpty()

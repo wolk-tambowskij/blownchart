@@ -28,9 +28,12 @@ class FolderService(val context: Context) : SafeCloseable {
     private val converters = Converters()
 
     fun getFoldersFlow(): Flow<List<FolderInfo>> {
-        return folderDao.getAllFolders().map { folderEntities ->
-            folderEntities.mapNotNull { folderEntity ->
-                getFolderInfo(folderEntity.id, true)
+        return folderDao.getAllFoldersWithItems().map { foldersWithItems ->
+            // Resolved once per emission and shared across every folder/item below, instead
+            // of toItemInfo() re-enumerating every installed app once per folder item.
+            val appInfoByComponentKey = buildAppInfoMap()
+            foldersWithItems.mapNotNull { folderWithItems ->
+                mapToFolderInfo(folderWithItems, hasId = true, appInfoByComponentKey)
             }
         }
     }
@@ -58,11 +61,11 @@ class FolderService(val context: Context) : SafeCloseable {
 
     suspend fun getFolderInfo(folderId: Int, hasId: Boolean = false): FolderInfo? = withContext(Dispatchers.Default) {
         folderDao.getFolderWithItems(folderId)?.let {
-            mapToFolderInfo(it, hasId)
+            mapToFolderInfo(it, hasId, buildAppInfoMap())
         }
     }
 
-    private fun mapToFolderInfo(folderWithItems: FolderWithItems, hasId: Boolean): FolderInfo? {
+    private fun mapToFolderInfo(folderWithItems: FolderWithItems, hasId: Boolean, appInfoByComponentKey: Map<String, AppInfo>): FolderInfo? {
         return try {
             val domainFolderInfo = FolderInfo().apply {
                 // if no id, launcher automatically creates an id for this
@@ -71,9 +74,7 @@ class FolderService(val context: Context) : SafeCloseable {
             }
 
             folderWithItems.items.sortedBy { it.rank }.forEach { itemEntity ->
-                // Consider caching toItemInfo results if componentKey lookups are slow
-                // and items don't change frequently without folder data changing
-                toItemInfo(itemEntity.componentKey)?.let { appInfo ->
+                appInfoByComponentKey[itemEntity.componentKey]?.let { appInfo ->
                     domainFolderInfo.add(appInfo, false)
                 }
             }
@@ -84,24 +85,24 @@ class FolderService(val context: Context) : SafeCloseable {
         }
     }
 
-    private fun toItemInfo(componentKey: String?): AppInfo? {
-        if (launcherApps != null) {
-            return userCache.userProfiles.asSequence()
-                .flatMap { launcherApps.getActivityList(null, it) }
-                .filter { appFilter.shouldShowApp(it.componentName) }
-                .map { AppInfo(context, it, it.user) }
-                .filter { converters.fromComponentKey(it.componentKey) == componentKey }
-                .firstOrNull()
-        }
-        return null
+    // Builds the componentKey -> AppInfo lookup once instead of once per folder item;
+    // callers resolving multiple folders/items should build this once and share it.
+    private fun buildAppInfoMap(): Map<String, AppInfo> {
+        if (launcherApps == null) return emptyMap()
+        return userCache.userProfiles.asSequence()
+            .flatMap { launcherApps.getActivityList(null, it) }
+            .filter { appFilter.shouldShowApp(it.componentName) }
+            .map { AppInfo(context, it, it.user) }
+            // componentName is null for e.g. the Private Space install-button entry.
+            .filter { it.componentName != null }
+            .associateBy { converters.fromComponentKey(it.componentKey) }
     }
 
     suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.Main) {
         try {
-            val folderEntities = folderDao.getAllFolders().firstOrNull() ?: emptyList()
-            folderEntities.mapNotNull { folderEntity ->
-                getFolderInfo(folderEntity.id, true)
-            }
+            val foldersWithItems = folderDao.getAllFoldersWithItems().firstOrNull() ?: emptyList()
+            val appInfoByComponentKey = buildAppInfoMap()
+            foldersWithItems.mapNotNull { mapToFolderInfo(it, hasId = true, appInfoByComponentKey) }
         } catch (e: Exception) {
             Log.e("FolderService", "Failed to get all folders", e)
             emptyList()

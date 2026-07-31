@@ -41,7 +41,11 @@ class LawnchairAlphabeticalAppsList<T>(
 
     private val viewModel: FolderViewModel by (context as ComponentActivity).viewModels()
     private var folderList = mutableListOf<FolderInfo>()
-    private val filteredList = mutableListOf<AppInfo>()
+
+    // Apps already shown inside a folder, keyed by componentKey. The containment check
+    // below runs once per app in the drawer on every refresh, so this needs to be an O(1)
+    // Set lookup - it used to be an O(n) List.contains() check.
+    private val filteredKeys = mutableSetOf<String>()
 
     private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
 
@@ -79,7 +83,7 @@ class LawnchairAlphabeticalAppsList<T>(
     override fun addAppsWithSections(appList: List<AppInfo?>?, startPosition: Int): Int {
         if (appList.isNullOrEmpty()) return startPosition
         val drawerListDefault = prefs.drawerList.get()
-        filteredList.clear()
+        filteredKeys.clear()
         var position = startPosition
 
         // Show app drawer folders only on main profile, to prevent state complexity
@@ -110,13 +114,18 @@ class LawnchairAlphabeticalAppsList<T>(
                     folder.getContents().forEach { app ->
                         (appsStore.getApp(app.componentKey) as? AppInfo)?.let {
                             folderInfo.add(it)
-                            if (prefs.folderApps.get()) filteredList.add(it)
+                            if (prefs.folderApps.get()) {
+                                filteredKeys.add(it.toComponentKey().toString())
+                            }
                         }
                     }
                 }
                 position++
             }
-            val remainingApps = appList.filterNot { app -> filteredList.contains(app) && prefs.folderApps.get() }
+            val folderAppsHidden = prefs.folderApps.get()
+            val remainingApps = appList.filterNot { app ->
+                folderAppsHidden && app != null && filteredKeys.contains(app.toComponentKey().toString())
+            }
             position = super.addAppsWithSections(remainingApps, position)
         }
 

@@ -25,6 +25,12 @@ interface FolderDao {
     @Transaction
     suspend fun getFolderWithItems(folderId: Int): FolderWithItems?
 
+    // Single batched query instead of one getFolderWithItems() call per folder - avoids an
+    // N+1 query pattern when loading the full folder list.
+    @Query("SELECT * FROM Folders")
+    @Transaction
+    fun getAllFoldersWithItems(): Flow<List<FolderWithItems>>
+
     @Query("SELECT * FROM FolderItems WHERE folderId IS NOT :folderId")
     @Transaction
     suspend fun getItems(folderId: Int): List<FolderItemEntity>
@@ -35,6 +41,13 @@ interface FolderDao {
     @Transaction
     suspend fun insertFolderWithItems(folder: FolderInfoEntity, items: List<FolderItemEntity>) {
         insertFolder(folder)
+        // FolderItemEntity uses an auto-generated id, so OnConflictStrategy.REPLACE on
+        // insertFolderItems() never matches an existing row for this folder - without this
+        // delete, unchecking an app in the folder editor would never remove its row, and
+        // rows for removed apps would accumulate indefinitely (and could resurface on a
+        // later read, since resolution only looks up componentKey -> AppInfo, not whether
+        // the row is still wanted).
+        deleteFolderItemsByFolderId(folder.id)
         insertFolderItems(items)
     }
 

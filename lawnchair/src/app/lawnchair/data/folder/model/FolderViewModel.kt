@@ -42,9 +42,11 @@ class FolderViewModel(
     val folderInfo = _folderInfo.asStateFlow()
 
     private val reloadHelper = ReloadHelper(application)
+    private var editingFolderChanged = false
 
     // yeah these should be separate UI actions
     fun setFolderInfo(folderInfoId: Int, hasId: Boolean) {
+        editingFolderChanged = false
         viewModelScope.launch {
             _folderInfo.value = repository.getFolderInfo(folderInfoId, hasId)
         }
@@ -57,13 +59,29 @@ class FolderViewModel(
         reloadHelper.reloadGrid()
     }
 
+    // Persists every toggle immediately (so nothing is lost to process death), but does not
+    // reload the launcher grid here - reloadGrid() is a full model rebind and firing it on
+    // every single checkbox toggle in the folder editor made each toggle take multiple
+    // seconds. The caller calls onFolderEditingFinished() once, when the user actually
+    // leaves the editing screen, instead.
     fun updateFolderItems(id: Int, title: String, appInfo: List<AppInfo>) {
+        editingFolderChanged = true
         viewModelScope.launch {
             repository.updateFolderWithItems(id, title, appInfo)
-            // Update the local state flow so UI can observe changes without full reload if needed,
-            // though for now we just rely on reloadGrid to refresh the launcher.
-            // We call reloadGrid *after* the DB update is complete.
-            _folderInfo.value = repository.getFolderInfo(id, true)
+        }
+        // The caller already has the fully-resolved new selection on hand - build the
+        // updated FolderInfo from that directly instead of re-reading and re-resolving it
+        // from the DB via getFolderInfo().
+        _folderInfo.value = FolderInfo().apply {
+            this.id = id
+            this.title = title
+            appInfo.sortedBy { it.rank }.forEach { add(it, false) }
+        }
+    }
+
+    fun onFolderEditingFinished() {
+        if (editingFolderChanged) {
+            editingFolderChanged = false
             reloadHelper.reloadGrid()
         }
     }

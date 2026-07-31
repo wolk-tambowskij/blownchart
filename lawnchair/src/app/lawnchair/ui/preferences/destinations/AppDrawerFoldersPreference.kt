@@ -40,7 +40,6 @@ import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
-import app.lawnchair.ui.preferences.components.layout.LoadingScreen
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
@@ -49,7 +48,6 @@ import app.lawnchair.ui.preferences.components.reorderable.ReorderablePreference
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppListToFolder
 import app.lawnchair.ui.preferences.navigation.AppDrawerFolder
 import app.lawnchair.ui.util.bottomSheetHandler
-import app.lawnchair.util.appsState
 import com.android.launcher3.R
 import com.android.launcher3.model.data.FolderInfo
 
@@ -137,111 +135,108 @@ fun AppDrawerFoldersPreference(
         )
     }
 
-    val apps by appsState()
-
-    LoadingScreen(
-        isLoading = apps.isEmpty(),
+    // This screen only ever renders folder metadata (title, item count), never app icons,
+    // so gating it behind a full installed-apps enumeration (previously via appsState())
+    // just to show a loading spinner bought nothing but a delay on devices with many apps.
+    PreferenceLayout(
+        label = stringResource(id = R.string.app_drawer_folder),
+        backArrowVisible = true,
         modifier = modifier.fillMaxWidth(),
     ) {
-        PreferenceLayout(
-            label = stringResource(id = R.string.app_drawer_folder),
-            backArrowVisible = true,
+        PreferenceGroup(
+            heading = stringResource(R.string.settings),
         ) {
-            PreferenceGroup(
-                heading = stringResource(R.string.settings),
-            ) {
-                SwitchPreference(
-                    adapter = prefs.folderApps.getAdapter(),
-                    label = stringResource(id = R.string.apps_in_folder_label),
-                    description = stringResource(id = R.string.apps_in_folder_description),
-                )
-            }
-            PreferenceGroup(heading = stringResource(R.string.folders_label)) {
-                PreferenceTemplate(
-                    title = {},
-                    description = {
-                        Text(
-                            text = stringResource(R.string.add_folder),
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        bottomSheetHandler.show {
-                            FolderEditSheet(
-                                FolderInfo().apply {
-                                    title = stringResource(R.string.my_folder_label)
-                                },
-                                onRename = onCreateFolder,
-                                onNavigate = {},
-                                onDismiss = {
-                                    bottomSheetHandler.hide()
-                                },
-                                hideAppPicker = true,
-                            )
-                        }
-                    },
-                    startWidget = {
-                        Icon(Icons.Rounded.Add, contentDescription = null)
-                    },
-                )
-            }
-            ReorderablePreferenceGroup(
-                label = null,
-                items = sortedDisplayList,
-                defaultList = sortedDisplayList,
-                onOrderChange = { folders ->
-                    val newOrder = folders.map { it.id }
-
-                    folderOrderAdapter.onChange(
-                        FolderOrderUtils.intListToString(
-                            newOrder,
-                        ),
+            SwitchPreference(
+                adapter = prefs.folderApps.getAdapter(),
+                label = stringResource(id = R.string.apps_in_folder_label),
+                description = stringResource(id = R.string.apps_in_folder_description),
+            )
+        }
+        PreferenceGroup(heading = stringResource(R.string.folders_label)) {
+            PreferenceTemplate(
+                title = {},
+                description = {
+                    Text(
+                        text = stringResource(R.string.add_folder),
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
-                    sortedDisplayList = folders
                 },
-            ) { folderInfo, _, _, onDraggingChange ->
-                val interactionSource = remember { MutableInteractionSource() }
-                FolderItem(
-                    folderInfo = folderInfo,
-                    onItemClick = {
-                        bottomSheetHandler.show {
-                            FolderEditSheet(
-                                folderInfo,
-                                onRename = onRenameFolder,
-                                onNavigate = {
-                                    onEditFolderItems(it)
-                                    bottomSheetHandler.hide()
-                                },
-                                onDismiss = {
-                                    bottomSheetHandler.hide()
-                                },
-                            )
-                        }
-                    },
-                    onItemDelete = { folderToDelete ->
-                        val currentOrder =
-                            FolderOrderUtils.stringToIntList(folderOrderAdapter.state.value)
-                        val newOrderAfterDelete =
-                            currentOrder.filter { it != folderToDelete.id }
-                        folderOrderAdapter.onChange(
-                            FolderOrderUtils.intListToString(
-                                newOrderAfterDelete,
-                            ),
+                modifier = Modifier.clickable {
+                    bottomSheetHandler.show {
+                        FolderEditSheet(
+                            FolderInfo().apply {
+                                title = stringResource(R.string.my_folder_label)
+                            },
+                            onRename = onCreateFolder,
+                            onNavigate = {},
+                            onDismiss = {
+                                bottomSheetHandler.hide()
+                            },
+                            hideAppPicker = true,
                         )
-                        onDeleteFolder(folderToDelete)
-                    },
-                    dragIndicator = {
-                        ReorderableDragHandle(
-                            interactionSource = interactionSource,
-                            scope = this,
-                            onDragStop = {
-                                onDraggingChange(false)
+                    }
+                },
+                startWidget = {
+                    Icon(Icons.Rounded.Add, contentDescription = null)
+                },
+            )
+        }
+        ReorderablePreferenceGroup(
+            label = null,
+            items = sortedDisplayList,
+            defaultList = sortedDisplayList,
+            onOrderChange = { folders ->
+                val newOrder = folders.map { it.id }
+
+                folderOrderAdapter.onChange(
+                    FolderOrderUtils.intListToString(
+                        newOrder,
+                    ),
+                )
+                sortedDisplayList = folders
+            },
+        ) { folderInfo, _, _, onDraggingChange ->
+            val interactionSource = remember { MutableInteractionSource() }
+            FolderItem(
+                folderInfo = folderInfo,
+                onItemClick = {
+                    bottomSheetHandler.show {
+                        FolderEditSheet(
+                            folderInfo,
+                            onRename = onRenameFolder,
+                            onNavigate = {
+                                onEditFolderItems(it)
+                                bottomSheetHandler.hide()
+                            },
+                            onDismiss = {
+                                bottomSheetHandler.hide()
                             },
                         )
-                    },
-                    interactionSource = interactionSource,
-                )
-            }
+                    }
+                },
+                onItemDelete = { folderToDelete ->
+                    val currentOrder =
+                        FolderOrderUtils.stringToIntList(folderOrderAdapter.state.value)
+                    val newOrderAfterDelete =
+                        currentOrder.filter { it != folderToDelete.id }
+                    folderOrderAdapter.onChange(
+                        FolderOrderUtils.intListToString(
+                            newOrderAfterDelete,
+                        ),
+                    )
+                    onDeleteFolder(folderToDelete)
+                },
+                dragIndicator = {
+                    ReorderableDragHandle(
+                        interactionSource = interactionSource,
+                        scope = this,
+                        onDragStop = {
+                            onDraggingChange(false)
+                        },
+                    )
+                },
+                interactionSource = interactionSource,
+            )
         }
     }
 }
