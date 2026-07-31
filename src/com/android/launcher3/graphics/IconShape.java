@@ -25,6 +25,7 @@ import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -164,6 +165,7 @@ public final class IconShape implements SafeCloseable {
     public static final class AdaptiveIconShape extends PathShape {
 
         private final app.lawnchair.icons.shape.IconShape mIconShape;
+        private final Matrix mMatrix = new Matrix();
 
         public AdaptiveIconShape(Context context) {
             PreferenceManager2 preferenceManager2 = PreferenceManager2.getInstance(context);
@@ -172,7 +174,18 @@ public final class IconShape implements SafeCloseable {
 
         @Override
         public void addToPath(Path path, float offsetX, float offsetY, float radius) {
-            mIconShape.addShape(path, offsetX, offsetY, radius);
+            // getMaskPath() (already used elsewhere, e.g. for the app icons themselves) is
+            // always drawn correctly for every shape preset in a fixed 100x100 box - unlike
+            // addShape(), which some presets (the custom-path ones: 4/7-sided cookie, Arch) draw
+            // wrong because it takes a shortcut for a corner-value combination they only use as
+            // a placeholder, mistaking them for a plain circle.
+            Path maskPath = mIconShape.getMaskPath();
+            float size = radius * 2;
+            mMatrix.reset();
+            mMatrix.setScale(size / 100f, size / 100f);
+            mMatrix.postTranslate(offsetX, offsetY);
+            maskPath.transform(mMatrix);
+            path.addPath(maskPath);
         }
 
         @Override

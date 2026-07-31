@@ -56,8 +56,8 @@ class SearchTargetFactory(
         val componentKey = ComponentKey(componentName, user).toString()
         // Only meaningful in the row layout (SearchResultIconRow renders a subtitle line);
         // the vertical grid layout has no subtitle slot at all.
-        val folderName = if (asRow) {
-            FolderService.INSTANCE.get(context).getFolderNameForComponentKey(componentKey)
+        val folderPath = if (asRow) {
+            FolderService.INSTANCE.get(context).getFolderPathForComponentKey(componentKey)
         } else {
             null
         }
@@ -71,7 +71,8 @@ class SearchTargetFactory(
             setExtras(
                 bundleOf(
                     "class" to (componentName?.className ?: ""),
-                    "folder_name" to folderName,
+                    "folder_name" to folderPath?.title,
+                    "folder_parent_name" to folderPath?.parentTitle,
                 ),
             )
         }.build()

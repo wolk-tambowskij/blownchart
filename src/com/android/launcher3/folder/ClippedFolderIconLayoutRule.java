@@ -1,5 +1,11 @@
 package com.android.launcher3.folder;
 
+import android.content.Context;
+import android.graphics.Path;
+import android.graphics.Region;
+
+import com.android.launcher3.graphics.IconShape;
+
 public class ClippedFolderIconLayoutRule {
 
     public static final int MAX_NUM_ITEMS_IN_PREVIEW = 4;
@@ -12,6 +18,12 @@ public class ClippedFolderIconLayoutRule {
     public static final float ICON_OVERLAP_FACTOR = 1 + (MAX_RADIUS_DILATION / 2f);
     private static final float ITEM_RADIUS_SCALE_FACTOR = 1.15f;
 
+    // Reference size the background shape's boundary is probed at (see getShapeBoundaryDistance),
+    // in arbitrary Region-integer units - independent of any real pixel size, just precise enough
+    // for the binary search below to converge to a sub-percent margin of error.
+    private static final int SHAPE_PROBE_RADIUS = 1000;
+    private static final int SHAPE_PROBE_ITERATIONS = 24;
+
     public static final int EXIT_INDEX = -2;
     public static final int ENTER_INDEX = -3;
 
@@ -22,13 +34,44 @@ public class ClippedFolderIconLayoutRule {
     private float mIconSize;
     private boolean mIsRtl;
     private float mBaselineIconScale;
+    private Region mShapeRegion;
 
-    public void init(int availableSpace, float intrinsicIconSize, boolean rtl) {
+    public void init(int availableSpace, float intrinsicIconSize, boolean rtl, Context context) {
         mAvailableSpace = availableSpace;
         mRadius = ITEM_RADIUS_SCALE_FACTOR * availableSpace / 2f;
         mIconSize = intrinsicIconSize;
         mIsRtl = rtl;
         mBaselineIconScale = availableSpace / (intrinsicIconSize * 1f);
+
+        Path shapePath = new Path();
+        IconShape.INSTANCE.get(context).getShape().addToPath(shapePath, 0, 0, SHAPE_PROBE_RADIUS);
+        mShapeRegion = new Region();
+        mShapeRegion.setPath(shapePath,
+                new Region(0, 0, SHAPE_PROBE_RADIUS * 2, SHAPE_PROBE_RADIUS * 2));
+    }
+
+    /**
+     * Distance from the background shape's own center to its boundary in the direction of
+     * {@code theta}, as a fraction of the shape's nominal radius - found by binary search
+     * against the shape's actual {@link Region} rather than assumed from a fixed shape (e.g. a
+     * circle), since some configurable shapes (Diamond, the two "cookie" presets, Arch) are
+     * tighter than a circle at some angles and roomier at others.
+     */
+    private float getShapeBoundaryFraction(double theta) {
+        if (mShapeRegion == null) return 1f;
+        float lo = 0f;
+        float hi = SHAPE_PROBE_RADIUS;
+        for (int i = 0; i < SHAPE_PROBE_ITERATIONS; i++) {
+            float mid = (lo + hi) / 2f;
+            int x = SHAPE_PROBE_RADIUS + Math.round(mid * (float) Math.cos(theta));
+            int y = SHAPE_PROBE_RADIUS - Math.round(mid * (float) Math.sin(theta));
+            if (mShapeRegion.contains(x, y)) {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        return lo / SHAPE_PROBE_RADIUS;
     }
 
     public PreviewItemDrawingParams computePreviewItemDrawingParams(int index, int curNumItems,
@@ -116,21 +159,23 @@ public class ClippedFolderIconLayoutRule {
         float radius = mRadius * (1 + MAX_RADIUS_DILATION * (curNumItems -
                 MIN_NUM_ITEMS_IN_PREVIEW) / (MAX_NUM_ITEMS_IN_PREVIEW - MIN_NUM_ITEMS_IN_PREVIEW));
 
+        double theta = theta0 + index * (2 * Math.PI / curNumItems) * direction;
+
         float halfIconSize = (mIconSize * scaleForItem(curNumItems)) / 2;
+        // Some icons keep their own native (non-adaptive) shape instead of conforming to the
+        // selected background shape, so assume the worst case for how far an icon can reach
+        // from its own center: a full square icon's corner, not just a circular icon's edge.
+        float iconOuterExtent = halfIconSize * (float) Math.sqrt(2);
 
         // The generic circle model above places each item's center at radius/2 from the
-        // preview's center, extending a further halfIconSize outward from there - for 3 items
-        // ("pyramid") and 4 (two of them on the diagonal), this pushes past mAvailableSpace/2,
-        // sticking out past the folder's own outline. This bound (radius/2 + halfIconSize <=
-        // mAvailableSpace/2) is exact for a Circle-shaped folder, the tightest of the
-        // configurable icon shapes, so clamping to it here - regardless of curNumItems or
-        // which shape is actually selected - keeps every preview item fully inside the
-        // background for all of them, at the cost of a slightly smaller radius than strictly
-        // necessary for the roomier shapes (Square, Squircle, etc).
-        float maxRadiusWithinBounds = (mAvailableSpace - 2 * halfIconSize) * 0.96f;
-        radius = Math.min(radius, maxRadiusWithinBounds);
-
-        double theta = theta0 + index * (2 * Math.PI / curNumItems) * direction;
+        // preview's center - for 3 items ("pyramid") and 4 (two of them on the diagonal), this
+        // can push an item's outer edge past the background shape's actual boundary in that
+        // direction, sticking out past the folder's own outline. Rather than assuming a fixed
+        // shape (e.g. a circle - some configured shapes, like Diamond, are tighter than that at
+        // some angles), probe the real boundary distance at this exact angle and clamp to it.
+        float shapeBoundaryDistance = getShapeBoundaryFraction(theta) * mAvailableSpace / 2f;
+        float maxRadiusWithinBounds = (shapeBoundaryDistance - iconOuterExtent) * 2f * 0.96f;
+        radius = Math.max(0f, Math.min(radius, maxRadiusWithinBounds));
 
         // Map the location along the circle, and offset the coordinates to represent the center
         // of the icon, and to be based from the top / left of the preview area. The y component

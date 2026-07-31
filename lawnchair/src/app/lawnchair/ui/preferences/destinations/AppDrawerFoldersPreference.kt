@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -340,12 +339,10 @@ fun AppDrawerFoldersPreference(
         }
         if (topLevelEntries.isNotEmpty()) {
             if (manualOrder) {
-                // Only top-level folders are individually draggable here - a nested folder's
-                // display position isn't independently tracked (it always renders as the first
-                // item inside its parent, see FolderService.mapToFolderInfo()), so letting it be
-                // dragged around this list would look like reordering without doing anything.
-                // Instead each nested folder is rendered as part of its parent's own list cell
-                // (below), so it moves along with its parent and can't end up outside its block.
+                // Top-level folders are draggable among each other here; each one's own nested
+                // folder(s), if any, get their own separate reorderable group nested inside that
+                // folder's block below, so a nested folder can only ever be reordered against its
+                // own siblings under the same parent, never escape into the top-level list.
                 ReorderablePreferenceGroup(
                     label = null,
                     items = topLevelEntries,
@@ -385,36 +382,50 @@ fun AppDrawerFoldersPreference(
                                 )
                             },
                         )
-                        children.forEach { child ->
-                            val childInfo = child.folderInfo
-                            FolderItem(
-                                folderInfo = childInfo,
-                                parentFolderTitle = folderInfo.title.toString(),
-                                modifier = Modifier.padding(start = 24.dp),
-                                // Nested folders aren't independently draggable in this list (see
-                                // comment above), but the parent row's real drag handle above them
-                                // reserves 48dp of leading space - without matching that here, the
-                                // 24dp start padding wasn't enough to keep the child's title looking
-                                // more indented than its parent's; it read as shifted left instead.
-                                dragHandle = { Spacer(modifier = Modifier.size(48.dp)) },
-                                onItemClick = {
-                                    bottomSheetHandler.show {
-                                        FolderEditSheet(
-                                            childInfo,
-                                            onRename = onRenameFolder,
-                                            onNavigate = {
-                                                onEditFolderItems(it)
-                                                bottomSheetHandler.hide()
-                                            },
-                                            onDismiss = {
-                                                bottomSheetHandler.hide()
-                                            },
-                                        )
-                                    }
+                        if (children.isNotEmpty()) {
+                            // Its own reorderable group so a nested folder gets a real, working
+                            // drag handle too - today it's a no-op (only one subfolder per
+                            // parent is supported), but it stays consistent with how top-level
+                            // folders are dragged above, and is ready for more than one.
+                            ReorderablePreferenceGroup(
+                                label = null,
+                                items = children,
+                                defaultList = remember(children) {
+                                    children.sortedBy { it.folderInfo.title.toString().lowercase(Locale.getDefault()) }
                                 },
-                                onItemDelete = onDeleteFolder,
-                                onItemNest = onNestFolder,
-                            )
+                                modifier = Modifier.padding(start = 24.dp),
+                                onOrderChange = { onReorderFolders(it.map { entry -> entry.folderInfo.id }) },
+                            ) { child, _, _, onChildDraggingChange ->
+                                val childReorderableScope = this
+                                val childInfo = child.folderInfo
+                                FolderItem(
+                                    folderInfo = childInfo,
+                                    parentFolderTitle = folderInfo.title.toString(),
+                                    dragHandle = {
+                                        ReorderableDragHandle(
+                                            scope = childReorderableScope,
+                                            onDragStop = { onChildDraggingChange(false) },
+                                        )
+                                    },
+                                    onItemClick = {
+                                        bottomSheetHandler.show {
+                                            FolderEditSheet(
+                                                childInfo,
+                                                onRename = onRenameFolder,
+                                                onNavigate = {
+                                                    onEditFolderItems(it)
+                                                    bottomSheetHandler.hide()
+                                                },
+                                                onDismiss = {
+                                                    bottomSheetHandler.hide()
+                                                },
+                                            )
+                                        }
+                                    },
+                                    onItemDelete = onDeleteFolder,
+                                    onItemNest = onNestFolder,
+                                )
+                            }
                         }
                     }
                 }

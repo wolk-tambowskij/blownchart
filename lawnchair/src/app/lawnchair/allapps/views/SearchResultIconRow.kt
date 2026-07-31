@@ -1,10 +1,16 @@
 package app.lawnchair.allapps.views
 
 import android.content.Context
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ImageSpan
+import android.text.style.StyleSpan
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import app.lawnchair.allapps.views.SearchResultView.Companion.FLAG_HIDE_SUBTITLE
@@ -18,6 +24,7 @@ import app.lawnchair.util.copyToClipboard
 import com.android.app.search.LayoutType
 import com.android.launcher3.R
 import com.android.launcher3.views.BubbleTextHolder
+import kotlin.math.roundToInt
 
 class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
@@ -117,7 +124,9 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
         // Plain app targets never carry a searchAction (see SearchTargetFactory /
         // SearchResultIcon.bind's plain-app branch), so their folder-name label - the only
         // subtitle they can have - travels via extras instead.
-        val subtitleText = target.searchAction?.subtitle ?: target.extras.getString("folder_name")
+        val folderName = target.extras.getString("folder_name")
+        val subtitleText = target.searchAction?.subtitle
+            ?: folderName?.let { buildFolderSubtitle(it, target.extras.getString("folder_parent_name")) }
         setSubtitleText(subtitleText, showDelimiter)
         if (shouldHandleClick(target) && !isSmall) {
             setOnClickListener {
@@ -139,6 +148,31 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
                 )
             }
         }
+    }
+
+    // A nested folder's own row in the search result subtitle: an icon (matching the one shown
+    // in the folder list) followed by "Parent → Folder", with only the immediate (innermost)
+    // folder name bolded - the parent segment is context, not the actual answer to "which folder
+    // is this app in".
+    private fun buildFolderSubtitle(folderName: String, parentName: String?): CharSequence {
+        val text = if (parentName != null) "$parentName → $folderName" else folderName
+        val builder = SpannableStringBuilder(" ").append(text)
+
+        val iconDrawable = ContextCompat.getDrawable(context, R.drawable.ic_folder)
+        if (iconDrawable != null) {
+            val size = subtitle.textSize.roundToInt()
+            iconDrawable.setBounds(0, 0, size, size)
+            builder.setSpan(
+                ImageSpan(iconDrawable, ImageSpan.ALIGN_BASELINE),
+                0,
+                1,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
+        }
+
+        val boldStart = builder.length - folderName.length
+        builder.setSpan(StyleSpan(Typeface.BOLD), boldStart, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return builder
     }
 
     private fun setSubtitleText(subtitleText: CharSequence?, showDelimiter: Boolean) {
