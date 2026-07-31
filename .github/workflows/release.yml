@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Compute version from tag
+        id: version
+        run: |
+          TAG_NAME="${GITHUB_REF_NAME}"
+          VERSION_NAME="${TAG_NAME#v}"
+
+          IFS='.' read -r MAJOR MINOR PATCH REST <<< "$VERSION_NAME"
+          MAJOR="${MAJOR:-0}"; MINOR="${MINOR:-0}"; PATCH="${PATCH%%[!0-9]*}"; PATCH="${PATCH:-0}"
+          VERSION_CODE=$((MAJOR * 1000000 + MINOR * 1000 + PATCH))
+
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Write signing config from secrets
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "::error::SIGNING_KEYSTORE_BASE64 secret is not set - refusing to publish an unsigned release."
+            exit 1
+          fi
+          KEYSTORE_PATH="${{ runner.temp }}/release.jks"
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          {
+            echo "storeFile=$KEYSTORE_PATH"
+            echo "storePassword=$SIGNING_KEYSTORE_PASSWORD"
+            echo "keyAlias=$SIGNING_KEY_ALIAS"
+            echo "keyPassword=$SIGNING_KEY_PASSWORD"
+          } > keystore.properties
+
+      - name: Build release APK
+        run: |
+          ./gradlew assembleLawnWithQuickstepGithubRelease \
+            -PblownchartVersionName=${{ steps.version.outputs.version_name }} \
+            -PblownchartVersionCode=${{ steps.version.outputs.version_code }}
+
+      - name: Locate APK
+        id: apk
+        run: |
+          APK_PATH=$(find . -path '*/lawnWithQuickstepGithub/release/*.apk' -print -quit)
+          if [ -z "$APK_PATH" ]; then
+            echo "::error::Could not find a built release APK."
+            exit 1
+          fi
+          echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Verify APK signature
+        run: |
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -maxdepth 1 -mindepth 1 | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose "${{ steps.apk.outputs.path }}"
+
+      - name: Remove temporary keystore
+        if: always()
+        run: |
+          rm -f keystore.properties "${{ runner.temp }}/release.jks"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git tag --sort=-creatordate | grep -A1 "^${{ steps.version.outputs.tag_name }}$" | tail -1)
+          {
+            echo "changelog<<EOF"
+            if [ -n "$PREV_TAG" ] && [ "$PREV_TAG" != "${{ steps.version.outputs.tag_name }}" ]; then
+              echo "Changes since $PREV_TAG:"
+              echo
+              git log "$PREV_TAG..${{ steps.version.outputs.tag_name }}" --pretty=format:'- %s (%h)'
+            else
+              echo "Initial release."
+            fi
+            echo
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag_name }}
+          name: BlownChart ${{ steps.version.outputs.version_name }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          files: ${{ steps.apk.outputs.path }}
+          prerelease: ${{ contains(steps.version.outputs.version_name, '-') }}
