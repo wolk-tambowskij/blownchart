@@ -684,6 +684,23 @@
     <string name="settings_lock_pin_length_error">PIN must be 4–16 characters</string>
     <string name="settings_lock_pin_mismatch">PINs don\'t match</string>
 
+    <string name="donate_label">Support development</string>
+    <string name="donate_nav_subtitle">Voluntary ways to support the project - no features are gated behind them</string>
+    <string name="donate_thanks_message">BlownChart is free and always will be. If you\'d like to support development anyway, here are some voluntary ways to do it - nothing here unlocks any feature.</string>
+    <string name="donate_method_paypal">PayPal</string>
+    <string name="donate_method_yoomoney">YooMoney</string>
+    <string name="donate_method_boosty">Boosty</string>
+    <string name="donate_method_cloudtips">CloudTips</string>
+    <string name="donate_method_mir_card">Mir card</string>
+    <string name="donate_method_crypto">Crypto wallet</string>
+    <string name="donate_action_open_link">Tap to open</string>
+    <string name="donate_action_copy">Tap to copy</string>
+    <string name="donate_action_show_qr">Tap to show QR code</string>
+    <string name="donate_copied_toast">Copied to clipboard</string>
+    <string name="donate_qr_dialog_title">Scan to support</string>
+    <string name="donate_play_fallback_title">Support us on GitHub</string>
+    <string name="donate_play_fallback_description">Payment links aren\'t shown in the Play version - see the project on GitHub for ways to support it</string>
+
     <string name="show_dot_pagination_label">Show dot pagination</string>
     <string name="show_dot_pagination_description">Use dots instead of lines to show page number</string>
     <string name="show_material_u_popup_label">Use new pop-up style</string>

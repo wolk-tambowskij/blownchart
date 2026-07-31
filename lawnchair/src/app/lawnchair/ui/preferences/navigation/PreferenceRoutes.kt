@@ -124,6 +124,9 @@ data object GesturesPickApp : PreferenceRoute
 @Serializable
 data object AboutLicenses : PreferenceRoute
 
+@Serializable
+data object AboutDonate : PreferenceRoute
+
 // Data/Action oriented routes (might be used across sections or are specific actions)
 // These are intentionally not prefixed as per your instruction,
 // as they might be used across different sections or are standalone actions.

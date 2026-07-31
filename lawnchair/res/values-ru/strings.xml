@@ -635,6 +635,24 @@
     <string name="settings_lock_wrong_pin">Неверный PIN-код</string>
     <string name="settings_lock_pin_length_error">PIN-код должен содержать от 4 до 16 символов</string>
     <string name="settings_lock_pin_mismatch">PIN-коды не совпадают</string>
+
+    <string name="donate_label">Поддержать разработку</string>
+    <string name="donate_nav_subtitle">Добровольные способы поддержать проект — ни один из них не открывает никакие функции</string>
+    <string name="donate_thanks_message">BlownChart бесплатен и останется таким. Если всё же хотите поддержать разработку — вот добровольные способы это сделать. Ни один из них не открывает какие-либо функции.</string>
+    <string name="donate_method_paypal">PayPal</string>
+    <string name="donate_method_yoomoney">ЮMoney</string>
+    <string name="donate_method_boosty">Boosty</string>
+    <string name="donate_method_cloudtips">CloudTips</string>
+    <string name="donate_method_mir_card">Карта «Мир»</string>
+    <string name="donate_method_crypto">Крипто-кошелёк</string>
+    <string name="donate_action_open_link">Нажмите, чтобы открыть</string>
+    <string name="donate_action_copy">Нажмите, чтобы скопировать</string>
+    <string name="donate_action_show_qr">Нажмите, чтобы показать QR-код</string>
+    <string name="donate_copied_toast">Скопировано в буфер обмена</string>
+    <string name="donate_qr_dialog_title">Отсканируйте, чтобы поддержать</string>
+    <string name="donate_play_fallback_title">Поддержать через GitHub</string>
+    <string name="donate_play_fallback_description">В Play-версии платёжные ссылки не показываются — способы поддержки смотрите на странице проекта на GitHub</string>
+
     <string name="about_developed_by">Разработчик: %1$s</string>
     <string name="about_fork_disclosure">BlownChart — независимый неофициальный форк Lawnchair (на основе Lawnchair 15 Beta 3), лончера для Android с открытым исходным кодом. Не связан с проектом Lawnchair и не одобрен им.</string>
     <string name="about_whats_new_heading">Что нового в этом форке</string>
