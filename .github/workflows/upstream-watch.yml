@@ -1,0 +1,160 @@
+name: Upstream watch
+
+# Detects new upstream Lawnchair releases on the branch we track and
+# prepares (never auto-merges) a sync. See docs/UPSTREAM_SYNC.md.
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+env:
+  UPSTREAM_URL: https://github.com/LawnchairLauncher/lawnchair.git
+  # Update both when this fork moves on to tracking a new Android version.
+  UPSTREAM_BRANCH: 15-dev
+  OUR_BRANCH: 15-dev
+  TAG_PATTERN: 'v15.*'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.OUR_BRANCH }}
+          fetch-depth: 0
+          submodules: true
+
+      - name: Configure git identity
+        run: |
+          git config user.name "blownchart-upstream-sync"
+          git config user.email "actions@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "$UPSTREAM_URL"
+          git fetch upstream "$UPSTREAM_BRANCH" --tags
+
+      - name: Find newest relevant upstream tag
+        id: find_tag
+        run: |
+          LATEST_TAG=$(git tag -l "$TAG_PATTERN" --merged "upstream/$UPSTREAM_BRANCH" --sort=-v:refname | head -1)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No upstream tag matching $TAG_PATTERN found on upstream/$UPSTREAM_BRANCH."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Latest upstream tag: $LATEST_TAG"
+          echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+
+          if git merge-base --is-ancestor "$LATEST_TAG" "$OUR_BRANCH"; then
+            echo "$LATEST_TAG is already merged into $OUR_BRANCH."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          SYNC_BRANCH="sync/upstream-$LATEST_TAG"
+          if git ls-remote --exit-code --heads origin "$SYNC_BRANCH" > /dev/null 2>&1; then
+            echo "Branch $SYNC_BRANCH already exists on origin, a sync is already in flight - skipping."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "sync_branch=$SYNC_BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Attempt merge
+        if: steps.find_tag.outputs.found == 'true'
+        id: merge
+        run: |
+          git checkout -b "${{ steps.find_tag.outputs.sync_branch }}"
+          if git merge --no-edit "${{ steps.find_tag.outputs.tag }}"; then
+            # Record the marker only once the sync branch itself carries the
+            # merge - it rides into $OUR_BRANCH exclusively via a human
+            # merging this PR, never by this workflow pushing to $OUR_BRANCH
+            # directly.
+            echo "${{ steps.find_tag.outputs.tag }}" > .upstream-sync-state
+            git add .upstream-sync-state
+            git commit -m "chore: note upstream ${{ steps.find_tag.outputs.tag }} sync"
+            echo "status=clean" >> "$GITHUB_OUTPUT"
+          else
+            git diff --name-only --diff-filter=U > /tmp/conflicts.txt
+            git merge --abort
+            echo "status=conflict" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and lint (clean merge only)
+        if: steps.find_tag.outputs.found == 'true' && steps.merge.outputs.status == 'clean'
+        id: build
+        continue-on-error: true
+        run: |
+          # The merge may have moved the submodule pointer.
+          git submodule update --init --recursive
+          ./gradlew assembleLawnWithQuickstepGithubDebug spotlessCheck
+
+      - name: Push sync branch and open PR (clean merge)
+        if: steps.find_tag.outputs.found == 'true' && steps.merge.outputs.status == 'clean'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin "${{ steps.find_tag.outputs.sync_branch }}"
+          BUILD_RESULT="${{ steps.build.outcome == 'success' && '✅ debug build + spotlessCheck passed' || '❌ debug build or spotlessCheck FAILED - see the workflow run logs' }}"
+          gh pr create \
+            --base "$OUR_BRANCH" \
+            --head "${{ steps.find_tag.outputs.sync_branch }}" \
+            --title "Sync upstream ${{ steps.find_tag.outputs.tag }}" \
+            --body "$(cat <<EOF
+          Automated sync from \`upstream/$UPSTREAM_BRANCH\` at tag \`${{ steps.find_tag.outputs.tag }}\`.
+
+          - Merge into \`$OUR_BRANCH\`: clean, no conflicts.
+          - $BUILD_RESULT
+
+          This PR was opened by \`upstream-watch.yml\` and needs human review
+          before merging - see docs/UPSTREAM_SYNC.md. A clean CI build does
+          not rule out logical regressions; check on a real device before
+          merging, especially around any of our fork-specific features.
+          EOF
+          )"
+
+      - name: Push placeholder branch and open needs-manual-merge issue (conflict)
+        if: steps.find_tag.outputs.found == 'true' && steps.merge.outputs.status == 'conflict'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git checkout "${{ steps.find_tag.outputs.sync_branch }}"
+          git push origin "${{ steps.find_tag.outputs.sync_branch }}"
+          CONFLICT_LIST=$(sed 's/^/- `/;s/$/`/' /tmp/conflicts.txt)
+          gh label create "needs-manual-merge" --color "B60205" \
+            --description "Upstream sync hit merge conflicts, needs a human" \
+            2>/dev/null || true
+          gh issue create \
+            --title "needs-manual-merge: upstream ${{ steps.find_tag.outputs.tag }}" \
+            --label "needs-manual-merge" \
+            --body "$(cat <<EOF
+          \`upstream-watch.yml\` tried to merge \`upstream/$UPSTREAM_BRANCH\` at
+          tag \`${{ steps.find_tag.outputs.tag }}\` into \`$OUR_BRANCH\` and hit
+          conflicts. Nothing was resolved automatically.
+
+          Branch \`${{ steps.find_tag.outputs.sync_branch }}\` was pushed as a
+          plain copy of \`$OUR_BRANCH\`; resolve locally with:
+
+          \`\`\`sh
+          git fetch origin ${{ steps.find_tag.outputs.sync_branch }}
+          git checkout ${{ steps.find_tag.outputs.sync_branch }}
+          git remote add upstream $UPSTREAM_URL 2>/dev/null || true
+          git fetch upstream ${{ steps.find_tag.outputs.tag }}
+          git merge ${{ steps.find_tag.outputs.tag }}
+          \`\`\`
+
+          See docs/RESOLVE_CONFLICTS.md for the conflict-resolution process
+          (including how to run Claude Code against this branch for help).
+
+          Conflicting files:
+          $CONFLICT_LIST
+          EOF
+          )"
