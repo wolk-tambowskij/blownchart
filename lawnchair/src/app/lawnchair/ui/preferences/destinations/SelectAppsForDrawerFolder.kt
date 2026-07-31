@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.data.folder.model.FolderViewModel
+import app.lawnchair.preferences.getAdapter
+import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.AppItem
 import app.lawnchair.ui.preferences.components.AppItemPlaceholder
@@ -53,7 +55,12 @@ fun SelectAppsForDrawerFolder(
     }
 
     val context = LocalContext.current
-    val apps by appsState()
+    val allApps by appsState()
+    val hiddenApps by preferenceManager2().hiddenApps.getAdapter().state
+    // Apps the user has hidden (including the launcher's own entry, hidden by default) shouldn't
+    // clutter the folder picker - they're still reachable elsewhere (e.g. an existing folder that
+    // already contains one keeps showing it via activeIds, untouched by this filter).
+    val apps = remember(allApps, hiddenApps) { allApps.filter { !hiddenApps.contains(it.key.toString()) } }
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val folderInfo by viewModel.folderInfo.collectAsStateWithLifecycle()
 
