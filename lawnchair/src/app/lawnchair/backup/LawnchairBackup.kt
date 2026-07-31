@@ -7,7 +7,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.graphics.drawable.toBitmap
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import app.lawnchair.LawnchairProto.BackupInfo
+import app.lawnchair.data.AppDatabase
 import app.lawnchair.util.hasFlag
 import app.lawnchair.util.scaleDownTo
 import app.lawnchair.util.scaleDownToDisplaySize
@@ -109,6 +114,14 @@ class LawnchairBackup(
         private const val PREFS_DB_FILE_NAME = "preferences"
         private const val PREFS_DATASTORE_FILE_NAME = "preferences.preferences_pb"
 
+        // Same key names as PreferenceManager2's settingsLockEnabled/settingsLockPinHash/
+        // settingsLockBiometricEnabled - redefined here (rather than imported) since
+        // PreferenceManager2 only exposes its opto Preference wrappers, not the raw DataStore
+        // keys these need to redact a settings-lock-free copy of the DataStore file for backup.
+        private val SETTINGS_LOCK_ENABLED_KEY = booleanPreferencesKey("settings_lock_enabled")
+        private val SETTINGS_LOCK_PIN_HASH_KEY = stringPreferencesKey("settings_lock_pin_hash")
+        private val SETTINGS_LOCK_BIOMETRIC_ENABLED_KEY = booleanPreferencesKey("settings_lock_biometric_enabled")
+
         const val INFO_FILE_NAME = "info.pb"
         const val WALLPAPER_FILE_NAME = "wallpaper.png"
         const val SCREENSHOT_FILE_NAME = "screenshot.png"
@@ -160,6 +173,12 @@ class LawnchairBackup(
 
             val pfd = context.contentResolver.openFileDescriptor(fileUri, "w")!!
             withContext(Dispatchers.IO) {
+                // The "preferences" Room db is WAL-mode; flush it to the main db file first so
+                // the raw file copy below can't miss folder/icon-override/wallpaper writes
+                // still sitting in the -wal file. checkpointSync() blocks the calling thread,
+                // so it must run here (Dispatchers.IO), not on whatever thread called create().
+                AppDatabase.INSTANCE.get(context).checkpointSync()
+
                 pfd.use {
                     ZipOutputStream(FileOutputStream(pfd.fileDescriptor).buffered()).use { out ->
                         out.putNextEntry(ZipEntry(INFO_FILE_NAME))
@@ -180,11 +199,39 @@ class LawnchairBackup(
 
                         getFiles(context, forRestore = false).entries.forEach {
                             if (!it.value.exists()) return@forEach
-                            out.putNextEntry(ZipEntry(it.key))
-                            it.value.inputStream().copyTo(out)
+                            if (it.key == PREFS_DATASTORE_FILE_NAME) {
+                                writeRedactedDataStoreEntry(context, it.value, out)
+                            } else {
+                                out.putNextEntry(ZipEntry(it.key))
+                                it.value.inputStream().copyTo(out)
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        /**
+         * Writes [sourceDataStoreFile] into [out] as [PREFS_DATASTORE_FILE_NAME], with the
+         * settings-lock PIN hash and its toggles stripped out first. The settings lock is
+         * deliberately excluded from every backup path: restoring onto a new device should come
+         * up unlocked, with the PIN set up again by hand, not silently carrying over the old
+         * device's PIN hash and enabled state.
+         */
+        private suspend fun writeRedactedDataStoreEntry(context: Context, sourceDataStoreFile: File, out: ZipOutputStream) {
+            val redactedFile = File(context.cacheDir, "backup_$PREFS_DATASTORE_FILE_NAME")
+            sourceDataStoreFile.copyTo(redactedFile, overwrite = true)
+            try {
+                val redactedStore = PreferenceDataStoreFactory.create { redactedFile }
+                redactedStore.edit { prefs ->
+                    prefs.remove(SETTINGS_LOCK_ENABLED_KEY)
+                    prefs.remove(SETTINGS_LOCK_PIN_HASH_KEY)
+                    prefs.remove(SETTINGS_LOCK_BIOMETRIC_ENABLED_KEY)
+                }
+                out.putNextEntry(ZipEntry(PREFS_DATASTORE_FILE_NAME))
+                redactedFile.inputStream().copyTo(out)
+            } finally {
+                redactedFile.delete()
             }
         }
 
