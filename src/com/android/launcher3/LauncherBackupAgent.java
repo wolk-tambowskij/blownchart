@@ -3,6 +3,7 @@ package com.android.launcher3;
 import android.app.backup.BackupAgent;
 import android.app.backup.BackupDataInput;
 import android.app.backup.BackupDataOutput;
+import android.app.backup.FullBackupDataOutput;
 import android.os.ParcelFileDescriptor;
 
 import com.android.launcher3.logging.FileLog;
@@ -10,6 +11,8 @@ import com.android.launcher3.provider.RestoreDbTask;
 
 import java.io.File;
 import java.io.IOException;
+
+import app.lawnchair.data.AppDatabase;
 
 public class LauncherBackupAgent extends BackupAgent {
 
@@ -20,6 +23,15 @@ public class LauncherBackupAgent extends BackupAgent {
         super.onCreate();
         // Set the log dir as LauncherAppState is not initialized during restore.
         FileLog.setDir(getFilesDir());
+    }
+
+    @Override
+    public void onFullBackup(FullBackupDataOutput data) throws IOException {
+        // The "preferences" Room db (icon overrides, wallpapers, app-drawer folders) runs in
+        // WAL mode - flush it to the main db file first, or backupscheme.xml's raw file
+        // inclusion of it could miss writes still sitting in the -wal file.
+        AppDatabase.INSTANCE.get(this).checkpointSync();
+        super.onFullBackup(data);
     }
 
     @Override
