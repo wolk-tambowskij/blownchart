@@ -287,17 +287,22 @@ android {
         github {
             applicationId 'com.blownchart'
             dimension "channel"
+            // FOSS/GitHub channel: full donation screen with direct payment links.
+            buildConfigField "boolean", "DONATIONS_SHOW_PAYMENT_LINKS", "true"
         }
 
         nightly {
             applicationId 'com.blownchart.nightly'
             dimension "channel"
+            buildConfigField "boolean", "DONATIONS_SHOW_PAYMENT_LINKS", "true"
         }
 
         play {
             applicationId "com.blownchart.play"
             dimension "channel"
             isDefault true
+            // Google Play Billing policy forbids external payment links in-app.
+            buildConfigField "boolean", "DONATIONS_SHOW_PAYMENT_LINKS", "false"
         }
 
         configureEach {
