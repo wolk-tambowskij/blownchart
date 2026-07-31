@@ -29,9 +29,6 @@ interface FolderDao {
     @Transaction
     suspend fun getItems(folderId: Int): List<FolderItemEntity>
 
-    @Query("SELECT * FROM FolderItems WHERE folderId = :folderId")
-    suspend fun getItemsForFolder(folderId: Int): List<FolderItemEntity>
-
     /** Top-level folders only - a nested folder is reached through its parent's own items. */
     @Query("SELECT * FROM Folders WHERE parentFolderId IS NULL")
     @Transaction

@@ -116,20 +116,21 @@ public class ClippedFolderIconLayoutRule {
         float radius = mRadius * (1 + MAX_RADIUS_DILATION * (curNumItems -
                 MIN_NUM_ITEMS_IN_PREVIEW) / (MAX_NUM_ITEMS_IN_PREVIEW - MIN_NUM_ITEMS_IN_PREVIEW));
 
-        if (curNumItems == 3) {
-            // With exactly 3 items ("pyramid": one on top, two below), the generic circle
-            // model above pushes the top icon's top edge, and the two bottom icons' outer
-            // edges, past mAvailableSpace (icon size + halfIconSize offset works out to
-            // MAX_SCALE * mAvailableSpace regardless of icon size, so this bound is exact).
-            // Shrink the radius (not the icon size) so the three icons stay fully within the
-            // preview bounds.
-            float maxRadiusWithinBounds = mAvailableSpace * (1f - MAX_SCALE) * 0.96f;
-            radius = Math.min(radius, maxRadiusWithinBounds);
-        }
+        float halfIconSize = (mIconSize * scaleForItem(curNumItems)) / 2;
+
+        // The generic circle model above places each item's center at radius/2 from the
+        // preview's center, extending a further halfIconSize outward from there - for 3 items
+        // ("pyramid") and 4 (two of them on the diagonal), this pushes past mAvailableSpace/2,
+        // sticking out past the folder's own outline. This bound (radius/2 + halfIconSize <=
+        // mAvailableSpace/2) is exact for a Circle-shaped folder, the tightest of the
+        // configurable icon shapes, so clamping to it here - regardless of curNumItems or
+        // which shape is actually selected - keeps every preview item fully inside the
+        // background for all of them, at the cost of a slightly smaller radius than strictly
+        // necessary for the roomier shapes (Square, Squircle, etc).
+        float maxRadiusWithinBounds = (mAvailableSpace - 2 * halfIconSize) * 0.96f;
+        radius = Math.min(radius, maxRadiusWithinBounds);
 
         double theta = theta0 + index * (2 * Math.PI / curNumItems) * direction;
-
-        float halfIconSize = (mIconSize * scaleForItem(curNumItems)) / 2;
 
         // Map the location along the circle, and offset the coordinates to represent the center
         // of the icon, and to be based from the top / left of the preview area. The y component

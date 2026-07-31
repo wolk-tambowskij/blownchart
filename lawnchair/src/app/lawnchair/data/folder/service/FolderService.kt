@@ -124,15 +124,26 @@ class FolderService(val context: Context) : SafeCloseable {
         // there's no stable id to update in place across saves - preserve whatever manual rank
         // each app already had, and only assign fresh ranks (appended at the end) to apps that
         // are newly added, so a plain selection change never silently resets the manual order.
-        val existingRankByComponentKey = folderDao.getItemsForFolder(folderInfoId)
-            .associate { it.componentKey to it.rank }
+        val existing = folderDao.getFolderWithItems(folderInfoId)
+        val existingRankByComponentKey = existing?.items.orEmpty().associate { it.componentKey to it.rank }
         var nextRank = (existingRankByComponentKey.values.maxOrNull() ?: -1) + 1
         val entities = appInfos.map { appInfo ->
             val key = converters.fromComponentKey(appInfo.toComponentKey())
             val rank = existingRankByComponentKey[key] ?: nextRank++
             appInfo.toEntity(folderInfoId, rank)
         }
-        folderDao.insertFolderWithItems(FolderInfoEntity(id = folderInfoId, title = title), entities)
+        // insertFolder() below is a full-row REPLACE - any field left at its default here would
+        // silently reset on every checkbox toggle. Carry over the folder's own rank (drag order
+        // among its siblings), hide flag, and parentFolderId (nesting), none of which this method
+        // is meant to touch.
+        val folderEntity = FolderInfoEntity(
+            id = folderInfoId,
+            title = title,
+            hide = existing?.folder?.hide ?: false,
+            rank = existing?.folder?.rank ?: 0,
+            parentFolderId = existing?.folder?.parentFolderId,
+        )
+        folderDao.insertFolderWithItems(folderEntity, entities)
     }
 
     suspend fun updateFolderOrder(orderedFolderIds: List<Int>) = withContext(Dispatchers.IO) {
