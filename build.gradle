@@ -459,6 +459,9 @@ dependencies {
         exclude group: "com.github.skydoves", module: "balloon"
     }
 
+    // QR code generation for the donation screen (encode-only, no network)
+    implementation libs.zxing.core
+
     implementation libs.hoko.blur
 
     implementation libs.androidx.window

@@ -37,6 +37,7 @@ import app.lawnchair.ui.preferences.destinations.GesturePreferences
 import app.lawnchair.ui.preferences.destinations.HiddenAppsPreferences
 import app.lawnchair.ui.preferences.destinations.HomeScreenGridPreferences
 import app.lawnchair.ui.preferences.destinations.HomeScreenPreferences
+import app.lawnchair.ui.preferences.destinations.DonatePreferences
 import app.lawnchair.ui.preferences.destinations.IconPackPreferences
 import app.lawnchair.ui.preferences.destinations.IconPickerPreference
 import app.lawnchair.ui.preferences.destinations.IconShapePreference
@@ -144,6 +145,7 @@ fun PreferenceNavigation(
 
         composable<About> { About() }
         composable<AboutLicenses> { Acknowledgements() }
+        composable<AboutDonate> { DonatePreferences() }
 
         composable<DebugMenu> { DebugMenuPreferences() }
         composable<FeatureFlags> { FeatureFlagsPreference() }

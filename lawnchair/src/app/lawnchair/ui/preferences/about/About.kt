@@ -55,6 +55,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroupHeading
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroupItem
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayoutLazyColumn
+import app.lawnchair.ui.preferences.navigation.AboutDonate
 import app.lawnchair.ui.preferences.navigation.AboutLicenses
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
@@ -237,6 +238,23 @@ fun About(
                         )
                     }
                 }
+            }
+        }
+        item {
+            PreferenceGroupHeading(
+                stringResource(R.string.donate_label),
+            )
+        }
+        item {
+            PreferenceGroupItem(
+                cutTop = false,
+                cutBottom = false,
+            ) {
+                NavigationActionPreference(
+                    label = stringResource(id = R.string.donate_label),
+                    subtitle = stringResource(id = R.string.donate_nav_subtitle),
+                    destination = AboutDonate,
+                )
             }
         }
         item {
