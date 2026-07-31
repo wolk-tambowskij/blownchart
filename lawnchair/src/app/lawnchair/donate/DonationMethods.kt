@@ -42,11 +42,6 @@ data class DonationMethod(
     @StringRes val titleRes: Int,
     val type: DonationMethodType,
     val value: String,
-    /**
-     * False for methods still carrying a placeholder [value]. Filter these out of any UI
-     * until the real value is filled in - see docs/DONATIONS.md.
-     */
-    val enabled: Boolean = true,
 )
 
 /**
@@ -68,36 +63,5 @@ object DonationMethods {
             type = DonationMethodType.LINK,
             value = "https://yoomoney.ru/to/4100119588109985",
         ),
-        DonationMethod(
-            id = "boosty",
-            titleRes = R.string.donate_method_boosty,
-            type = DonationMethodType.LINK,
-            value = "https://boosty.to/<PLACEHOLDER>",
-            enabled = false,
-        ),
-        DonationMethod(
-            id = "cloudtips",
-            titleRes = R.string.donate_method_cloudtips,
-            type = DonationMethodType.LINK,
-            value = "https://pay.cloudtips.ru/p/<PLACEHOLDER>",
-            enabled = false,
-        ),
-        DonationMethod(
-            id = "mir_card",
-            titleRes = R.string.donate_method_mir_card,
-            type = DonationMethodType.COPY_TEXT,
-            value = "<PLACEHOLDER_CARD_NUMBER>",
-            enabled = false,
-        ),
-        DonationMethod(
-            id = "crypto",
-            titleRes = R.string.donate_method_crypto,
-            type = DonationMethodType.COPY_TEXT,
-            value = "<PLACEHOLDER_CRYPTO_ADDRESS>",
-            enabled = false,
-        ),
     )
-
-    /** Methods ready to show to users - excludes anything still carrying a placeholder value. */
-    val enabledMethods: List<DonationMethod> get() = all.filter { it.enabled }
 }

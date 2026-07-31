@@ -641,10 +641,6 @@
     <string name="donate_thanks_message">BlownChart бесплатен и останется таким. Если всё же хотите поддержать разработку — вот добровольные способы это сделать. Ни один из них не открывает какие-либо функции.</string>
     <string name="donate_method_paypal">PayPal</string>
     <string name="donate_method_yoomoney">ЮMoney</string>
-    <string name="donate_method_boosty">Boosty</string>
-    <string name="donate_method_cloudtips">CloudTips</string>
-    <string name="donate_method_mir_card">Карта «Мир»</string>
-    <string name="donate_method_crypto">Крипто-кошелёк</string>
     <string name="donate_action_open_link">Нажмите, чтобы открыть</string>
     <string name="donate_action_copy">Нажмите, чтобы скопировать</string>
     <string name="donate_action_show_qr">Нажмите, чтобы показать QR-код</string>

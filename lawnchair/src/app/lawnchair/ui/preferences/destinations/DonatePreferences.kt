@@ -74,7 +74,7 @@ fun DonatePreferences(modifier: Modifier = Modifier) {
 
         if (BuildConfig.DONATIONS_SHOW_PAYMENT_LINKS) {
             PreferenceGroup {
-                DonationMethods.enabledMethods.forEach { method ->
+                DonationMethods.all.forEach { method ->
                     DonationMethodRow(method)
                 }
             }

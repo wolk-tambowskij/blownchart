@@ -9,37 +9,34 @@ voluntary; see `Settings → About → Support development` in the app.
 
 Everything is defined in one place:
 [`lawnchair/src/app/lawnchair/donate/DonationMethods.kt`](../lawnchair/src/app/lawnchair/donate/DonationMethods.kt).
-Each entry is a `DonationMethod(id, titleRes, type, value, enabled)`:
+Each entry is a `DonationMethod(id, titleRes, type, value)`:
 
 - `type = LINK` — opened with `ACTION_VIEW` in the browser.
 - `type = COPY_TEXT` — copied to the clipboard with a confirmation toast.
 - `type = QR` — a QR code is generated **on-device** from `value` (via
   `zxing-core`, no network call, no third-party QR service) and shown in a
-  dialog with a copy button.
-- `enabled = false` hides the method from the UI. Every method still
-  carrying a `<PLACEHOLDER>` value is `enabled = false` by default so
-  nothing broken ever reaches a real user - flip it to `true` once you've
-  filled in the real value.
+  dialog with a copy button. No current channel uses this type, but the
+  UI supports it for a future one.
 
 The UI (`lawnchair/src/app/lawnchair/ui/preferences/destinations/DonatePreferences.kt`)
-just renders whatever `DonationMethods.enabledMethods` returns - there's
-nothing else to keep in sync.
+just renders whatever `DonationMethods.all` returns - there's nothing
+else to keep in sync.
 
 ## Current channels
+
+Only real, live channels are listed here - no placeholder entries.
 
 | Channel | Type | Status |
 |---|---|---|
 | PayPal | LINK | **Live** - PayPal's own `/donate/?business=<email>` donate-button URL, using `wolk.tambowskij@gmail.com`. No `paypal.me` handle exists for this account, so this is the correct real PayPal mechanism instead of a fabricated link. |
 | YooMoney (ЮMoney) | LINK | **Live** - `https://yoomoney.ru/to/4100119588109985`, YooMoney's standard quick-transfer link format. |
-| Boosty | LINK | Placeholder (`enabled = false`) - needs your Boosty page URL. |
-| CloudTips | LINK | Placeholder (`enabled = false`) - needs your CloudTips page URL. |
-| Mir card | COPY_TEXT | Placeholder (`enabled = false`) - needs a real card number. |
-| Crypto wallet | COPY_TEXT | Placeholder (`enabled = false`), optional - needs a wallet address, or delete the entry if you don't want to offer this. |
 
-## Changing a value
+## Adding a channel
 
-Edit the corresponding entry in `DonationMethods.kt` and set `enabled = true`
-once the value is real. That's it - no other file references these values.
+Add a new `DonationMethod(id, titleRes, type, value)` entry to
+`DonationMethods.all` in `DonationMethods.kt`, plus a `donate_method_<id>`
+string in `strings.xml` (and `values-ru/strings.xml`) for `titleRes`.
+That's it - no other file references these values.
 
 If a value is sensitive enough that you don't want it sitting in a public
 git history in plain text (this applies more to a bank card number than to
