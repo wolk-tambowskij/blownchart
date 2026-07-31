@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="16dp"
+    android:viewportWidth="20"
+    android:viewportHeight="16">
+    <!--
+    Same solid folder glyph as ic_folder_badge.xml, but re-based so its viewport tightly matches
+    the drawn shape (that one has ~4dp of built-in top/bottom padding in a 24x24 box) - needed so
+    setting this drawable's bounds to a given height (e.g. a search row's cap-height) makes the
+    visible glyph actually that tall, not just its bounding box.
+    -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M8,0H2C0.89,0 0,0.89 0,2V14C0,15.1 0.9,16 2,16H18C19.1,16 20,15.1 20,14V4C20,2.89 19.1,2 18,2H10L8,0Z" />
+</vector>

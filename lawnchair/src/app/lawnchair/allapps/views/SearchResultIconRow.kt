@@ -153,20 +153,24 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
 
     // A folder's own row in the search result subtitle: a solid folder icon (matching the one
     // shown in the folder list), sized to the text's cap-height rather than its full line height,
-    // followed by the folder name - or, for an app inside a nested subfolder, "Parent → Folder"
+    // a space, then the folder name - or, for an app inside a nested subfolder, "Parent → Folder"
     // with the parent name bolded (the immediate/nested folder is context here, not the top-level
     // answer to "which folder is this app in").
     private fun buildFolderSubtitle(folderName: String, parentName: String?): CharSequence {
         val text = if (parentName != null) "$parentName → $folderName" else folderName
-        val builder = SpannableStringBuilder(" ").append(text)
+        // Index 0 is replaced by the icon span below; index 1 is a plain space gap before the text.
+        val builder = SpannableStringBuilder("  ").append(text)
 
-        val iconDrawable = ContextCompat.getDrawable(context, R.drawable.ic_folder_badge)?.mutate()
+        val iconDrawable = ContextCompat.getDrawable(context, R.drawable.ic_folder_solid)?.mutate()
         if (iconDrawable != null) {
             iconDrawable.setTint(Color.BLACK)
             val capHeightBounds = Rect()
             subtitle.paint.getTextBounds("H", 0, 1, capHeightBounds)
-            val size = capHeightBounds.height()
-            iconDrawable.setBounds(0, 0, size, size)
+            val height = capHeightBounds.height()
+            // ic_folder_solid's viewport is exactly the drawn glyph (no built-in padding), so its
+            // 20:16 aspect ratio must be preserved here or the folder shape would be stretched.
+            val width = height * 20 / 16
+            iconDrawable.setBounds(0, 0, width, height)
             builder.setSpan(
                 ImageSpan(iconDrawable, ImageSpan.ALIGN_BASELINE),
                 0,
@@ -175,8 +179,8 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
             )
         }
 
-        val boldEnd = if (parentName != null) 1 + parentName.length else builder.length
-        builder.setSpan(StyleSpan(Typeface.BOLD), 1, boldEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        val boldEnd = if (parentName != null) 2 + parentName.length else builder.length
+        builder.setSpan(StyleSpan(Typeface.BOLD), 2, boldEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         return builder
     }
 
