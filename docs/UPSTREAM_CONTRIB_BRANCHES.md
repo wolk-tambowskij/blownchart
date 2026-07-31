@@ -15,7 +15,7 @@ Fork point: `upstream/15-dev` @ `v15.0.0-beta3.0`. See
 |---|---|---|---|---|---|
 | 1 | `fix/folder-list-performance` | O(apps×folders) folder-list loading and per-checkbox editing lag | S | Fixes #6147 | ready for review (pushed to `origin/fix/folder-list-performance`) |
 | 2 | `fix/folder-shape-geometry` | Folder background shape approximated to 4 hardcoded shapes instead of the exact configured shape; Cookie/Arch shapes rendered as a circle; preview icons overflow folder bounds for some shape/count combos | S | Related #6495 (closed, 16-dev - verify repro there before citing) | ready for review (pushed to `origin/fix/folder-shape-geometry`) |
-| 3 | `feat/drawer-search-folder-label` | Search results show which folder (with icon, bold name, parent path for nested) an app is in | S/M | - | pending |
+| 3 | `feat/search-folder-label` | Search results show which folder an app is in (as a subtitle) - narrower than originally planned, see PR doc scope note | S | - | ready for review (pushed to `origin/feat/search-folder-label` - renamed from the originally planned `feat/drawer-search-folder-label`, which collides with an old stale fork branch of the same name, see cleanup list) |
 | 4 | `feat/folder-outline` | Thin gray outline on folder previews/backgrounds, independent of theme/opacity | S | - | pending |
 | 5 | `feat/battery-optimization-prompt` | Persistent (not one-shot) prompt to exempt the launcher from battery optimization | S | - | pending |
 | 6 | `feat/hide-launcher-self-entry` | Hide the launcher's own app-drawer entry by default | S | - | pending |
