@@ -3,14 +3,23 @@ package app.lawnchair.ui.preferences.destinations
 import android.content.Context
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,19 +68,20 @@ fun SelectAppsForDrawerFolder(
 
     var allFolderPackages by remember { mutableStateOf(emptySet<String>()) }
     var filterNonUniqueItems by remember { mutableStateOf(true) }
+    var searchQuery by remember { mutableStateOf("") }
 
     val activeIds = remember(folderInfo) {
         folderInfo?.getContents()?.map { ComponentKey(it.targetComponent, it.user).toString() } ?: emptyList()
     }
 
-    val (positionalItems, activeCount) = remember(apps, activeIds, filterNonUniqueItems, allFolderPackages) {
+    val (positionalItems, activeCount) = remember(apps, activeIds, filterNonUniqueItems, allFolderPackages, searchQuery) {
         val filtered = apps.filter { app ->
-            if (filterNonUniqueItems) {
-                !allFolderPackages.contains(app.key.componentName.packageName) ||
+            (
+                !filterNonUniqueItems ||
+                    !allFolderPackages.contains(app.key.componentName.packageName) ||
                     activeIds.contains(app.key.toString())
-            } else {
-                true
-            }
+                ) &&
+                app.label.contains(searchQuery, ignoreCase = true)
         }
         PositionalMapper.prepareCategorizedItems(
             allItems = filtered,
@@ -139,15 +149,38 @@ fun SelectAppsForDrawerFolder(
                     }
                 }
             } else {
-                PositionalAppListPreference(
-                    items = positionalItems,
-                    activeCount = activeCount,
-                    onOrderChange = { newList, newCount ->
-                        val sorted = PositionalMapper.sortInactiveItems(newList, newCount) { it.label }
-                        updateViewModel(sorted, newCount, apps, context, viewModel, folderInfoId, folderInfo?.title.toString())
-                    },
-                    contentPadding = it,
-                )
+                Column(modifier = Modifier.fillMaxSize()) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        placeholder = { Text(stringResource(R.string.all_apps_search_bar_hint)) },
+                        leadingIcon = { Icon(Icons.Rounded.Search, null) },
+                        trailingIcon = if (searchQuery.isNotEmpty()) {
+                            {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(Icons.Rounded.Clear, null)
+                                }
+                            }
+                        } else {
+                            null
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(32.dp),
+                    )
+                    PositionalAppListPreference(
+                        items = positionalItems,
+                        activeCount = activeCount,
+                        onOrderChange = { newList, newCount ->
+                            val sorted = PositionalMapper.sortInactiveItems(newList, newCount) { it.label }
+                            updateViewModel(sorted, newCount, apps, context, viewModel, folderInfoId, folderInfo?.title.toString())
+                        },
+                        contentPadding = it,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
     }
