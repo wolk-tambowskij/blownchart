@@ -152,13 +152,20 @@ final def majorVersion = versionDisplayName.split("\\.")[0]
 final def quickstepMinSdk = "29"
 final def quickstepMaxSdk = "35"
 
+// BlownChart release builds (see .github/workflows/release.yml) pass the
+// git tag in via these Gradle properties instead of using Lawnchair's
+// internal Android-version-based scheme (CONTRIBUTING.md#versioning-scheme).
+// Falls back to that scheme for every other build (dev/debug/CI).
+final def tagVersionName = project.findProperty("blownchartVersionName")
+final def tagVersionCode = project.findProperty("blownchartVersionCode")
+
 android {
     namespace "com.android.launcher3"
     defaultConfig {
         // Lawnchair Launcher 15.0 Beta 3
         // See CONTRIBUTING.md#versioning-scheme
-        versionCode 15_00_02_03_00
-        versionName "${versionDisplayName}"
+        versionCode tagVersionCode ? tagVersionCode.toInteger() : 15_00_02_03_00
+        versionName tagVersionName ?: "${versionDisplayName}"
         buildConfigField "String", "VERSION_DISPLAY_NAME", "\"${versionDisplayName}\""
         buildConfigField "String", "MAJOR_VERSION", "\"${majorVersion}\""
         buildConfigField "String", "COMMIT_HASH", "\"${buildCommit}\""
@@ -173,7 +180,7 @@ android {
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach {
             def channel = variant.productFlavors.last().name
-            outputFileName = "Lawnchair.${variant.versionName}.$channel.${variant.buildType.name}.apk"
+            outputFileName = "BlownChart.${variant.versionName}.$channel.${variant.buildType.name}.apk"
         }
     }
 
