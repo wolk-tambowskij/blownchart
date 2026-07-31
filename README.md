@@ -81,10 +81,18 @@ the same signing config is fed from GitHub Secrets instead of this file.
 
 ### Support the project
 
-Donations are voluntary — see [`docs/DONATIONS.md`](docs/DONATIONS.md)
-*(coming soon)* for supported channels. No feature of BlownChart is ever
-gated behind a payment; that would contradict both the spirit and the
-letter of the GPLv3.
+BlownChart is free and always will be — donating never unlocks a feature,
+that would contradict both the spirit and the letter of the GPLv3. If
+you'd still like to chip in, it's in-app under
+`Settings → About → Support development`, or directly:
+
+- **PayPal:** https://www.paypal.com/donate/?business=wolk.tambowskij%40gmail.com&currency_code=USD
+- **YooMoney (ЮMoney):** https://yoomoney.ru/to/4100119588109985
+- Boosty, CloudTips, a Mir card number, and a crypto wallet are wired up
+  in the app but not yet filled in with real values.
+
+See [`docs/DONATIONS.md`](docs/DONATIONS.md) for the full list, how the
+config works, and why the Google Play build hides direct payment links.
 
 ### License and attribution
 
@@ -159,9 +167,18 @@ keyPassword=...
 
 ### Поддержать проект
 
-Донаты — исключительно добровольные, см. [`docs/DONATIONS.md`](docs/DONATIONS.md)
-*(скоро)* за списком способов. Ни одна функция BlownChart никогда не
-скрывается за оплатой — это противоречило бы и духу, и букве GPLv3.
+BlownChart бесплатен и останется таким — донат никогда не открывает
+какую-либо функцию, это противоречило бы и духу, и букве GPLv3. Если всё
+же хотите поддержать — это есть прямо в приложении, `Настройки → О
+приложении → Поддержать разработку`, либо напрямую:
+
+- **PayPal:** https://www.paypal.com/donate/?business=wolk.tambowskij%40gmail.com&currency_code=USD
+- **ЮMoney:** https://yoomoney.ru/to/4100119588109985
+- Boosty, CloudTips, номер карты «Мир» и крипто-кошелёк уже подключены в
+  приложении, но пока без реальных значений.
+
+Полный список способов, как устроен конфиг и почему в Play-сборке скрыты
+прямые платёжные ссылки — в [`docs/DONATIONS.md`](docs/DONATIONS.md).
 
 ### Лицензия и авторство
 
