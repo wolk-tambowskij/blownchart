@@ -15,12 +15,13 @@
 
      Modifications copyright 2021, Lawnchair
 -->
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background>
-        <bitmap android:src="@mipmap/ic_launcher_home_background" />
-    </background>
-    <foreground>
-        <bitmap android:src="@mipmap/ic_launcher_home_foreground"/>
-    </foreground>
-    <monochrome android:drawable="@mipmap/ic_launcher_home_monochrome"/>
-</adaptive-icon>
+<!--
+This is a plain (non-adaptive) bitmap, not an <adaptive-icon>, on purpose: android:icon in the
+manifest points here, and this is what the OS actually draws for every surface Lawnchair's own
+IconProvider never touches (Settings > Apps, Recents, share sheet, other launchers). An
+adaptive-icon there would always get reshaped to the current system/OEM icon mask; a plain bitmap
+draws exactly as authored - white inside the wavy BlownChart border, transparent outside - with no
+shape substitution possible.
+-->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@mipmap/ic_launcher_home_true_shape" />
