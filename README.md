@@ -31,19 +31,57 @@ foundation to add them.
 
 ### Differences from the original
 
-<!-- TODO: describe recursive/nested folders in the app drawer -->
-<!-- TODO: describe the settings lock / screen-lock feature -->
-<!-- TODO: describe folder backup/restore -->
-<!-- TODO: describe icon shape changes -->
-<!-- TODO: describe branding/applicationId changes -->
-<!-- TODO: describe any other fork-specific fixes and features -->
+App drawer folders:
+
+- One level of folder-in-folder nesting, with a small badge marking a
+  folder that contains another; nested folders are always sorted before
+  apps.
+- Optional manual drag-and-drop ordering of folders and their contents
+  (alphabetical stays the default).
+- Search bar when picking apps for a folder.
+- Export and import your whole folder layout as a JSON file.
+- A thin outline on folder previews, independent of theme/opacity.
+- Folder previews render using the exact configured icon shape (instead
+  of being approximated to a handful of hardcoded shapes) and no longer
+  overflow their bounds for unusual app-count/shape combinations.
+- The "App drawer folders" screen and folder editing stay fast even with
+  a large number of installed apps and folders (tested with 40 folders /
+  1766 apps).
+
+Privacy and locking:
+
+- "Lock app drawer" and "Lock home screen" are separate settings: the
+  drawer lock blocks renaming/hiding/changing the icon/uninstalling apps
+  from the drawer, while the home screen lock separately blocks moving
+  and resizing widgets too — closing a gap where either lock could
+  previously be bypassed via the Uninstall shortcut or widget
+  placement/resize.
+- A PIN/fingerprint lock gates the launcher's own settings and any exit
+  into system Settings (it does not apply to shortcuts or widgets that
+  belong to other apps).
+
+Other:
+
+- App drawer search results show which folder an app is in, including
+  the full path for an app inside a nested subfolder.
+- The launcher's own app-drawer entry is hidden by default.
+- A persistent prompt to exempt the launcher from battery optimization,
+  since it's easy to dismiss once and forget.
+- Rebranded identity (name, icon, `applicationId`) so it can be installed
+  side by side with Lawnchair itself; hand-maintained Russian
+  translations instead of upstream's Crowdin-managed ones; optional
+  in-app donation links (PayPal, YooMoney, and others — see
+  [`docs/DONATIONS.md`](docs/DONATIONS.md)); signed CI/release workflows
+  and periodic upstream-sync tracking (see
+  [`.github/workflows/`](.github/workflows/)).
 
 ### Download
 
-Not yet available — release packaging is being set up. This section will
-be filled in once signed GitHub Releases are live (see
-[`docs/UPSTREAM_SYNC.md`](docs/UPSTREAM_SYNC.md) once published, and the
-CI/release workflows under [`.github/workflows/`](.github/workflows/)).
+Not yet available — no signed release has been published yet. This
+section will be filled in once the first signed GitHub Release goes out
+(see [`docs/UPSTREAM_SYNC.md`](docs/UPSTREAM_SYNC.md) for how upstream
+changes are tracked, and the CI/release workflows under
+[`.github/workflows/`](.github/workflows/)).
 
 ### Build
 
@@ -118,18 +156,57 @@ BlownChart появился из-за того, что на простое же�
 
 ### Отличия от оригинала
 
-<!-- TODO: описать рекурсивные/вложенные папки в app drawer -->
-<!-- TODO: описать блокировку настроек / экрана блокировки -->
-<!-- TODO: описать резервное копирование/восстановление папок -->
-<!-- TODO: описать изменения формы иконок -->
-<!-- TODO: описать смену брендинга/applicationId -->
-<!-- TODO: описать прочие форк-специфичные фиксы и фичи -->
+Папки в меню приложений:
+
+- Один уровень вложенности папок друг в друга; папка, содержащая другую
+  папку, помечается небольшим значком, вложенные папки всегда идут перед
+  приложениями.
+- Опциональная ручная сортировка папок и их содержимого перетаскиванием
+  (по умолчанию — алфавитная).
+- Строка поиска при выборе приложений для папки.
+- Экспорт и импорт всей раскладки папок в JSON-файл.
+- Тонкая обводка у превью папок, не зависящая от темы/прозрачности.
+- Превью папок рисуются по точной настроенной форме иконок (а не по
+  нескольким жёстко закодированным приближениям) и больше не выходят за
+  границы при необычных сочетаниях формы и количества приложений.
+- Экран «Папки в app drawer» и редактирование папок остаются быстрыми
+  даже при большом количестве установленных приложений и папок
+  (проверено на 40 папках и 1766 приложениях).
+
+Приватность и блокировка:
+
+- «Заблокировать app drawer» и «Заблокировать главный экран» — теперь
+  раздельные настройки: блокировка app drawer запрещает переименование,
+  скрытие, смену иконки и удаление приложений из меню приложений, а
+  блокировка главного экрана отдельно запрещает ещё и перемещение с
+  изменением размера виджетов — закрыт обход, при котором любую из
+  блокировок раньше можно было обойти через пункт «Удалить» или
+  размещение/изменение размера виджета.
+- PIN-код/отпечаток блокирует настройки самого лончера и любой выход в
+  системные настройки (не распространяется на ярлыки и виджеты сторонних
+  приложений).
+
+Прочее:
+
+- Результаты поиска в меню приложений показывают, в какой папке лежит
+  приложение, включая полный путь для приложения во вложенной подпапке.
+- Собственная запись лончера в меню приложений скрыта по умолчанию.
+- Постоянное (а не одноразовое) напоминание исключить лончер из
+  оптимизации батареи — одноразовое слишком легко закрыть и забыть.
+- Собственный брендинг (название, иконка, `applicationId`), чтобы можно
+  было ставить рядом с оригинальным Lawnchair; переведено на русский
+  вручную, без CrowdIn, которым пользуется апстрим; опциональные ссылки
+  на поддержку проекта в приложении (PayPal, ЮMoney и другие — см.
+  [`docs/DONATIONS.md`](docs/DONATIONS.md)); подписанные CI/release
+  workflow'ы и периодическое отслеживание апстрима (см.
+  [`.github/workflows/`](.github/workflows/)).
 
 ### Скачать
 
-Пока недоступно — настраивается сборка релизов. Раздел заполнится после
-запуска подписанных GitHub Releases (см. `docs/UPSTREAM_SYNC.md`, когда
-появится, и workflow'ы в [`.github/workflows/`](.github/workflows/)).
+Пока недоступно — ещё не вышло ни одного подписанного релиза. Раздел
+заполнится после первого GitHub Release (о том, как отслеживаются
+изменения апстрима, см. `docs/UPSTREAM_SYNC.md`, и workflow'ы в
+[`.github/workflows/`](.github/workflows/)).
 
 ### Сборка
 
