@@ -70,7 +70,7 @@ Other:
 - Rebranded identity (name, icon, `applicationId`) so it can be installed
   side by side with Lawnchair itself; hand-maintained Russian
   translations instead of upstream's Crowdin-managed ones; optional
-  in-app donation links (PayPal, YooMoney, and others — see
+  in-app donation links (PayPal, YooMoney — see
   [`docs/DONATIONS.md`](docs/DONATIONS.md)); signed CI/release workflows
   and periodic upstream-sync tracking (see
   [`.github/workflows/`](.github/workflows/)).
@@ -126,11 +126,9 @@ you'd still like to chip in, it's in-app under
 
 - **PayPal:** https://www.paypal.com/donate/?business=wolk.tambowskij%40gmail.com&currency_code=USD
 - **YooMoney (ЮMoney):** https://yoomoney.ru/to/4100119588109985
-- Boosty, CloudTips, a Mir card number, and a crypto wallet are wired up
-  in the app but not yet filled in with real values.
 
-See [`docs/DONATIONS.md`](docs/DONATIONS.md) for the full list, how the
-config works, and why the Google Play build hides direct payment links.
+See [`docs/DONATIONS.md`](docs/DONATIONS.md) for how the config works and
+why the Google Play build hides direct payment links.
 
 ### License and attribution
 
@@ -196,7 +194,7 @@ BlownChart появился из-за того, что на простое же�
 - Собственный брендинг (название, иконка, `applicationId`), чтобы можно
   было ставить рядом с оригинальным Lawnchair; переведено на русский
   вручную, без CrowdIn, которым пользуется апстрим; опциональные ссылки
-  на поддержку проекта в приложении (PayPal, ЮMoney и другие — см.
+  на поддержку проекта в приложении (PayPal, ЮMoney — см.
   [`docs/DONATIONS.md`](docs/DONATIONS.md)); подписанные CI/release
   workflow'ы и периодическое отслеживание апстрима (см.
   [`.github/workflows/`](.github/workflows/)).
@@ -251,11 +249,9 @@ BlownChart бесплатен и останется таким — донат н
 
 - **PayPal:** https://www.paypal.com/donate/?business=wolk.tambowskij%40gmail.com&currency_code=USD
 - **ЮMoney:** https://yoomoney.ru/to/4100119588109985
-- Boosty, CloudTips, номер карты «Мир» и крипто-кошелёк уже подключены в
-  приложении, но пока без реальных значений.
 
-Полный список способов, как устроен конфиг и почему в Play-сборке скрыты
-прямые платёжные ссылки — в [`docs/DONATIONS.md`](docs/DONATIONS.md).
+Как устроен конфиг и почему в Play-сборке скрыты прямые платёжные ссылки
+— в [`docs/DONATIONS.md`](docs/DONATIONS.md).
 
 ### Лицензия и авторство
 
