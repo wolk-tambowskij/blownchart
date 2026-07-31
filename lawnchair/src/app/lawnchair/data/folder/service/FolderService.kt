@@ -47,16 +47,20 @@ class FolderService(val context: Context) : SafeCloseable {
     // tables actually change (Room's Flow only emits on writes, not on a timer) - so search, which
     // needs this on every keystroke, never blocks on a DB query.
     @Volatile
-    private var folderNameByComponentKey: Map<String, String> = emptyMap()
+    private var folderPathByComponentKey: Map<String, FolderPath> = emptyMap()
 
     init {
         folderDao.getComponentKeyToFolderTitleFlow()
-            .onEach { tuples -> folderNameByComponentKey = tuples.associate { it.componentKey to it.folderTitle } }
+            .onEach { tuples ->
+                folderPathByComponentKey = tuples.associate {
+                    it.componentKey to FolderPath(it.folderTitle, it.parentFolderTitle)
+                }
+            }
             .launchIn(scope)
     }
 
     /** Which drawer folder (if any) currently contains [componentKey], for search result labels. */
-    fun getFolderNameForComponentKey(componentKey: String): String? = folderNameByComponentKey[componentKey]
+    fun getFolderPathForComponentKey(componentKey: String): FolderPath? = folderPathByComponentKey[componentKey]
 
     fun getFoldersFlow(): Flow<List<FolderInfo>> = flow {
         // Cache the componentKey -> AppInfo lookup for the lifetime of this collection instead
@@ -354,3 +358,6 @@ class FolderService(val context: Context) : SafeCloseable {
 
 /** A folder from the flat management list, paired with its parent's id if it's nested. */
 data class FolderListEntry(val folderInfo: FolderInfo, val parentFolderId: Int?)
+
+/** Which drawer folder contains a search result, and its parent's title if it's nested. */
+data class FolderPath(val title: String, val parentTitle: String?)

@@ -780,6 +780,13 @@ class PreferenceManager2 private constructor(private val context: Context) :
                 // above, otherwise folder icons keep their old shape until the process restarts.
                 L3IconShape.INSTANCE.get(context).pickBestShape(context)
                 LauncherAppState.getInstance(context).reloadIcons()
+                // reloadIcons() rebuilds the icon cache and rebinds the real model (workspace,
+                // hotseat), which is enough for individual icons - but an app-drawer folder's own
+                // preview icons are cached separately (they're not real model items) and aren't
+                // covered by that rebind, so without this they keep their old shape until
+                // something else (e.g. editing the folder) happens to refresh them. This is the
+                // same call folder content edits already use to make the drawer pick up changes.
+                reloadHelper.reloadGrid()
             }
             .launchIn(scope)
     }

@@ -515,17 +515,18 @@
     <string name="about_developed_by">Developed by %1$s</string>
     <string name="about_fork_disclosure">BlownChart is an independent, unofficial fork of Lawnchair (based on Lawnchair 15 Beta 3), an open-source Android launcher. It is not affiliated with or endorsed by the Lawnchair project.</string>
     <string name="about_whats_new_heading">What\'s new in this fork</string>
-    <string name="about_change_1">One level of folder-in-folder nesting in the app drawer, with its own manual ordering (folders always sort before apps)</string>
+    <string name="about_change_1">One level of folder-in-folder nesting in the app drawer, with its own manual ordering (folders always sort before apps); a small badge marks a folder that contains one</string>
     <string name="about_change_2">Faster \"App drawer folders\" screen and folder editing with large numbers of installed apps</string>
     <string name="about_change_3">Choice between manual folder ordering and alphabetical sorting (default)</string>
     <string name="about_change_4">Search bar when choosing apps for a folder</string>
     <string name="about_change_5">Export and import your folder layout as a JSON file with all parameters</string>
     <string name="about_change_6">Thin outline added to folders on the home screen and in the drawer</string>
-    <string name="about_change_7">Fixed 3-app folder previews overflowing their bounds</string>
+    <string name="about_change_7">Fixed folder previews overflowing their bounds, for any number of apps and any icon shape</string>
     <string name="about_change_8">\"Lock app drawer\" and \"Lock home screen\" are now separate settings: locking the app drawer blocks renaming, hiding, changing the icon, and uninstalling apps from the drawer, while locking the home screen also separately blocks moving and resizing widgets</string>
     <string name="about_change_9">New PIN/fingerprint lock for the launcher\'s own settings and any exit into system Settings (does not apply to shortcuts/widgets created by third-party apps)</string>
-    <string name="about_change_10">Prompt to disable battery optimization for the launcher on first launch</string>
-    <string name="about_change_11">Tested under real-world load — 40 folders and 1766 installed apps: building the list initially may take a moment at that scale, but selecting apps and saving are instant</string>
+    <string name="about_change_10">App drawer search results now show which folder an app is in (with its icon), including the full path for an app inside a nested subfolder</string>
+    <string name="about_change_11">Prompt to disable battery optimization for the launcher on first launch</string>
+    <string name="about_change_12">Tested under real-world load — 40 folders and 1766 installed apps: building the list initially may take a moment at that scale, but selecting apps and saving are instant</string>
     <string name="about_privacy_note">All settings, folder data, and the optional settings PIN are stored locally on this device. This fork does not add analytics or telemetry beyond what upstream Lawnchair already includes; see Lawnchair\'s own privacy policy below for the inherited baseline.</string>
 
     <string name="contributor_status_active">Active</string>

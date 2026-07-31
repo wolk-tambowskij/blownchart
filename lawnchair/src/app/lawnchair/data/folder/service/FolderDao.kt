@@ -78,9 +78,10 @@ interface FolderDao {
      */
     @Query(
         """
-        SELECT fi.item_info AS componentKey, f.title AS folderTitle
+        SELECT fi.item_info AS componentKey, f.title AS folderTitle, parent.title AS parentFolderTitle
         FROM FolderItems fi
         JOIN Folders f ON fi.folderId = f.id
+        LEFT JOIN Folders parent ON f.parentFolderId = parent.id
         WHERE fi.item_info IS NOT NULL AND f.hide = 0
         """,
     )
@@ -159,4 +160,5 @@ data class FolderWithItems(
 data class ComponentKeyToFolderTitle(
     val componentKey: String,
     val folderTitle: String,
+    val parentFolderTitle: String?,
 )

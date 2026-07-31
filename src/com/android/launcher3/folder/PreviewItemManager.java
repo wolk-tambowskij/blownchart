@@ -167,7 +167,7 @@ public class PreviewItemManager {
             mIcon.mBackground.setup(mIcon.getContext(), mIcon.mActivity, mIcon, mTotalWidth,
                     mIcon.getPaddingTop());
             mIcon.mPreviewLayoutRule.init(mIcon.mBackground.previewSize, mIntrinsicIconSize,
-                    Utilities.isRtl(mIcon.getResources()));
+                    Utilities.isRtl(mIcon.getResources()), mContext);
 
             updatePreviewItems(false);
         }

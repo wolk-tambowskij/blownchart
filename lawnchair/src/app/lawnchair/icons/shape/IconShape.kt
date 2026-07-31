@@ -493,6 +493,13 @@ open class IconShape(
             return Path().also { addToPath(it, 0f, 0f, 100f, 100f) }
         }
 
+        // The base addShape() would otherwise mistake this shape's placeholder corner values
+        // (needed since this shape doesn't use the corner system at all) for an actual circle.
+        override fun addShape(path: Path, x: Float, y: Float, radius: Float) {
+            val size = radius * 2
+            addToPath(path, x, y, x + size, y + size, radius)
+        }
+
         override fun addToPath(
             path: Path,
             left: Float,
@@ -542,6 +549,13 @@ open class IconShape(
             return Path().also { addToPath(it, 0f, 0f, 100f, 100f) }
         }
 
+        // The base addShape() would otherwise mistake this shape's placeholder corner values
+        // (needed since this shape doesn't use the corner system at all) for an actual circle.
+        override fun addShape(path: Path, x: Float, y: Float, radius: Float) {
+            val size = radius * 2
+            addToPath(path, x, y, x + size, y + size, radius)
+        }
+
         override fun addToPath(
             path: Path,
             left: Float,
@@ -589,6 +603,13 @@ open class IconShape(
 
         override fun getMaskPath(): Path {
             return Path().also { addToPath(it, 0f, 0f, 100f, 100f) }
+        }
+
+        // The base addShape() would otherwise mistake this shape's placeholder corner values
+        // (needed since this shape doesn't use the corner system at all) for an actual circle.
+        override fun addShape(path: Path, x: Float, y: Float, radius: Float) {
+            val size = radius * 2
+            addToPath(path, x, y, x + size, y + size, radius)
         }
 
         override fun addToPath(
