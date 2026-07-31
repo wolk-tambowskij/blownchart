@@ -277,6 +277,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     private KeyboardInsetAnimationCallback mKeyboardInsetAnimationCallback;
 
     private GradientDrawable mBackground;
+    // Drawn on top of mBackground, separately from it, so the outline stays fully opaque
+    // regardless of the folder background opacity/transparency preference.
+    private GradientDrawable mBorder;
     PreferenceManager2 preferenceManager2;
 
     /**
@@ -313,6 +316,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         final int paddingLeftRight = dp.folderContentPaddingLeftRight;
 
         mBackground = DrawableTokens.RoundRectFolder.resolve(getContext());
+        mBorder = DrawableTokens.RoundRectFolderOutline.resolve(getContext());
         var alpha = LawnchairUtilsKt.getFolderBackgroundAlpha(getContext());
         mBackground.setAlpha(alpha);
 
@@ -1266,6 +1270,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         lp.y = top;
 
         mBackground.setBounds(0, 0, width, height);
+        mBorder.setBounds(0, 0, width, height);
     }
 
     protected int getContentAreaHeight() {
@@ -1784,10 +1789,12 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             int count = canvas.save();
             canvas.clipPath(mClipPath);
             mBackground.draw(canvas);
+            mBorder.draw(canvas);
             canvas.restoreToCount(count);
             super.dispatchDraw(canvas);
         } else {
             mBackground.draw(canvas);
+            mBorder.draw(canvas);
             super.dispatchDraw(canvas);
         }
     }

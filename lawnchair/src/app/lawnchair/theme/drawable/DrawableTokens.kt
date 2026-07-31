@@ -53,6 +53,14 @@ object DrawableTokens {
     val RoundRectFolder = ResourceDrawableToken<GradientDrawable>(R.drawable.round_rect_folder)
         .setColor(ColorTokens.FolderBackgroundColor)
 
+    // Reuses round_rect_folder's shape (so the outline always matches the background's own
+    // corner radius) with the fill made transparent and just a stroke added, so it stays
+    // visible independent of the folder background opacity preference.
+    @JvmField
+    val RoundRectFolderOutline = ResourceDrawableToken<GradientDrawable>(R.drawable.round_rect_folder)
+        .mutate { _, _, _ -> setColor(android.graphics.Color.TRANSPARENT) }
+        .setStroke(1f, ColorTokens.FolderOutlineColor)
+
     @JvmField
     val RoundRectPrimary = ResourceDrawableToken<GradientDrawable>(R.drawable.round_rect_primary)
         .setColor(ColorTokens.ColorPrimary)
