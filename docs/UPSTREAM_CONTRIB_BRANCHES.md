@@ -21,7 +21,7 @@ Fork point: `upstream/15-dev` @ `v15.0.0-beta3.0`. See
 | 6 | `feat/hide-launcher-self-entry` | Hide the launcher's own app-drawer entry by default | S | - | ready for review (pushed to `origin/feat/hide-launcher-self-entry`) |
 | 7 | `feat/folder-picker-search` | Search bar when choosing apps for a folder | S | - | ready for review (pushed to `origin/feat/folder-picker-search`) |
 | 8 | `fix/home-lock-uninstall-widget-bypass` | lockHomeScreen didn't block the Uninstall shortcut (any surface) or new-widget placement/resize | S | - | ready for review (pushed to `origin/fix/home-lock-uninstall-widget-bypass`) |
-| 9 | `feat/split-drawer-home-lock` | Split the single lockHomeScreen toggle into independent app-drawer-lock and home-screen-lock | S/M | Fixes #5839 | pending |
+| 9 | `feat/split-drawer-home-lock` | Split the single lockHomeScreen toggle into independent app-drawer-lock and home-screen-lock | S/M | Fixes #5839 | ready for review (pushed to `origin/feat/split-drawer-home-lock` - **branched from #8, contains its commit too**, since UNINSTALL only has a lockHomeScreen check to split once #8 lands) |
 | 10 | `feat/folder-manual-order` | Optional manual drag-and-drop ordering of folders/folder contents (alphabetical stays default) | S/M | - | pending, after nested folders lands upstream |
 | 11 | `feat/settings-pin-lock` | New PIN/biometric lock gating launcher settings and any exit into system Settings (doesn't cover shortcuts/widgets from other apps) | M/L | - | pending, design doc first |
 | 12 | `feat/nested-folders` | One level of folder-in-folder nesting: data model (`parentFolderId`), UI, export/import, drag handles | L | - | pending, RFC first |
