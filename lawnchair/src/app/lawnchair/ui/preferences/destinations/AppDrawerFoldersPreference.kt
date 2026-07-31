@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -390,6 +391,12 @@ fun AppDrawerFoldersPreference(
                                 folderInfo = childInfo,
                                 parentFolderTitle = folderInfo.title.toString(),
                                 modifier = Modifier.padding(start = 24.dp),
+                                // Nested folders aren't independently draggable in this list (see
+                                // comment above), but the parent row's real drag handle above them
+                                // reserves 48dp of leading space - without matching that here, the
+                                // 24dp start padding wasn't enough to keep the child's title looking
+                                // more indented than its parent's; it read as shifted left instead.
+                                dragHandle = { Spacer(modifier = Modifier.size(48.dp)) },
                                 onItemClick = {
                                     bottomSheetHandler.show {
                                         FolderEditSheet(
