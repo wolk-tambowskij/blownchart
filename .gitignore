@@ -16,6 +16,11 @@ build
 .DS_Store
 keystore.properties
 *.jks
+*.keystore
+keystore/
+*.apk
+*.aab
+google-services.json
 __pycache__
 .vscode
 .fleet
