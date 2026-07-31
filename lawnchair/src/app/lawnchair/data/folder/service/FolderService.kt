@@ -150,18 +150,9 @@ class FolderService(val context: Context) : SafeCloseable {
         folderDao.updateFolderRanks(orderedFolderIds)
     }
 
-    /**
-     * Persists a manual drag order for one folder's own contents - apps and, if present, its one
-     * nested subfolder mixed in together. A subfolder's rank lives in the Folders table rather
-     * than FolderItems, but stamping both from this same position sequence is what lets
-     * mapToFolderInfo() sort them back into a single, correct combined order later.
-     */
-    suspend fun updateFolderItemOrder(folderId: Int, orderedRefs: List<FolderContentRef>) = withContext(Dispatchers.IO) {
-        orderedRefs.forEachIndexed { index, ref ->
-            when (ref) {
-                is FolderContentRef.AppRef -> folderDao.updateFolderItemRank(folderId, ref.componentKey, index)
-                is FolderContentRef.SubfolderRef -> folderDao.updateFolderRank(ref.folderId, index)
-            }
+    suspend fun updateFolderItemOrder(folderId: Int, orderedComponentKeys: List<String>) = withContext(Dispatchers.IO) {
+        orderedComponentKeys.forEachIndexed { index, componentKey ->
+            folderDao.updateFolderItemRank(folderId, componentKey, index)
         }
     }
 
@@ -219,6 +210,10 @@ class FolderService(val context: Context) : SafeCloseable {
             // Recursing with no subfolders of their own keeps this to exactly one level deep -
             // enforced upstream by getNestableFoldersFlow() refusing to offer any nesting targets
             // for a folder that already has subfolders of its own, not by anything here.
+            //
+            // Subfolders always render as their own block before every app, in both orderings
+            // below - manual order only ever reorders folders among themselves and apps among
+            // themselves, never interleaves the two blocks.
             val mappedSubfolders = subfolders.mapNotNull { subfolderWithItems ->
                 mapToFolderInfo(subfolderWithItems, hasId = true, appInfoByComponentKey, manualOrder)
                     ?.let { subfolderWithItems.folder.rank to it }
@@ -227,16 +222,13 @@ class FolderService(val context: Context) : SafeCloseable {
                 itemEntity.componentKey?.let { appInfoByComponentKey[it] }?.let { itemEntity.rank to it }
             }
             if (manualOrder) {
-                // A subfolder's own rank lives in a different table (Folders) than an app's
-                // (FolderItems), but both are stamped from the same shared position sequence by
-                // updateFolderItemOrder(), so sorting the two together by rank reproduces
-                // whatever order the user actually dragged them into.
-                (mappedSubfolders + mappedApps).sortedBy { it.first }
-                    .forEach { (_, item) -> domainFolderInfo.add(item, false) }
+                mappedSubfolders.sortedBy { it.first }.forEach { (_, item) -> domainFolderInfo.add(item, false) }
+                mappedApps.sortedBy { it.first }.forEach { (_, item) -> domainFolderInfo.add(item, false) }
             } else {
-                // No manual order: subfolders always sort to the front, apps alphabetically
-                // after - simpler and enough, since there's no drag-order to preserve here.
-                mappedSubfolders.forEach { (_, item) -> domainFolderInfo.add(item, false) }
+                // No manual order: everything sorts alphabetically within its own block.
+                mappedSubfolders.map { it.second }
+                    .sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
+                    .forEach { domainFolderInfo.add(it, false) }
                 mappedApps.map { it.second }
                     .sortedBy { it.title.toString().lowercase(Locale.getDefault()) }
                     .forEach { domainFolderInfo.add(it, false) }
@@ -362,9 +354,3 @@ class FolderService(val context: Context) : SafeCloseable {
 
 /** A folder from the flat management list, paired with its parent's id if it's nested. */
 data class FolderListEntry(val folderInfo: FolderInfo, val parentFolderId: Int?)
-
-/** One slot in a folder's manually-ordered contents, for [FolderService.updateFolderItemOrder]. */
-sealed interface FolderContentRef {
-    data class AppRef(val componentKey: String) : FolderContentRef
-    data class SubfolderRef(val folderId: Int) : FolderContentRef
-}
