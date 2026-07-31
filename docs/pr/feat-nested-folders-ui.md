@@ -1,71 +1,104 @@
 ### Description
 
-Second of the nested-folders PR chain. Builds on
-`feat/nested-folders-data-model` (the `parentFolderId` column and
-`FolderDao`/`FolderService` support - this PR is meaningless without
-it, and this branch includes its commit too). Lets a user actually
-nest/un-nest a folder, and manage a nested folder independently, from
-the "App drawer folders" Settings screen.
+Second/third combined step of the nested-folders PR chain. Builds on
+`feat/search-folder-label` and `feat/nested-folders-data-model` (this
+branch contains both of their commits too - it's meaningless without
+the `parentFolderId` schema, and extends the existing "which folder is
+this app in" search subtitle rather than duplicating it). Delivers the
+full, user-visible nesting experience: creating/managing a nested
+folder from Settings, seeing it rendered as its own icon inside its
+parent's open folder view in the live drawer, a badge cue on the
+parent's closed icon, and a "parent → folder" search subtitle for an
+app inside a nested subfolder.
 
 ### Reasoning
 
-- `FolderEditSheet` gets a "Nest inside" picker, offering every other
-  top-level folder as a valid target, plus "None" to un-nest. A folder
-  that already has children of its own offers no targets at all -
-  nesting it further would push those children two levels deep, which
-  isn't supported (see `FolderService.getNestableFolders`).
-- The folder list (`AppDrawerFoldersPreference`) now shows every
-  folder flat, including nested ones, instead of only top-level ones -
-  a nested folder's row shows "nested in `<parent title>`" so it stays
-  independently reachable to rename, delete, or un-nest without relying
-  on a drag gesture in the live drawer.
-- `FolderService` gets two flows instead of one: `getFoldersFlow()`
-  (top-level only, for the actual drawer) and the new
-  `getAllFoldersFlatFlow()` (every folder + its parent id, for this
-  Settings screen). Before this PR both consumers shared one flow that
-  returned literally every row - harmless while nesting didn't exist
-  yet, but once it does, feeding every folder (nested ones included)
-  straight into the drawer-building code would render a nested folder
-  as its own second top-level icon, defeating the point of nesting it.
+**Launcher3 (AOSP) side** - a subfolder is just a `FolderInfo` added as
+an item inside another `FolderInfo`'s contents, the same way an app
+pair is already a second "collection" item type:
+
+- `Folder.willAcceptItemType()`: accepts `ITEM_TYPE_FOLDER` so
+  `FolderInfo.add()` no longer throws for a nested folder item.
+- `FolderPagedView.createNewView()`: renders a subfolder cell via
+  `FolderIcon.inflateFolderAndIcon()` with a new `folder_subfolder.xml`
+  layout (sized as one grid cell, like `folder_app_pair.xml`, not like
+  `all_apps_folder_icon.xml`'s drawer-row sizing). Tapping it opens its
+  own `Folder` popup for free through the existing `FolderInfo` click
+  handling - no changes needed there.
+- `FolderIcon.getPreviewItemsOnPage()`: excludes subfolders from the
+  parent's own closed-icon mini-preview, since a subfolder has no
+  static preview `Drawable` of its own yet and would NPE in
+  `PreviewItemManager#setDrawable`.
+- `FolderIcon.drawNestedFolderBadge()`: draws a small, solid,
+  fixed-color folder glyph (new `ic_folder_badge.xml`) straddling the
+  bottom-right edge of a parent folder's closed icon when it contains a
+  subfolder - centered on the inset edge (not tucked fully inside it),
+  so the background's own border passes through the middle of the
+  badge instead of running along its edge, which would make a
+  solid-colored badge hard to tell apart from the border itself.
+
+**App layer:**
+
+- `FolderService.getFoldersFlow()` (the query that builds the actual
+  drawer) now embeds each top-level folder's subfolder as its own
+  `FolderInfo` item, appended after the plain apps, instead of
+  flattening its apps into the parent. Recursing with no further
+  children keeps this to exactly one level deep, enforced by
+  `getNestableFolders()` only offering childless folders as valid
+  nesting targets elsewhere, not by anything in this query.
+- `LawnchairAlphabeticalAppsList`: the folder-rebuild loop now
+  re-resolves a subfolder's own apps against the live `AllAppsStore`
+  the same way as its parent, instead of trying (and silently failing -
+  a `FolderInfo` has no `componentKey`) to resolve the subfolder itself
+  that way.
+- `AppDrawerFoldersPreference` (Settings): the management list now
+  shows every folder, nested ones included - a nested folder renders
+  directly under its parent, indented 24dp (matching
+  `FolderPagedView`'s own reserved drag-handle width, so the indent
+  reads as "more indented than its parent" rather than "shifted left of
+  it"), with a small folder icon next to a parent's title when it has a
+  subfolder. `FolderEditSheet` gets a "Nest inside" picker (offering
+  every other top-level, childless-of-its-own-nesting folder as a
+  target, or "None" to un-nest).
+- Search (`SearchTargetFactory` / `LawnchairAppSearchAlgorithm`): an
+  app inside a nested subfolder now shows "In `<parent>` → `<folder>`"
+  instead of just the immediate folder, so the top-level context isn't
+  lost. Extends the existing single-level "In `<folder>`" subtitle from
+  `feat/search-folder-label` rather than replacing it - a plain app in
+  a top-level (non-nested) folder still shows exactly what it did
+  before.
 
 ### Scope note (read before reviewing)
 
-This PR does **not** yet render a nested folder as its own icon inside
-its parent's open folder view in the live app drawer - that needs
-deeper `Folder`/`PreviewItemManager` UI work in `com.android.launcher3`
-that I don't have a reliable way to verify without on-device visual
-testing, so I'm not guessing at it here. In the meantime,
-`FolderService.getFoldersFlow()` merges a nested folder's apps into its
-parent's contents when building the drawer, so nesting a folder never
-makes its apps silently disappear from the drawer - they're just not
-visually grouped under a second-level icon yet. Happy to follow up with
-that once this lands, or take direction on it if a maintainer has a
-preferred approach for representing a nested folder inside
-`FolderInfo.contents` (an `ItemInfo` subtype check in the relevant
-`BubbleTextView`/icon-binding code, most likely).
+Manual drag-to-reorder is **not** extended to nested folders in this
+PR - a nested folder's position relative to its own siblings under the
+same parent isn't wired up (today, un-nesting is how you'd reposition
+one). That's `folder-manual-order` territory: a separate, later item in
+this contribution plan that explicitly depends on this one landing
+first, not something this PR should also be trying to do.
 
 ### Testing
 
-Manually walked through: created folders A and B, nested B inside A
-(the picker offers A as a target) - B's row then shows "nested in A".
-Nested a third folder C into A too - A now has two children, B and C.
-Opening A's own picker offers no targets, since A has children (nesting
-it would push B and C two levels deep). Opening B's picker no longer
-lists C, since only top-level folders are offered and C already has a
-parent (A) - it only lists A itself (harmless to reselect) and any
-other unrelated top-level folder. Un-nested B via "None" - its row goes
-back to showing no parent subtitle. Deleted A - B and C are both
-removed along with it (cascade delete from the PR 1 data-model change).
+Manually walked through: created folder A, created folder B, nested B
+into A via the "Nest inside" picker - B now renders indented under A in
+the Settings list with a small folder icon next to A's title, and in
+the live app drawer, opening A shows B as its own folder cell (tapping
+it opens B's own popup) while A's closed icon shows the badge in its
+corner. Searched for an app that's inside B - the result subtitle read
+"In A → B". Un-nested B via "None" - it's back to being its own
+top-level folder in both the Settings list and the drawer, badge gone
+from A. Deleted A while it still had a nested child - both were removed
+(cascade delete from the data-model PR).
 
 ### Compatibility
 
-No schema change in this PR (that was PR 1). No behavior change for
-existing installs with no nested folders - `getFoldersFlow()`'s
-top-level-only query returns exactly the same set of folders as before
-when nothing is nested.
+No schema change in this PR (that was the data-model PR). No behavior
+change for existing installs with no nested folders - a plain top-level
+folder's rendering, preview, and search subtitle are byte-for-byte the
+same as before this PR when it has no subfolder.
 
 ### Type of change
 
-:sparkles: **New feature** (non-breaking; drawer-icon rendering for a
-nested folder is a known, separately tracked follow-up - see scope note
+:sparkles: **New feature** (non-breaking; manual reordering of nested
+folders is a known, separately tracked follow-up - see scope note
 above)
