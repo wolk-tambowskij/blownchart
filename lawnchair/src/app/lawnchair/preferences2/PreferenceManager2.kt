@@ -303,6 +303,11 @@ class PreferenceManager2 private constructor(private val context: Context) :
         defaultValue = context.resources.getBoolean(R.bool.config_default_lock_home_screen),
     )
 
+    val lockAppDrawer = preference(
+        key = booleanPreferencesKey(name = "lock_app_drawer"),
+        defaultValue = context.resources.getBoolean(R.bool.config_default_lock_app_drawer),
+    )
+
     val legacyPopupOptionsMigrated = preference(
         key = booleanPreferencesKey(name = "legacy_popup_options_migrated"),
         defaultValue = false,
