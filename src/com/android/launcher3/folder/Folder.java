@@ -366,6 +366,12 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     public boolean onLongClick(View v) {
         // Return if global dragging is not enabled
         if (!getIsLauncherDraggingEnabled()) return true;
+        if (v.getTag() instanceof FolderInfo) {
+            // A nested subfolder (our own app-drawer feature; stock folders never contain one)
+            // isn't a real model item and has no home-screen slot to be dropped into - dragging
+            // it out here crashes. Its position is managed from the folder list instead.
+            return true;
+        }
         return startDrag(v, new DragOptions());
     }
 

@@ -6,7 +6,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -36,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.data.folder.model.FolderViewModel
-import app.lawnchair.data.folder.service.FolderContentRef
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.OverflowMenu
@@ -96,29 +94,25 @@ fun SelectAppsForDrawerFolder(
         )
     }
 
-    // Ordered view of the folder's own contents - apps, and its one nested subfolder if it has
-    // one - for manual-order dragging. Seeded once from the folder's current (already
-    // rank-ordered, see FolderService) contents, then maintained by hand as checkboxes toggle -
-    // re-deriving it from folderInfo on every change would pick up FolderViewModel's
-    // alphabetically-rebuilt local state and undo any in-progress drag.
-    var selectedOrder by remember(folderInfoId) { mutableStateOf<List<FolderContentItem>>(emptyList()) }
+    // The folder's nested subfolder, if it has one. It always renders as its own block before
+    // every app (see FolderService.mapToFolderInfo()) and isn't itself reorderable from here -
+    // its position relative to the apps below is fixed, only shown here for context.
+    val nestedSubfolder = folderInfo?.getContents()?.filterIsInstance<FolderInfo>()?.firstOrNull()
+
+    // Ordered view of the selected apps, for manual-order dragging. Seeded once from the
+    // folder's current (already rank-ordered, see FolderService) contents, then maintained by
+    // hand as checkboxes toggle - re-deriving it from folderInfo on every change would pick up
+    // FolderViewModel's alphabetically-rebuilt local state and undo any in-progress drag.
+    var selectedOrder by remember(folderInfoId) { mutableStateOf<List<App>>(emptyList()) }
     var orderInitialized by remember(folderInfoId) { mutableStateOf(false) }
     var hasOrderChanges by remember { mutableStateOf(false) }
 
     LaunchedEffect(folderInfo, apps) {
         val info = folderInfo
         if (!orderInitialized && info != null && apps.isNotEmpty()) {
-            selectedOrder = info.getContents().mapNotNull { itemInfo ->
-                when (itemInfo) {
-                    is FolderInfo -> FolderContentItem.SubfolderItem(itemInfo.id, itemInfo.title.toString())
-
-                    is AppInfo -> {
-                        val key = ComponentKey(itemInfo.targetComponent, itemInfo.user).toString()
-                        apps.find { it.key.toString() == key }?.let { FolderContentItem.AppItem(it) }
-                    }
-
-                    else -> null
-                }
+            selectedOrder = info.getContents().filterIsInstance<AppInfo>().mapNotNull { itemInfo ->
+                val key = ComponentKey(itemInfo.targetComponent, itemInfo.user).toString()
+                apps.find { it.key.toString() == key }
             }
             orderInitialized = true
         }
@@ -146,15 +140,7 @@ fun SelectAppsForDrawerFolder(
     DisposableEffect(Unit) {
         onDispose {
             if (hasOrderChanges) {
-                viewModel.updateFolderItemOrder(
-                    folderInfoId,
-                    selectedOrder.map { item ->
-                        when (item) {
-                            is FolderContentItem.AppItem -> FolderContentRef.AppRef(item.app.key.toString())
-                            is FolderContentItem.SubfolderItem -> FolderContentRef.SubfolderRef(item.id)
-                        }
-                    },
-                )
+                viewModel.updateFolderItemOrder(folderInfoId, selectedOrder.map { it.key.toString() })
             }
             if (hasChanges || hasOrderChanges) viewModel.onFolderEditingFinished()
         }
@@ -177,19 +163,12 @@ fun SelectAppsForDrawerFolder(
         selectedIds = newSelectedIds
         hasChanges = true
         // Keep the drag-order list in sync: drop deselected apps, append newly selected ones at
-        // the end (their position can be dragged into place afterward). The nested subfolder, if
-        // any, isn't affected by checkbox toggles here - it only leaves via "Move to folder".
-        val keptOrder = selectedOrder.filter { item ->
-            when (item) {
-                is FolderContentItem.SubfolderItem -> true
-                is FolderContentItem.AppItem -> newSelectedIds.contains(item.app.key.toString())
+        // the end (their position can be dragged into place afterward).
+        selectedOrder = selectedOrder.filter { newSelectedIds.contains(it.key.toString()) } +
+            apps.filter { app ->
+                newSelectedIds.contains(app.key.toString()) &&
+                    selectedOrder.none { it.key.toString() == app.key.toString() }
             }
-        }
-        val newlySelected = apps.filter { app ->
-            newSelectedIds.contains(app.key.toString()) &&
-                keptOrder.none { it is FolderContentItem.AppItem && it.app.key.toString() == app.key.toString() }
-        }
-        selectedOrder = keptOrder + newlySelected.map { FolderContentItem.AppItem(it) }
         val newSelection = newSelectedIds.mapNotNull { keyString ->
             apps.find { it.key.toString() == keyString }?.toAppInfo(context)
         }
@@ -280,49 +259,43 @@ fun SelectAppsForDrawerFolder(
                             shape = RoundedCornerShape(32.dp),
                         )
                     }
+                    if (nestedSubfolder != null) {
+                        item {
+                            // Informational only - always sorts before every app (see
+                            // FolderService.mapToFolderInfo()), not draggable from here. Manage
+                            // its own position or contents from the folder list instead.
+                            PreferenceTemplate(
+                                title = { Text(nestedSubfolder.title.toString()) },
+                                startWidget = {
+                                    Icon(Icons.Rounded.Folder, contentDescription = null, modifier = Modifier.size(30.dp))
+                                },
+                                verticalPadding = 12.dp,
+                            )
+                        }
+                    }
                     if (manualOrder && selectedOrder.isNotEmpty()) {
                         item {
                             ReorderablePreferenceGroup(
                                 label = stringResource(R.string.folder_contents_heading),
                                 items = selectedOrder,
                                 defaultList = remember(selectedOrder) {
-                                    selectedOrder.sortedBy { item ->
-                                        when (item) {
-                                            is FolderContentItem.AppItem -> item.app.label.lowercase(Locale.getDefault())
-                                            is FolderContentItem.SubfolderItem -> item.title.lowercase(Locale.getDefault())
-                                        }
-                                    }
+                                    selectedOrder.sortedBy { it.label.lowercase(Locale.getDefault()) }
                                 },
                                 onOrderChange = {
                                     selectedOrder = it
                                     hasOrderChanges = true
                                 },
-                            ) { item, _, _, onDraggingChange ->
-                                when (item) {
-                                    is FolderContentItem.AppItem -> AppItem(
-                                        app = item.app,
-                                        onClick = {},
-                                        widget = {
-                                            ReorderableDragHandle(
-                                                scope = this,
-                                                onDragStop = { onDraggingChange(false) },
-                                            )
-                                        },
-                                    )
-
-                                    is FolderContentItem.SubfolderItem -> PreferenceTemplate(
-                                        title = { Text(item.title) },
-                                        startWidget = {
-                                            ReorderableDragHandle(
-                                                scope = this,
-                                                onDragStop = { onDraggingChange(false) },
-                                            )
-                                            Spacer(modifier = Modifier.requiredWidth(16.dp))
-                                            Icon(Icons.Rounded.Folder, contentDescription = null, modifier = Modifier.size(30.dp))
-                                        },
-                                        verticalPadding = 12.dp,
-                                    )
-                                }
+                            ) { app, _, _, onDraggingChange ->
+                                AppItem(
+                                    app = app,
+                                    onClick = {},
+                                    widget = {
+                                        ReorderableDragHandle(
+                                            scope = this,
+                                            onDragStop = { onDraggingChange(false) },
+                                        )
+                                    },
+                                )
                             }
                         }
                     }
@@ -347,10 +320,4 @@ fun SelectAppsForDrawerFolder(
             }
         }
     }
-}
-
-/** One row in the manual-order drag list: either one of the folder's apps, or its own nested subfolder. */
-private sealed interface FolderContentItem {
-    data class AppItem(val app: App) : FolderContentItem
-    data class SubfolderItem(val id: Int, val title: String) : FolderContentItem
 }
