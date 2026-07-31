@@ -214,16 +214,24 @@ class LawnchairIconProvider @JvmOverloads constructor(
         return themeMap[componentName] ?: themeMap[ComponentName(componentName.packageName, "")]
     }
 
+    // Our own launcher icon has its wavy BlownChart border baked into the artwork itself - unlike
+    // every other app's icon, it's never meant to be reshaped by whatever icon shape the user has
+    // selected, so it skips the shape-mask wrapping entirely here.
+    private fun isOwnPackage(packageName: String?) = packageName == context.packageName
+
     override fun getIcon(info: ActivityInfo?): Drawable {
-        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info))
+        val icon = super.getIcon(info)
+        return if (isOwnPackage(info?.packageName)) icon else CustomAdaptiveIconDrawable.wrapNonNull(icon)
     }
 
     override fun getIcon(info: ActivityInfo?, iconDpi: Int): Drawable {
-        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info, iconDpi))
+        val icon = super.getIcon(info, iconDpi)
+        return if (isOwnPackage(info?.packageName)) icon else CustomAdaptiveIconDrawable.wrapNonNull(icon)
     }
 
     override fun getIcon(info: LauncherActivityInfo?, iconDpi: Int): Drawable {
-        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info, iconDpi))
+        val icon = super.getIcon(info, iconDpi)
+        return if (isOwnPackage(info?.componentName?.packageName)) icon else CustomAdaptiveIconDrawable.wrapNonNull(icon)
     }
 
     override fun getSystemStateForPackage(systemState: String, packageName: String): String {

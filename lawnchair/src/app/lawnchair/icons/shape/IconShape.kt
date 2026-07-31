@@ -640,6 +640,62 @@ open class IconShape(
         }
     }
 
+    object BlownChart : IconShape(
+        // Placeholder
+        Corner.fullArc,
+        Corner.fullArc,
+        Corner.fullArc,
+        Corner.fullArc,
+    ) {
+        /**
+         * Traced from the wavy hand-drawn outline around the BlownChart app icon's own artwork.
+         */
+        private const val BLOWNCHART_PATH =
+            "M41.30,95.65C39.22,95.78 36.96,95.82 34.40,94.63C31.84,93.44 30.01,89.30 25.96,88.49C21.91,87.68 13.34,89.77 10.10,89.77C6.86,89.77 7.74,89.28 6.52,88.49C5.31,87.70 3.73,86.21 2.81,85.04C1.90,83.87 1.49,82.99 1.02,81.46C0.55,79.92 0.13,77.88 0.00,75.83C-0.13,73.79 -0.55,71.74 0.26,69.18C1.07,66.62 4.52,63.68 4.86,60.49C5.20,57.29 2.69,52.94 2.30,50.00C1.92,47.06 2.22,44.63 2.56,42.84C2.90,41.05 2.43,41.82 4.35,39.26C6.27,36.70 12.23,31.12 14.07,27.49C15.90,23.87 14.30,20.18 15.35,17.52C16.39,14.86 16.35,13.53 20.33,11.51C24.32,9.48 35.25,6.35 39.26,5.37C43.27,4.39 42.16,5.16 44.37,5.63C46.59,6.10 50.04,8.40 52.56,8.18C55.07,7.97 57.12,4.99 59.46,4.35C61.81,3.71 64.66,3.92 66.62,4.35C68.58,4.77 69.74,5.67 71.23,6.91C72.72,8.14 72.08,9.85 75.58,11.76C79.07,13.68 88.55,16.39 92.20,18.41C95.84,20.44 96.40,21.89 97.44,23.91C98.49,25.94 98.64,27.92 98.47,30.56C98.29,33.21 96.16,36.74 96.42,39.77C96.68,42.80 99.79,45.65 100.00,48.72C100.21,51.79 97.74,55.29 97.70,58.18C97.66,61.08 99.45,63.98 99.74,66.11C100.04,68.24 99.91,69.39 99.49,70.97C99.06,72.55 98.15,74.32 97.19,75.58C96.23,76.83 96.14,77.26 93.73,78.52C91.33,79.77 85.55,82.23 82.74,83.12C79.92,84.02 78.94,82.91 76.85,83.89C74.77,84.87 72.12,87.77 70.20,89.00C68.29,90.24 67.65,90.41 65.35,91.30C63.04,92.20 59.46,93.95 56.39,94.37C53.32,94.80 49.45,93.65 46.93,93.86C44.42,94.08 43.39,95.52 41.30,95.65Z"
+
+        private val parsedPath by unsafeLazy {
+            PathParser.createPathFromPathData(BLOWNCHART_PATH)
+        }
+
+        private val matrix = Matrix()
+
+        override fun getMaskPath(): Path {
+            return Path().also { addToPath(it, 0f, 0f, 100f, 100f) }
+        }
+
+        // The base addShape() would otherwise mistake this shape's placeholder corner values
+        // (needed since this shape doesn't use the corner system at all) for an actual circle.
+        override fun addShape(path: Path, x: Float, y: Float, radius: Float) {
+            val size = radius * 2
+            addToPath(path, x, y, x + size, y + size, radius)
+        }
+
+        override fun addToPath(
+            path: Path,
+            left: Float,
+            top: Float,
+            right: Float,
+            bottom: Float,
+            size: Float,
+            endSize: Float,
+            progress: Float,
+        ) {
+            matrix.reset()
+            val width = right - left
+            val height = bottom - top
+            matrix.setScale(width / 100f, height / 100f)
+            matrix.postTranslate(left, top)
+
+            val tempPath = Path(parsedPath)
+            tempPath.transform(matrix)
+            path.addPath(tempPath)
+        }
+
+        override fun toString(): String {
+            return "blownchart"
+        }
+    }
+
     companion object {
 
         fun fromString(value: String, context: Context): IconShape? {
@@ -668,6 +724,7 @@ open class IconShape(
             "foursidedcookie" -> FourSidedCookie
             "sevensidedcookie" -> SevenSidedCookie
             "arch" -> Arch
+            "blownchart" -> BlownChart
             "" -> null
             else -> runCatching { parseCustomShape(value) }.getOrNull()
         }

@@ -317,6 +317,7 @@
     <string name="icon_shape_four_sided_cookie">Four-sided cookie</string>
     <string name="icon_shape_seven_sided_cookie">Seven-sided cookie</string>
     <string name="icon_shape_arch">Arch</string>
+    <string name="icon_shape_blownchart" translatable="false">BlownChart</string>
 
     <!-- Custom icon shapes -->
     <string name="custom_icon_shape">Custom icon shape</string>

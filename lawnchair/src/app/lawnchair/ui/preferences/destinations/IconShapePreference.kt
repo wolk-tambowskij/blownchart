@@ -85,6 +85,7 @@ fun iconShapeEntries(context: Context): List<ListPreferenceEntry<IconShape>> {
         ListPreferenceEntry(IconShape.FourSidedCookie) { stringResource(id = R.string.icon_shape_four_sided_cookie) },
         ListPreferenceEntry(IconShape.SevenSidedCookie) { stringResource(id = R.string.icon_shape_seven_sided_cookie) },
         ListPreferenceEntry(IconShape.Arch) { stringResource(id = R.string.icon_shape_arch) },
+        ListPreferenceEntry(IconShape.BlownChart) { stringResource(id = R.string.icon_shape_blownchart) },
     )
 }
 
