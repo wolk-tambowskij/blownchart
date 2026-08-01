@@ -31,6 +31,7 @@ import com.android.launcher3.AppFilter
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.Utilities
 import com.android.launcher3.model.data.AppInfo
+import com.android.launcher3.model.data.IconRequestInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
@@ -49,12 +50,24 @@ fun appsState(
             val launcherApps = context.getSystemService(LauncherApps::class.java)
 
             if (launcherApps != null) {
-                appsState.value = UserCache.INSTANCE.get(context).userProfiles.asSequence()
+                val activityInfos = UserCache.INSTANCE.get(context).userProfiles.asSequence()
                     .flatMap { launcherApps.getActivityList(null, it) }
                     .filter { filter.shouldShowApp(it.componentName) }
-                    .map { App(context, it) }
-                    .sortedWith(comparator)
                     .toList()
+                // Load every icon with a single grouped sql query instead of one query per app -
+                // the per-app path this used to take (via App's own init block) meant e.g. the
+                // folder app-picker took tens of seconds to open on a device with ~1800 apps.
+                val appInfos = activityInfos.map { AppInfo(context, it, it.user) }
+                val iconRequestInfos = activityInfos.indices.map { i ->
+                    // launcherActivityInfo is also the fallback source getTitlesAndIconsInBulk()
+                    // uses to generate an icon on the spot for an app that isn't cached yet (e.g.
+                    // just installed) - must not be null, unlike the itemInfo it's paired with.
+                    IconRequestInfo(appInfos[i], activityInfos[i], /* useLowResIcon= */ false)
+                }
+                LauncherAppState.getInstance(context).iconCache.getTitlesAndIconsInBulk(iconRequestInfos)
+                appsState.value = activityInfos.indices
+                    .map { i -> App(activityInfos[i], appInfos[i]) }
+                    .sortedWith(comparator)
             }
         }
         onDispose { }
@@ -62,17 +75,11 @@ fun appsState(
     return appsState
 }
 
-class App(context: Context, private val info: LauncherActivityInfo) {
+class App(private val info: LauncherActivityInfo, appInfo: AppInfo) {
 
     val label get() = info.label.toString()
-    val icon: Bitmap
+    val icon: Bitmap = appInfo.bitmap.icon
     val key = ComponentKey(info.componentName, info.user)
-
-    init {
-        val appInfo = AppInfo(context, info, info.user)
-        LauncherAppState.getInstance(context).iconCache.getTitleAndIcon(appInfo, false)
-        icon = appInfo.bitmap.icon
-    }
 
     fun toAppInfo(context: Context): AppInfo {
         return AppInfo(context, info, info.user)
