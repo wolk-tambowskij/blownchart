@@ -75,11 +75,13 @@ Other:
 
 ### Download
 
-Not yet available — no signed release has been published yet. This
-section will be filled in once the first signed GitHub Release goes out
-(see [`docs/UPSTREAM_SYNC.md`](docs/UPSTREAM_SYNC.md) for how upstream
-changes are tracked, and the CI/release workflows under
-[`.github/workflows/`](.github/workflows/)).
+**[Releases](https://github.com/wolk-tambowskij/blownchart/releases)** —
+signed APKs, built and published via GitHub Actions from `15-dev`.
+BlownChart v1.0.0 is based on
+[Lawnchair v15.0.0-beta3.0](https://github.com/LawnchairLauncher/lawnchair/releases/tag/v15.0.0-beta3.0);
+see [`docs/UPSTREAM_SYNC.md`](docs/UPSTREAM_SYNC.md) for how later
+upstream changes are tracked, and the CI/release workflows under
+[`.github/workflows/`](.github/workflows/).
 
 ### Build
 
@@ -198,10 +200,13 @@ BlownChart появился из-за того, что на простое же�
 
 ### Скачать
 
-Пока недоступно — ещё не вышло ни одного подписанного релиза. Раздел
-заполнится после первого GitHub Release (о том, как отслеживаются
-изменения апстрима, см. `docs/UPSTREAM_SYNC.md`; сами сценарии сборки —
-в [`.github/workflows/`](.github/workflows/)).
+**[Релизы](https://github.com/wolk-tambowskij/blownchart/releases)** —
+подписанные APK, собираются и публикуются через GitHub Actions из ветки
+`15-dev`. BlownChart v1.0.0 основан на
+[Lawnchair v15.0.0-beta3.0](https://github.com/LawnchairLauncher/lawnchair/releases/tag/v15.0.0-beta3.0);
+о том, как отслеживаются последующие изменения апстрима, см.
+`docs/UPSTREAM_SYNC.md`; сами сценарии сборки — в
+[`.github/workflows/`](.github/workflows/).
 
 ### Сборка
 
