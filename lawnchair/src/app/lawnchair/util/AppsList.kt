@@ -62,7 +62,7 @@ fun appsState(
                     // launcherActivityInfo is also the fallback source getTitlesAndIconsInBulk()
                     // uses to generate an icon on the spot for an app that isn't cached yet (e.g.
                     // just installed) - must not be null, unlike the itemInfo it's paired with.
-                    IconRequestInfo(appInfos[i], activityInfos[i], /* useLowResIcon= */ false)
+                    IconRequestInfo(appInfos[i], activityInfos[i], false)
                 }
                 LauncherAppState.getInstance(context).iconCache.getTitlesAndIconsInBulk(iconRequestInfos)
                 appsState.value = activityInfos.indices
