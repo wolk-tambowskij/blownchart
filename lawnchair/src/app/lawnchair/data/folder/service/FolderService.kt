@@ -102,9 +102,11 @@ class FolderService(val context: Context) : SafeCloseable {
             .flatMap { launcherApps.getActivityList(null, it) }
             .filter { appFilter.shouldShowApp(it.componentName) }
             .map { AppInfo(context, it, it.user) }
-            // componentName is null for e.g. the Private Space install-button entry.
+            // componentName is null for e.g. the Private Space install-button entry, which
+            // makes fromComponentKey() return null too - drop those instead of keying a map
+            // entry with a null key.
             .filter { it.componentName != null }
-            .associateBy { converters.fromComponentKey(it.componentKey) }
+            .associateBy { converters.fromComponentKey(it.componentKey)!! }
     }
 
     suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.Main) {
