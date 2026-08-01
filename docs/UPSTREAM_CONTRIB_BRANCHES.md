@@ -42,6 +42,37 @@ subfolder's own contents) instead of reintroducing a parallel
 per-algorithm snapshot. Force-pushed to `origin/feat/nested-folders-ui`
 (no PR open yet, so safe) and re-verified via CI.
 
+## 2026-08-01 upstream issue tracker check (Task 3 item #19)
+
+Checked `LawnchairLauncher/lawnchair`'s issue tracker (via GitHub's
+public search API, `api.github.com/search/issues`) for existing reports
+matching each S-class branch that didn't already have an issue number:
+
+- **#8** (`fix/home-lock-uninstall-widget-bypass`) - found
+  [#6929](https://github.com/LawnchairLauncher/lawnchair/issues/6929),
+  which explicitly describes this exact bypass ("even when 'Lock Home
+  Screen' is enabled, [Uninstall] remains visible"). Worth citing as
+  `Related #6929` in the PR description, though the issue itself asks
+  for a toggle to hide Uninstall entirely rather than gating it behind
+  the lock - our fix is a subset/prerequisite of what it's asking for,
+  not a full close.
+- **#1** (`fix/folder-list-performance`) - confirmed **not** redundant:
+  upstream already merged
+  [#6996](https://github.com/LawnchairLauncher/lawnchair/pull/6996), a
+  similar folder-loading performance rewrite, but only into `16-dev`
+  (merged 2026-07-13), not `15-dev` - our fix stands on its own for the
+  branch we're actually targeting, and #6996 being accepted is a good
+  precedent that this class of fix is welcome upstream.
+- **#5** (`feat/battery-optimization-banner`) - only a loosely related
+  hit, [#5422](https://github.com/LawnchairLauncher/lawnchair/issues/5422)
+  ("Allow Lawnchair to run in background"), not a close match (that one's
+  about RAM residency, not the battery-exemption prompt) - not worth
+  citing.
+- **#3, #4, #6, #7** - no matching open or closed issues found for
+  search-folder-label, folder-outline, hide-launcher-self-entry, or
+  folder-picker-search. These stay as pure unsolicited improvements with
+  no issue to reference, same as before.
+
 ## Order (easiest/most-verified first)
 
 | # | Branch | Topic | Class | Issue | Status |
@@ -53,7 +84,7 @@ per-algorithm snapshot. Force-pushed to `origin/feat/nested-folders-ui`
 | 5 | `feat/battery-optimization-banner` | Persistent (not one-shot) prompt to exempt the launcher from battery optimization | S | - | ready for review (pushed to `origin/feat/battery-optimization-banner` - renamed from the originally planned `feat/battery-optimization-prompt`, which collides with an old stale fork branch of the same name, see cleanup list. 2026-08-01 nuance sweep added the missing `android:autoRevokePermissions="discouraged"` manifest flag, the other half of the fork's real redesign - only the banner UI half had made it into this branch) |
 | 6 | `feat/hide-launcher-self-entry` | Hide the launcher's own app-drawer entry by default | S | - | ready for review (pushed to `origin/feat/hide-launcher-self-entry`; 2026-08-01 nuance sweep: verified against the fork's real commit, no gaps) |
 | 7 | `feat/folder-picker-search` | Search bar when choosing apps for a folder | S | - | ready for review (pushed to `origin/feat/folder-picker-search`; 2026-08-01 nuance sweep: verified against the fork's real commits, no gaps) |
-| 8 | `fix/home-lock-uninstall-widget-bypass` | lockHomeScreen didn't block the Uninstall shortcut (any surface) or new-widget placement/resize | S | - | ready for review (pushed to `origin/fix/home-lock-uninstall-widget-bypass`; 2026-08-01 nuance sweep: verified against the fork's real commits, no gaps) |
+| 8 | `fix/home-lock-uninstall-widget-bypass` | lockHomeScreen didn't block the Uninstall shortcut (any surface) or new-widget placement/resize | S | Related #6929 | ready for review (pushed to `origin/fix/home-lock-uninstall-widget-bypass`; 2026-08-01 nuance sweep: verified against the fork's real commits, no gaps) |
 | 9 | `feat/split-drawer-home-lock` | Split the single lockHomeScreen toggle into independent app-drawer-lock and home-screen-lock | S/M | Fixes #5839 | ready for review (pushed to `origin/feat/split-drawer-home-lock` - **branched from #8, contains its commit too**, since UNINSTALL only has a lockHomeScreen check to split once #8 lands; 2026-08-01 nuance sweep: verified against the fork's real commit, no gaps) |
 | 10 | `feat/nested-folders` (chain, now 2 PRs + optional export/import) | One level of folder-in-folder nesting: 1) data model (`parentFolderId`), 2) full UI (drawer icon rendering, badge, Settings management, search full path) | L | - | design doc approved 2026-07-31 (see `docs/pr/nested-folders-PROPOSAL.md`); chain PR 1 ready for review (`origin/feat/nested-folders-data-model`, `docs/pr/feat-nested-folders-data-model.md`); chain PR 2 ready for review (`origin/feat/nested-folders-ui`, **branched from `feat/search-folder-label` (#3) and PR 1, contains both of their commits too**, `docs/pr/feat-nested-folders-ui.md` - full parity with the fork's own implementation per project owner request 2026-07-31: AOSP `Folder`/`FolderPagedView`/`FolderIcon` changes render a nested folder as its own icon inside its parent's open view plus a closed-icon badge, `AppDrawerFoldersPreference` shows nesting with real indentation, search shows the full "parent → folder" path); export/import as a 3rd PR not yet started (may not be needed - nesting no longer silently drops data without it, unlike the original flatten-based approach) |
 | 11 | `feat/folder-manual-order` | Optional manual drag-and-drop ordering of folders/folder contents (alphabetical stays default) | S/M | - | pending, after #10's data-model PR lands upstream (the fork's manual-order code is entangled with nesting - folders always sort before apps in both) |

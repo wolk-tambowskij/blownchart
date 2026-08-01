@@ -1,5 +1,11 @@
 ### Description
 
+Related #6929, which reports this exact bypass ("even when 'Lock Home
+Screen' is enabled, [Uninstall] remains visible"). That issue asks for
+a toggle to hide Uninstall from the menu entirely; this PR is a subset
+of that - gating it behind the existing lock rather than adding a new
+setting - so it doesn't fully close #6929 on its own.
+
 Locking the home screen (`Lock home screen` toggle) is meant to prevent
 accidental changes to it, but three ways to change it weren't actually
 gated:
