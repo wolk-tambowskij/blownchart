@@ -9,6 +9,33 @@ actual PR description; this file is the plan/status overview).
 Fork point: `upstream/15-dev` @ `v15.0.0-beta3.0`. See
 `docs/UPSTREAM_CONTRIB_NOTES.md` for upstream's contribution rules.
 
+## 2026-08-01 nuance sweep (branches #1-#9)
+
+Same standard applied to nested folders (#10) after the "build #96
+already has this, fully" correction: every branch's diff was checked
+against the actual real-fork commit(s) it's based on (via `git show` on
+`15-dev`'s history), not just re-read on its own. Real gaps found and
+fixed: #1 was missing two of the fork's own three `fix/6147-...` commits
+(cross-emission app-lookup caching, app-picker flicker fix) plus an
+unrelated pre-existing `Map<String?, AppInfo>` compile error in the same
+function; #2 was missing the folder-background shape re-detection call
+(the fork's `pickBestShape()` fix, previously flagged as an unassigned
+follow-up under branch #6's notes - it's actually part of #2); #3 only
+wired the folder-label subtitle into the non-default `LawnchairAppSearchAlgorithm`,
+never reaching the actual shipped default (`LawnchairLocalSearchAlgorithm`
+via `AppsAndShortcutsSectionBuilder`) - refactored to match the fork's
+real architecture (lookup lives in `FolderService`, resolved internally
+by `SearchTargetFactory`); #5 was missing the `autoRevokePermissions`
+manifest flag, the non-UI half of the fork's real redesign. Branches #4,
+#6, #7, #8, #9 were checked and found to already fully match - no
+changes needed. All fixes pushed and re-verified via real CI
+(`workflow_dispatch` on each branch).
+
+**Fallout:** #3's refactor removed the per-algorithm folder-title
+snapshot that `feat/nested-folders-ui` (#10) was built on top of and
+extends - #10 needs a rebase onto #3's new tip before both would be
+proposed together. Not yet done.
+
 ## Order (easiest/most-verified first)
 
 | # | Branch | Topic | Class | Issue | Status |
@@ -17,11 +44,11 @@ Fork point: `upstream/15-dev` @ `v15.0.0-beta3.0`. See
 | 2 | `fix/folder-shape-geometry` | Folder background shape approximated to 4 hardcoded shapes instead of the exact configured shape; Cookie/Arch shapes rendered as a circle; preview icons overflow folder bounds for some shape/count combos | S | Related #6495 (closed, 16-dev - verify repro there before citing) | ready for review (pushed to `origin/fix/folder-shape-geometry` - 2026-08-01 nuance sweep added the missing `pickBestShape(context)` re-detection call for the *folder background's* own shape singleton, the same class of bug this PR already fixes for individual app icons) |
 | 3 | `feat/search-folder-label` | Search results show which folder an app is in (as a subtitle) | S | - | ready for review (pushed to `origin/feat/search-folder-label` - renamed from the originally planned `feat/drawer-search-folder-label`, which collides with an old stale fork branch of the same name, see cleanup list). **2026-08-01 nuance sweep found and fixed a real gap**: this PR originally only wired the folder subtitle into `LawnchairAppSearchAlgorithm`, but the shipped default search engine is `LawnchairLocalSearchAlgorithm` (LOCAL_SEARCH) via `AppsAndShortcutsSectionBuilder` - most users would never have seen the feature. Refactored to match the fork's real architecture: the componentKey→folder-title lookup now lives in `FolderService` itself, and `SearchTargetFactory.createAppSearchTarget()` resolves it internally, so every caller benefits automatically; `AppsAndShortcutsSectionBuilder`'s multi-result case now renders as rows too. **Note:** `feat/nested-folders-ui` (#10) was branched from this PR's old tip and duplicates the now-removed per-algorithm snapshot pattern - needs a rebase onto the new tip before both are proposed together, not yet done. |
 | 4 | `feat/folder-outline` | Thin gray outline on folder previews/backgrounds, independent of theme/opacity | S | - | ready for review (pushed to `origin/feat/folder-outline`) |
-| 5 | `feat/battery-optimization-banner` | Persistent (not one-shot) prompt to exempt the launcher from battery optimization | S | - | ready for review (pushed to `origin/feat/battery-optimization-banner` - renamed from the originally planned `feat/battery-optimization-prompt`, which collides with an old stale fork branch of the same name, see cleanup list) |
-| 6 | `feat/hide-launcher-self-entry` | Hide the launcher's own app-drawer entry by default | S | - | ready for review (pushed to `origin/feat/hide-launcher-self-entry`) |
-| 7 | `feat/folder-picker-search` | Search bar when choosing apps for a folder | S | - | ready for review (pushed to `origin/feat/folder-picker-search`) |
-| 8 | `fix/home-lock-uninstall-widget-bypass` | lockHomeScreen didn't block the Uninstall shortcut (any surface) or new-widget placement/resize | S | - | ready for review (pushed to `origin/fix/home-lock-uninstall-widget-bypass`) |
-| 9 | `feat/split-drawer-home-lock` | Split the single lockHomeScreen toggle into independent app-drawer-lock and home-screen-lock | S/M | Fixes #5839 | ready for review (pushed to `origin/feat/split-drawer-home-lock` - **branched from #8, contains its commit too**, since UNINSTALL only has a lockHomeScreen check to split once #8 lands) |
+| 5 | `feat/battery-optimization-banner` | Persistent (not one-shot) prompt to exempt the launcher from battery optimization | S | - | ready for review (pushed to `origin/feat/battery-optimization-banner` - renamed from the originally planned `feat/battery-optimization-prompt`, which collides with an old stale fork branch of the same name, see cleanup list. 2026-08-01 nuance sweep added the missing `android:autoRevokePermissions="discouraged"` manifest flag, the other half of the fork's real redesign - only the banner UI half had made it into this branch) |
+| 6 | `feat/hide-launcher-self-entry` | Hide the launcher's own app-drawer entry by default | S | - | ready for review (pushed to `origin/feat/hide-launcher-self-entry`; 2026-08-01 nuance sweep: verified against the fork's real commit, no gaps) |
+| 7 | `feat/folder-picker-search` | Search bar when choosing apps for a folder | S | - | ready for review (pushed to `origin/feat/folder-picker-search`; 2026-08-01 nuance sweep: verified against the fork's real commits, no gaps) |
+| 8 | `fix/home-lock-uninstall-widget-bypass` | lockHomeScreen didn't block the Uninstall shortcut (any surface) or new-widget placement/resize | S | - | ready for review (pushed to `origin/fix/home-lock-uninstall-widget-bypass`; 2026-08-01 nuance sweep: verified against the fork's real commits, no gaps) |
+| 9 | `feat/split-drawer-home-lock` | Split the single lockHomeScreen toggle into independent app-drawer-lock and home-screen-lock | S/M | Fixes #5839 | ready for review (pushed to `origin/feat/split-drawer-home-lock` - **branched from #8, contains its commit too**, since UNINSTALL only has a lockHomeScreen check to split once #8 lands; 2026-08-01 nuance sweep: verified against the fork's real commit, no gaps) |
 | 10 | `feat/nested-folders` (chain, now 2 PRs + optional export/import) | One level of folder-in-folder nesting: 1) data model (`parentFolderId`), 2) full UI (drawer icon rendering, badge, Settings management, search full path) | L | - | design doc approved 2026-07-31 (see `docs/pr/nested-folders-PROPOSAL.md`); chain PR 1 ready for review (`origin/feat/nested-folders-data-model`, `docs/pr/feat-nested-folders-data-model.md`); chain PR 2 ready for review (`origin/feat/nested-folders-ui`, **branched from `feat/search-folder-label` (#3) and PR 1, contains both of their commits too**, `docs/pr/feat-nested-folders-ui.md` - full parity with the fork's own implementation per project owner request 2026-07-31: AOSP `Folder`/`FolderPagedView`/`FolderIcon` changes render a nested folder as its own icon inside its parent's open view plus a closed-icon badge, `AppDrawerFoldersPreference` shows nesting with real indentation, search shows the full "parent → folder" path); export/import as a 3rd PR not yet started (may not be needed - nesting no longer silently drops data without it, unlike the original flatten-based approach) |
 | 11 | `feat/folder-manual-order` | Optional manual drag-and-drop ordering of folders/folder contents (alphabetical stays default) | S/M | - | pending, after #10's data-model PR lands upstream (the fork's manual-order code is entangled with nesting - folders always sort before apps in both) |
 | 12 | `feat/settings-pin-lock` | New PIN/biometric lock gating launcher settings and any exit into system Settings (doesn't cover shortcuts/widgets from other apps) | M/L | - | design doc approved 2026-07-31 (see `docs/pr/settings-pin-lock-PROPOSAL.md`); branch not started yet - fully independent of #10/#11, can be built whenever |
