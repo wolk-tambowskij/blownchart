@@ -16,7 +16,7 @@ import com.android.launcher3.util.SafeCloseable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
 class FolderService(val context: Context) : SafeCloseable {
@@ -27,14 +27,23 @@ class FolderService(val context: Context) : SafeCloseable {
     private val appFilter = AppFilter(context)
     private val converters = Converters()
 
-    fun getFoldersFlow(): Flow<List<FolderInfo>> {
-        return folderDao.getAllFoldersWithItems().map { foldersWithItems ->
-            // Resolved once per emission and shared across every folder/item below, instead
-            // of toItemInfo() re-enumerating every installed app once per folder item.
-            val appInfoByComponentKey = buildAppInfoMap()
-            foldersWithItems.mapNotNull { folderWithItems ->
-                mapToFolderInfo(folderWithItems, hasId = true, appInfoByComponentKey)
-            }
+    fun getFoldersFlow(): Flow<List<FolderInfo>> = flow {
+        // Cached for the lifetime of this collection instead of rebuilt (a full
+        // LauncherApps.getActivityList() enumeration of every installed app) on every single
+        // emission: editing a folder's items writes to the same tables this flow observes, so
+        // without the cache, every checkbox toggle re-scanned all apps. Resets whenever a fresh
+        // collection starts (e.g. the screen is reopened after the StateFlow's WhileSubscribed
+        // window drops), matching how the rest of the app already treats the installed-app list
+        // as a per-visit snapshot rather than something tracked live.
+        var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
+        folderDao.getAllFoldersWithItems().collect { foldersWithItems ->
+            val appInfoByComponentKey = cachedAppInfoByComponentKey
+                ?: buildAppInfoMap().also { cachedAppInfoByComponentKey = it }
+            emit(
+                foldersWithItems.mapNotNull { folderWithItems ->
+                    mapToFolderInfo(folderWithItems, hasId = true, appInfoByComponentKey)
+                },
+            )
         }
     }
 

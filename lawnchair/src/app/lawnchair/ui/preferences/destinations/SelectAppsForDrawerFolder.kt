@@ -81,8 +81,13 @@ fun SelectAppsForDrawerFolder(
         )
     }
 
-    LaunchedEffect(folders) {
-        allFolderPackages = folders.flatMap { it.getContents() }
+    // Excludes the folder being edited: its own membership is already tracked via activeIds,
+    // which is derived synchronously from folderInfo. Including it here too would leave allFolderPackages
+    // briefly stale (it only catches up once the DB write round-trips through the folders flow),
+    // causing a just-toggled item to flicker out and back in.
+    LaunchedEffect(folders, folderInfoId) {
+        allFolderPackages = folders.filter { it.id != folderInfoId }
+            .flatMap { it.getContents() }
             .mapNotNull { it.targetPackage }
             .toSet()
     }
