@@ -20,6 +20,10 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Process;
 
+import androidx.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,10 +33,32 @@ import java.util.concurrent.TimeUnit;
  */
 public class LooperExecutor extends AbstractExecutorService {
 
+    public static final int CALLER_LOADER_TASK = 1 << 0;
+    public static final int CALLER_ICON_CACHE = 1 << 1;
+
+    /**
+     * Callers that can request an elevated thread priority via {@link #elevatePriority}. The
+     * priority is only restored to {@link #mDefaultPriority} once every caller that elevated it
+     * has called {@link #restorePriority}, so concurrent callers can't stomp on each other's
+     * elevation the way plain {@code setThreadPriority} calls used to.
+     */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(flag = true, value = {CALLER_LOADER_TASK, CALLER_ICON_CACHE})
+    public @interface ElevationCaller {}
+
     private final Handler mHandler;
+    private final int mDefaultPriority;
+
+    @ElevationCaller
+    private int mElevationFlags = 0;
 
     public LooperExecutor(Looper looper) {
+        this(looper, Process.THREAD_PRIORITY_DEFAULT);
+    }
+
+    public LooperExecutor(Looper looper, int defaultPriority) {
         mHandler = new Handler(looper);
+        mDefaultPriority = defaultPriority;
     }
 
     public Handler getHandler() {
@@ -107,12 +133,31 @@ public class LooperExecutor extends AbstractExecutorService {
     }
 
     /**
-     * Set the priority of a thread, based on Linux priorities.
-     * @param priority Linux priority level, from -20 for highest scheduling priority
-     *                to 19 for lowest scheduling priority.
-     * @see Process#setThreadPriority(int, int)
+     * Increases the thread's priority to {@link Process#THREAD_PRIORITY_FOREGROUND} on behalf of
+     * {@code caller}. Repeated calls from the same caller, or from other callers while one is
+     * already elevated, are no-ops - the priority is only actually raised on the 0-to-1
+     * transition.
      */
-    public void setThreadPriority(int priority) {
-        Process.setThreadPriority(((HandlerThread) getThread()).getThreadId(), priority);
+    public synchronized void elevatePriority(@ElevationCaller int caller) {
+        boolean wasElevated = mElevationFlags != 0;
+        mElevationFlags |= caller;
+        if (mElevationFlags != 0 && !wasElevated) {
+            Process.setThreadPriority(((HandlerThread) getThread()).getThreadId(),
+                    Process.THREAD_PRIORITY_FOREGROUND);
+        }
+    }
+
+    /**
+     * Reverses a previous {@link #elevatePriority} call from {@code caller}. The thread's
+     * priority is only restored to {@link #mDefaultPriority} once no caller has it elevated
+     * anymore.
+     */
+    public synchronized void restorePriority(@ElevationCaller int caller) {
+        boolean wasElevated = mElevationFlags != 0;
+        mElevationFlags &= ~caller;
+        if (mElevationFlags == 0 && wasElevated) {
+            Process.setThreadPriority(((HandlerThread) getThread()).getThreadId(),
+                    mDefaultPriority);
+        }
     }
 }
