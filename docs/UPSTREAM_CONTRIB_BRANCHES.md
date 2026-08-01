@@ -31,10 +31,16 @@ manifest flag, the non-UI half of the fork's real redesign. Branches #4,
 changes needed. All fixes pushed and re-verified via real CI
 (`workflow_dispatch` on each branch).
 
-**Fallout:** #3's refactor removed the per-algorithm folder-title
-snapshot that `feat/nested-folders-ui` (#10) was built on top of and
-extends - #10 needs a rebase onto #3's new tip before both would be
-proposed together. Not yet done.
+**Fallout (resolved):** #3's refactor removed the per-algorithm
+folder-title snapshot that `feat/nested-folders-ui` (#10) was built on
+top of and extends. Rebased #10's 4 own commits (data model, UI, and
+both CI fixes) onto #3's new tip - the search-integration conflict was
+resolved by extending the same centralized `FolderService`/
+`SearchTargetFactory` architecture with nested-folder awareness
+(`FolderPath(title, parentTitle)`, recursing one level into an embedded
+subfolder's own contents) instead of reintroducing a parallel
+per-algorithm snapshot. Force-pushed to `origin/feat/nested-folders-ui`
+(no PR open yet, so safe) and re-verified via CI.
 
 ## Order (easiest/most-verified first)
 
