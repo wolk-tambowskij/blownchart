@@ -527,7 +527,8 @@
     <string name="about_change_9">New PIN/fingerprint lock for the launcher\'s own settings and any exit into system Settings (does not apply to shortcuts/widgets created by third-party apps)</string>
     <string name="about_change_10">App drawer search results now show which folder an app is in (with its icon), including the full path for an app inside a nested subfolder</string>
     <string name="about_change_11">Prompt to disable battery optimization for the launcher on first launch</string>
-    <string name="about_change_12">Tested under real-world load — 40 folders and 1766 installed apps: building the list initially may take a moment at that scale, but selecting apps and saving are instant</string>
+    <string name="about_change_12">Tested under real-world load — 40 folders and 1766 installed apps: list building, selecting apps, and saving are all instant</string>
+    <string name="about_change_13">Faster first launch and app drawer loading with a large number of installed apps, building in part on a thread-scheduling fix and a batched icon-loading optimization borrowed from Lawnchair 16\'s development branch</string>
     <string name="about_privacy_note">All settings, folder data, and the optional settings PIN are stored locally on this device. This fork does not add analytics or telemetry beyond what upstream Lawnchair already includes; see Lawnchair\'s own privacy policy below for the inherited baseline.</string>
 
     <string name="contributor_status_active">Active</string>

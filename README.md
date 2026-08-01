@@ -44,9 +44,9 @@ App drawer folders:
 - Folder previews render using the exact configured icon shape (instead
   of being approximated to a handful of hardcoded shapes) and no longer
   overflow their bounds for unusual app-count/shape combinations.
-- The "App drawer folders" screen and folder editing stay fast even with
-  a large number of installed apps and folders (tested with 40 folders /
-  1766 apps).
+- The "App drawer folders" screen and folder editing stay instant even
+  with a large number of installed apps and folders (tested with 40
+  folders / 1766 apps).
 
 Privacy and locking:
 
@@ -64,6 +64,11 @@ Other:
 
 - App drawer search results show which folder an app is in, including
   the full path for an app inside a nested subfolder.
+- Faster first launch and app drawer loading on devices with many
+  installed apps, thanks in part to a thread-scheduling fix and a
+  batched icon-loading optimization borrowed from Lawnchair 16's
+  development branch (see
+  [`docs/pr/fix-loader-startup-and-list-performance.md`](docs/pr/fix-loader-startup-and-list-performance.md)).
 - The launcher's own app-drawer entry is hidden by default.
 - A persistent prompt to exempt the launcher from battery optimization,
   since it's easy to dismiss once and forget.
@@ -167,7 +172,7 @@ BlownChart появился из-за того, что на простое же�
 - Превью папок рисуются по точной настроенной форме иконок (а не по
   нескольким жёстко закодированным приближениям) и больше не выходят за
   границы при необычных сочетаниях формы и количества приложений.
-- Экран «Папки в app drawer» и редактирование папок остаются быстрыми
+- Экран «Папки в app drawer» и редактирование папок остаются мгновенными
   даже при большом количестве установленных приложений и папок
   (проверено на 40 папках и 1766 приложениях).
 
@@ -188,6 +193,11 @@ BlownChart появился из-за того, что на простое же�
 
 - Результаты поиска в меню приложений показывают, в какой папке лежит
   приложение, включая полный путь для приложения во вложенной подпапке.
+- Более быстрый первый запуск и построение списка приложений на
+  устройствах с большим количеством установленных приложений — отчасти
+  благодаря фиксу планирования потоков и оптимизации пакетной загрузки
+  иконок, заимствованных из ветки разработки Lawnchair 16 (см.
+  [`docs/pr/fix-loader-startup-and-list-performance.md`](docs/pr/fix-loader-startup-and-list-performance.md)).
 - Собственная запись лончера в меню приложений скрыта по умолчанию.
 - Постоянное (а не одноразовое) напоминание исключить лончер из
   оптимизации батареи — одноразовое слишком легко закрыть и забыть.
