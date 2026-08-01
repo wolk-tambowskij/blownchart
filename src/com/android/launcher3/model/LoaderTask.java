@@ -32,6 +32,7 @@ import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_WORK_PROFIL
 import static com.android.launcher3.model.ModelUtils.filterCurrentWorkspaceItems;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
+import static com.android.launcher3.util.LooperExecutor.CALLER_LOADER_TASK;
 import static com.android.launcher3.util.PackageManagerHelper.hasShortcutsPermission;
 
 import android.appwidget.AppWidgetProviderInfo;
@@ -236,6 +237,7 @@ public class LoaderTask implements Runnable {
         }
 
         TraceHelper.INSTANCE.beginSection(TAG);
+        MODEL_EXECUTOR.elevatePriority(CALLER_LOADER_TASK);
         LoaderMemoryLogger memoryLogger = new LoaderMemoryLogger();
         mIsRestoreFromBackup = (Boolean) LauncherPrefs.get(mApp.getContext()).get(IS_FIRST_LOAD_AFTER_RESTORE);
         LauncherRestoreEventLogger restoreEventLogger = null;
@@ -390,6 +392,7 @@ public class LoaderTask implements Runnable {
             memoryLogger.printLogs();
             throw e;
         }
+        MODEL_EXECUTOR.restorePriority(CALLER_LOADER_TASK);
         TraceHelper.INSTANCE.endSection();
     }
 
