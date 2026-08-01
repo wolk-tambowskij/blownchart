@@ -20,6 +20,7 @@ import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.exifinterface.media.ExifInterface
 import app.lawnchair.allapps.views.SearchResultView
+import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.search.algorithms.data.Calculation
 import app.lawnchair.search.algorithms.data.ContactInfo
 import app.lawnchair.search.algorithms.data.FileInfo
@@ -49,10 +50,17 @@ import okio.ByteString
 class SearchTargetFactory(
     private val context: Context,
 ) {
-    fun createAppSearchTarget(appInfo: AppInfo, asRow: Boolean = false, folderTitle: String? = null): SearchTargetCompat {
+    fun createAppSearchTarget(appInfo: AppInfo, asRow: Boolean = false): SearchTargetCompat {
         val componentName = appInfo.componentName
         val user = appInfo.user
         val id = ComponentKey(componentName, user).toString()
+        // Only meaningful in the row layout (SearchResultIconRow renders a subtitle line);
+        // the vertical grid layout has no subtitle slot at all.
+        val folderTitle = if (asRow) {
+            FolderService.INSTANCE.get(context).getFolderNameForComponentKey(id)
+        } else {
+            null
+        }
         return SearchTargetCompat.Builder(
             SearchTargetCompat.RESULT_TYPE_APPLICATION,
             if (asRow) LayoutType.SMALL_ICON_HORIZONTAL_TEXT else LayoutType.ICON_SINGLE_VERTICAL_TEXT,

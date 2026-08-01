@@ -11,12 +11,16 @@ import com.android.launcher3.AppFilter
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
+import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 
 class FolderService(val context: Context) : SafeCloseable {
@@ -26,6 +30,28 @@ class FolderService(val context: Context) : SafeCloseable {
     private val userCache = UserCache.INSTANCE.get(context)
     private val appFilter = AppFilter(context)
     private val converters = Converters()
+    private val scope = MainScope()
+
+    // Kept warm for the lifetime of this (app-scoped) singleton, updated only when the folder
+    // tables actually change (Room's Flow only emits on writes, not on a timer) - so search, which
+    // needs this on every keystroke, never blocks on a DB query.
+    @Volatile
+    private var folderNameByComponentKey: Map<String, String> = emptyMap()
+
+    init {
+        getFoldersFlow()
+            .onEach { folders ->
+                folderNameByComponentKey = folders.flatMap { folder ->
+                    folder.getContents().mapNotNull { item ->
+                        item.targetComponent?.let { ComponentKey(it, item.user).toString() to folder.title.toString() }
+                    }
+                }.toMap()
+            }
+            .launchIn(scope)
+    }
+
+    /** Which drawer folder (if any) currently contains [componentKey], for search result labels. */
+    fun getFolderNameForComponentKey(componentKey: String): String? = folderNameByComponentKey[componentKey]
 
     fun getFoldersFlow(): Flow<List<FolderInfo>> {
         return folderDao.getAllFolders().map { folderEntities ->

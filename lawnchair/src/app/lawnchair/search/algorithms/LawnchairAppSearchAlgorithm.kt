@@ -2,7 +2,6 @@ package app.lawnchair.search.algorithms
 
 import android.content.Context
 import android.os.Handler
-import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.search.adapter.SPACE
 import app.lawnchair.search.adapter.SearchTargetCompat
@@ -16,7 +15,6 @@ import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.search.SearchCallback
-import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.Executors
 import com.patrykmichalik.opto.core.onEach
 import kotlinx.coroutines.CoroutineScope
@@ -38,11 +36,6 @@ class LawnchairAppSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm(c
     private var maxResultsCount = 5
 
     private val prefs2 = PreferenceManager2.getInstance(context)
-    private val folderService = FolderService.INSTANCE.get(context)
-
-    // componentKey -> title of the drawer folder that app is in, if any. Kept as a snapshot
-    // updated whenever folders change, rather than queried per keystroke.
-    private var folderTitleByComponentKey: Map<String, String> = emptyMap()
 
     val coroutineScope = CoroutineScope(context = Dispatchers.IO)
 
@@ -58,15 +51,6 @@ class LawnchairAppSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm(c
         }
         prefs2.maxAppSearchResultCount.onEach(launchIn = coroutineScope) {
             maxResultsCount = it
-        }
-        coroutineScope.launch {
-            folderService.getFoldersFlow().collect { folders ->
-                folderTitleByComponentKey = folders.flatMap { folder ->
-                    folder.getContents().map { item ->
-                        ComponentKey(item.targetComponent, item.user).toString() to folder.title.toString()
-                    }
-                }.toMap()
-            }
         }
     }
 
@@ -99,13 +83,8 @@ class LawnchairAppSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm(c
 
         val searchTargets = mutableListOf<SearchTargetCompat>()
 
-        fun folderTitleFor(appInfo: AppInfo): String? =
-            folderTitleByComponentKey[ComponentKey(appInfo.componentName, appInfo.user).toString()]
-
         if (appResults.isNotEmpty()) {
-            appResults.mapTo(searchTargets) { appInfo ->
-                searchTargetFactory.createAppSearchTarget(appInfo, folderTitle = folderTitleFor(appInfo))
-            }
+            appResults.mapTo(searchTargets, searchTargetFactory::createAppSearchTarget)
 
             if (appResults.size == 1 && context.isDefaultLauncher()) {
                 val singleAppResult = appResults.firstOrNull()
@@ -113,11 +92,7 @@ class LawnchairAppSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm(c
                 if (shortcuts != null) {
                     if (shortcuts.isNotEmpty()) {
                         searchTargets.add(searchTargetFactory.createHeaderTarget(SPACE))
-                        singleAppResult.let {
-                            searchTargets.add(
-                                searchTargetFactory.createAppSearchTarget(it, asRow = true, folderTitle = folderTitleFor(it)),
-                            )
-                        }
+                        singleAppResult.let { searchTargets.add(searchTargetFactory.createAppSearchTarget(it, true)) }
                         searchTargets.addAll(shortcuts.map(searchTargetFactory::createShortcutTarget))
                     }
                 }
