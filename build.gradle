@@ -219,17 +219,22 @@ android {
         .findAll { it.exists() }
         .toArray()
 
+    def keystorePropertiesFile = rootProject.file("keystore.properties")
     def releaseSigning
-    try {
+    if (keystorePropertiesFile.exists()) {
+        // A keystore.properties is only ever written deliberately (locally by a developer, or by
+        // CI from secrets), so a failure past this point is a real misconfiguration, not "no key
+        // available" - fail the build loudly instead of silently falling back to debug signing
+        // and shipping a wrongly-signed release without anyone noticing.
         def keystoreProperties = new Properties()
-        keystoreProperties.load(rootProject.file("keystore.properties").newInputStream())
+        keystoreProperties.load(keystorePropertiesFile.newInputStream())
         releaseSigning = signingConfigs.create("release") {
             keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
             storeFile rootProject.file(keystoreProperties['storeFile'])
             storePassword keystoreProperties['storePassword']
         }
-    } catch (Exception ignored) {
+    } else {
         releaseSigning = signingConfigs.debug
     }
 
@@ -241,7 +246,7 @@ android {
                 variant.outputs.configureEach {
                     def channel = variant.productFlavors.last().name
                     // Override signingConfig to debug if the "nightly" flavor is selected
-                    if (channel.any { it == "nightly" }) {
+                    if (channel == "nightly") {
                         signingConfig = signingConfigs.debug
                     }
                 }

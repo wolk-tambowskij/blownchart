@@ -57,6 +57,11 @@ jobs:
             echo "keyPassword=$SIGNING_KEY_PASSWORD"
           } > keystore.properties
 
+          # Fail fast here, with a clear message, instead of silently falling through to an
+          # unsigned/wrongly-signed release several steps later: confirms the base64 actually
+          # decodes to a real keystore and that the alias/passwords are correct.
+          keytool -list -keystore "$KEYSTORE_PATH" -storepass "$SIGNING_KEYSTORE_PASSWORD" -alias "$SIGNING_KEY_ALIAS" > /dev/null
+
       - name: Build release APK
         run: |
           ./gradlew assembleLawnWithQuickstepGithubRelease \
@@ -66,9 +71,12 @@ jobs:
       - name: Locate APK
         id: apk
         run: |
-          APK_PATH=$(find . -path '*/lawnWithQuickstepGithub/release/*.apk' -print -quit)
+          # Must come from build/outputs/apk (the final, signed artifact) - build/intermediates
+          # holds unsigned/partial copies with the exact same path tail and can appear on disk
+          # first, so matching too broadly here silently picks up an unsigned APK instead.
+          APK_PATH=$(find . -path '*/build/outputs/apk/lawnWithQuickstepGithub/release/*.apk' ! -name '*unsigned*' -print -quit)
           if [ -z "$APK_PATH" ]; then
-            echo "::error::Could not find a built release APK."
+            echo "::error::Could not find a built, signed release APK under build/outputs/apk."
             exit 1
           fi
           echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
@@ -76,7 +84,7 @@ jobs:
       - name: Verify APK signature
         run: |
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -maxdepth 1 -mindepth 1 | sort -V | tail -1)
-          "$BUILD_TOOLS/apksigner" verify --verbose "${{ steps.apk.outputs.path }}"
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "${{ steps.apk.outputs.path }}"
 
       - name: Remove temporary keystore
         if: always()
