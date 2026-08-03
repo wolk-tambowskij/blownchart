@@ -241,16 +241,6 @@ android {
     buildTypes {
         all {
             signingConfig releaseSigning
-
-            applicationVariants.configureEach { variant ->
-                variant.outputs.configureEach {
-                    def channel = variant.productFlavors.last().name
-                    // Override signingConfig to debug if the "nightly" flavor is selected
-                    if (channel == "nightly") {
-                        signingConfig = signingConfigs.debug
-                    }
-                }
-            }
             pseudoLocalesEnabled true
         }
 
@@ -362,6 +352,21 @@ android {
             res.srcDirs = ['quickstep/res', 'quickstep/recents_ui_overrides/res']
             java.srcDirs = ['quickstep/src', 'quickstep/recents_ui_overrides/src']
             manifest.srcFile "quickstep/AndroidManifest.xml"
+        }
+    }
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        // The legacy variant/output "signingConfig" property this used to be set through
+        // became read-only once we picked up a newer AGP version - this is the currently
+        // supported replacement for conditionally selecting a signing config per variant
+        // after flavor/build-type DSL merging (which always resolves signingConfig from the
+        // "all" build type block above, regardless of flavor, since build-type-level values
+        // take precedence over flavor-level ones).
+        boolean isNightly = variant.productFlavors.any { it.second == "nightly" }
+        if (isNightly) {
+            variant.signingConfig.setConfig(android.signingConfigs.debug)
         }
     }
 }
