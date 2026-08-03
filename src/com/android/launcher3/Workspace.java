@@ -3130,6 +3130,19 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             } else {
                 cellLayout.findCellForSpan(mTargetCell, 1, 1);
             }
+
+            if (mTargetCell[0] < 0 || mTargetCell[1] < 0) {
+                // No free cell could be resolved for this drop. This can legitimately happen
+                // when the drop races a workspace state transition - e.g. releasing over the
+                // workspace while All Apps is still mid-close, since transitionStateShouldAllowDrop()
+                // only gates on animation progress, not on whether performReorder can still
+                // resolve a valid cell for the (possibly still-animating) drop coordinates.
+                // Reject the drop instead of proceeding with an invalid target cell, which
+                // would otherwise crash below in DragLayer#animateViewIntoPosition.
+                d.deferDragViewCleanupPostAnimation = false;
+                return;
+            }
+
             // Add the item to DB before adding to screen ensures that the container and
             // other
             // values of the info is properly updated.
@@ -3138,6 +3151,17 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
             addInScreen(view, container, screenId, mTargetCell[0], mTargetCell[1],
                     info.spanX, info.spanY);
+            if (view.getParent() == null) {
+                // addInScreen can silently fail to attach the view (unknown screenId, or no
+                // room left in the target CellLayout by the time it runs). Bail out the same
+                // way as the no-cell-found case above instead of proceeding into
+                // onDropChild()/animateViewIntoPosition(), both of which assume the view is
+                // already attached to a parent.
+                mLauncher.getModelWriter().deleteItemFromDatabase(info,
+                        "view failed to attach to CellLayout after drop");
+                d.deferDragViewCleanupPostAnimation = false;
+                return;
+            }
             cellLayout.onDropChild(view);
             cellLayout.getShortcutsAndWidgets().measureChild(view);
 
