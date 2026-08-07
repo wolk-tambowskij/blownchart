@@ -179,13 +179,13 @@ fun ColumnScope.RestoreBackupOptions(
                 }
             }
             val lockWallpaper = backup.lockWallpaper
-            if (contents.hasFlag(BlownChartBackup.INCLUDE_LOCK_WALLPAPER) && lockWallpaper != null) {
-                DummyLauncherBox(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(MaterialTheme.shapes.large),
-                    darkText = backup.info.previewDarkText,
-                ) {
+            DummyLauncherBox(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(MaterialTheme.shapes.large),
+                darkText = backup.info.previewDarkText,
+            ) {
+                if (contents.hasFlag(BlownChartBackup.INCLUDE_LOCK_WALLPAPER) && lockWallpaper != null) {
                     Image(
                         bitmap = lockWallpaper.asImageBitmap(),
                         contentDescription = null,

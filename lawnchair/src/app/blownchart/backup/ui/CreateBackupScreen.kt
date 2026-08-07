@@ -156,12 +156,12 @@ fun CreateBackupScreen(
                             )
                         }
                     }
-                    if (contents.hasFlag(BlownChartBackup.INCLUDE_LOCK_WALLPAPER)) {
-                        DummyLauncherBox(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(MaterialTheme.shapes.large),
-                        ) {
+                    DummyLauncherBox(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(MaterialTheme.shapes.large),
+                    ) {
+                        if (contents.hasFlag(BlownChartBackup.INCLUDE_LOCK_WALLPAPER)) {
                             WallpaperPreview(
                                 wallpaper = lockWallpaper,
                                 modifier = Modifier.fillMaxSize(),

@@ -1185,6 +1185,15 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
      * drags, since neither can reach an already-open folder's own content grid this way.
      */
     private void createNestedFolder(DragObject d, View targetView) {
+        // This method does no fly-into-place animation of its own for the dragged item (unlike
+        // FolderIcon#onDrop's dragLayer.animateView call), so there's nothing for
+        // DragController#endDrag to wait on. Leaving this at its default of true means
+        // endDrag() skips both removing the floating drag-shadow view and calling every drag
+        // listener's onDragEnd() - the drag shadow is stuck on screen and touch handling stays
+        // wedged in "drag in progress" until something else forces a re-layout (e.g. switching
+        // screens), exactly the freeze this fixes.
+        d.deferDragViewCleanupPostAnimation = false;
+
         ItemInfo targetInfo = (ItemInfo) targetView.getTag();
         ItemInfo draggedInfo = d.dragInfo;
         int rank = getIconsInReadingOrder().indexOf(targetView);
