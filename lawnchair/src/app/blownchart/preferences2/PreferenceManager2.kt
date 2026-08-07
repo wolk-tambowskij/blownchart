@@ -33,7 +33,6 @@ import app.blownchart.font.FontCache
 import app.blownchart.gestures.config.GestureHandlerConfig
 import app.blownchart.gestures.type.GestureType
 import app.blownchart.hotseat.HotseatMode
-import app.lawnchair.icons.CustomAdaptiveIconDrawable
 import app.blownchart.icons.shape.IconShape
 import app.blownchart.icons.shape.IconShapeManager
 import app.blownchart.preferences.PreferenceManager as LegacyPreferenceManager
@@ -52,6 +51,7 @@ import app.blownchart.ui.preferences.components.HiddenAppsInSearch
 import app.blownchart.ui.preferences.data.liveinfo.LiveInformationManager
 import app.blownchart.util.kotlinxJson
 import app.blownchart.views.overlay.FullScreenOverlayMode
+import app.lawnchair.icons.CustomAdaptiveIconDrawable
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
 import com.android.launcher3.LauncherAppState

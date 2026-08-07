@@ -21,10 +21,10 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import app.lawnchair.icons.CustomAdaptiveIconDrawable
 import app.blownchart.ui.preferences.destinations.IconPackInfo
 import app.blownchart.util.Constants.LAWNICONS_PACKAGE_NAME
 import app.blownchart.util.getPackageVersionCode
+import app.lawnchair.icons.CustomAdaptiveIconDrawable
 import com.android.launcher3.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted

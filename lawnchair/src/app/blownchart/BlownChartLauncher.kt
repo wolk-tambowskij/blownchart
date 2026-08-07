@@ -52,8 +52,8 @@ import app.blownchart.security.SettingsLockGate
 import app.blownchart.security.SettingsLockUnlockActivity
 import app.blownchart.security.startIntentSafely
 import app.blownchart.theme.ThemeProvider
-import app.blownchart.ui.popup.LauncherOptionsPopup
 import app.blownchart.ui.popup.BlownChartShortcut
+import app.blownchart.ui.popup.LauncherOptionsPopup
 import app.blownchart.util.getThemedIconPacksInstalled
 import app.blownchart.util.unsafeLazy
 import app.blownchart.views.BlownChartFloatingSurfaceView
@@ -531,7 +531,7 @@ class BlownChartLauncher : QuickstepLauncher() {
 
     private fun restartIfPending() {
         when {
-            sRestartFlags and FLAG_RESTART != 0 -> lawnchairApp.restart(false)
+            sRestartFlags and FLAG_RESTART != 0 -> blownChartApp.restart(false)
 
             sRestartFlags and FLAG_RECREATE != 0 -> {
                 sRestartFlags = 0

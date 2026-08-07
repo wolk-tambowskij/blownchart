@@ -4,8 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
-import app.blownchart.FeedBridge
 import app.blownchart.BlownChartLauncher
+import app.blownchart.FeedBridge
 import app.blownchart.preferences2.PreferenceManager2
 import com.android.launcher3.Launcher
 import com.android.launcher3.Utilities

@@ -22,8 +22,8 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.core.os.bundleOf
-import app.blownchart.ui.theme.EdgeToEdge
 import app.blownchart.ui.theme.BlownChartTheme
+import app.blownchart.ui.theme.EdgeToEdge
 import app.blownchart.util.unsafeLazy
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine

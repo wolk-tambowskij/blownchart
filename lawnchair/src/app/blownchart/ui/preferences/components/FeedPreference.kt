@@ -12,11 +12,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.blownchart.FeedBridge
-import app.lawnchair.icons.CustomAdaptiveIconDrawable
 import app.blownchart.preferences.getAdapter
 import app.blownchart.preferences.preferenceManager
 import app.blownchart.ui.preferences.components.controls.ListPreference
 import app.blownchart.ui.preferences.components.controls.ListPreferenceEntry
+import app.lawnchair.icons.CustomAdaptiveIconDrawable
 import com.android.launcher3.R
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 

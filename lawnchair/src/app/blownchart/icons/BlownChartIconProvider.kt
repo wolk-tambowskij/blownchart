@@ -32,6 +32,9 @@ import app.blownchart.util.MultiSafeCloseable
 import app.blownchart.util.getPackageVersionCode
 import app.blownchart.util.isPackageInstalled
 import app.lawnchair.icons.CustomAdaptiveIconDrawable
+import app.lawnchair.icons.isThemedIconsEnabled
+import app.lawnchair.icons.shouldTintIconPackBackgrounds
+import app.lawnchair.icons.shouldTransparentBGIcons
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 import com.android.launcher3.Utilities

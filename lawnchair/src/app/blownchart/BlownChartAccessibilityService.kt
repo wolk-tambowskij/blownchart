@@ -34,11 +34,11 @@ class BlownChartAccessibilityService : AccessibilityService() {
             // to events from all applications.
             packageNames = emptyArray()
         }
-        lawnchairApp.accessibilityService = this
+        blownChartApp.accessibilityService = this
     }
 
     override fun onDestroy() {
-        lawnchairApp.accessibilityService = null
+        blownChartApp.accessibilityService = null
         super.onDestroy()
     }
 

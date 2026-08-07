@@ -31,8 +31,8 @@ import androidx.compose.runtime.setValue
 import app.blownchart.security.SettingsLockGate
 import app.blownchart.security.SettingsLockUnlockActivity
 import app.blownchart.ui.preferences.navigation.PreferenceRoute
-import app.blownchart.ui.theme.EdgeToEdge
 import app.blownchart.ui.theme.BlownChartTheme
+import app.blownchart.ui.theme.EdgeToEdge
 import com.google.accompanist.adaptive.calculateDisplayFeatures
 import kotlinx.serialization.json.Json
 

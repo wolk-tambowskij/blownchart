@@ -15,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.blownchart.hotseat.BlownChartHotseat
 import app.blownchart.hotseat.DisabledHotseat
 import app.blownchart.hotseat.HotseatMode
-import app.blownchart.hotseat.BlownChartHotseat
 import app.blownchart.preferences.PreferenceAdapter
 import app.blownchart.preferences.getAdapter
 import app.blownchart.preferences.preferenceManager
