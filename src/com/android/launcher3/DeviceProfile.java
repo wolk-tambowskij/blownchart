@@ -81,12 +81,12 @@ import java.io.PrintWriter;
 import java.util.Locale;
 import java.util.function.Consumer;
 
-import app.lawnchair.DeviceProfileOverrides;
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.LawnchairAppKt;
-import app.lawnchair.hotseat.HotseatMode;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.theme.color.ColorOption;
+import app.blownchart.DeviceProfileOverrides;
+import app.blownchart.BlownChartApp;
+import app.blownchart.BlownChartAppKt;
+import app.blownchart.hotseat.HotseatMode;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.theme.color.ColorOption;
 
 @SuppressLint("NewApi")
 public class DeviceProfile {

@@ -32,7 +32,7 @@ import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.views.RecyclerViewFastScroller;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
-import app.lawnchair.preferences2.PreferenceManager2;
+import app.blownchart.preferences2.PreferenceManager2;
 
 /**
  * A base {@link RecyclerView}, which does the following:

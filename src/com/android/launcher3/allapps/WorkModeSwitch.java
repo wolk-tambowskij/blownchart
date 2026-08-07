@@ -40,9 +40,9 @@ import com.android.launcher3.anim.KeyboardInsetAnimationCallback;
 import com.android.launcher3.model.StringCache;
 import com.android.launcher3.views.ActivityContext;
 
-import app.lawnchair.font.FontManager;
-import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.theme.drawable.DrawableTokens;
+import app.blownchart.font.FontManager;
+import app.blownchart.theme.color.tokens.ColorTokens;
+import app.blownchart.theme.drawable.DrawableTokens;
 
 /**
  * Work profile toggle switch shown at the bottom of AllApps work tab

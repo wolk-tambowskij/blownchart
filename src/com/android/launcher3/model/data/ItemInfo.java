@@ -73,7 +73,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import app.lawnchair.LawnchairApp;
+import app.blownchart.BlownChartApp;
 
 /**
  * Represents an item in the launcher.
@@ -438,7 +438,7 @@ public class ItemInfo {
     @NonNull
     protected LauncherAtom.ItemInfo.Builder getDefaultItemInfoBuilder() {
         LauncherAtom.ItemInfo.Builder itemBuilder = LauncherAtom.ItemInfo.newBuilder();
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (BlownChartApp.isRecentsEnabled()) {
             SettingsCache.INSTANCE
                     .executeIfCreated(cache -> itemBuilder.setIsKidsMode(cache.getValue(NAV_BAR_KIDS_MODE, 0)));
         }

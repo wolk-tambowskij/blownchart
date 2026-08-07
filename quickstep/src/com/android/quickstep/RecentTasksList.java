@@ -54,8 +54,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.blownchart.BlownChartApp;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Manages the recent task list from the system, caching it as necessary.
@@ -90,8 +90,8 @@ public class RecentTasksList {
         mChangeId = 1;
         mSysUiProxy = sysUiProxy;
 
-        if (LawnchairApp.isRecentsEnabled()) {
-            if (LawnchairQuickstepCompat.ATLEAST_U) {
+        if (BlownChartApp.isRecentsEnabled()) {
+            if (BlownChartQuickstepCompat.ATLEAST_U) {
                 sysUiProxy.registerRecentTasksListener(new IRecentTasksListener.Stub() {
                     @Override
                     public void onRecentTasksChanged() throws RemoteException {
@@ -126,7 +126,7 @@ public class RecentTasksList {
                         });
                     }
                 });
-            } else if (LawnchairQuickstepCompat.ATLEAST_Q) {
+            } else if (BlownChartQuickstepCompat.ATLEAST_Q) {
                 TaskStackChangeListeners.getInstance().registerTaskStackListener(new TaskStackChangeListener() {
                     @Override
                     public void onTaskStackChanged() {

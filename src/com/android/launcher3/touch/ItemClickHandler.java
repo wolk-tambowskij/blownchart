@@ -81,7 +81,7 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import app.lawnchair.LawnchairLauncher;
+import app.blownchart.BlownChartLauncher;
 
 /**
  * Class for handling clicks on workspace and all-apps items
@@ -434,13 +434,13 @@ public class ItemClickHandler {
             }
         }
         final Intent finalIntent = intent;
-        if (launcher instanceof LawnchairLauncher
+        if (launcher instanceof BlownChartLauncher
                 && isSystemSettingsPackage(launcher, finalIntent)) {
             // requestSettingsUnlockForIntent() has SettingsLockUnlockActivity launch
             // finalIntent itself once unlocked, instead of this code launching it from an
             // ActivityResultCallback after the unlock screen returns control here - the latter
             // turned out to silently no-op for a plain icon tap.
-            ((LawnchairLauncher) launcher).requestSettingsUnlockForIntent(finalIntent);
+            ((BlownChartLauncher) launcher).requestSettingsUnlockForIntent(finalIntent);
             return;
         }
         if (v != null && launcher.supportsAdaptiveIconAnimation(v)

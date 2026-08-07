@@ -73,7 +73,7 @@
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
 
-    <string name="managed_by_lawnchair">Managed by Lawnchair</string>
+    <string name="managed_by_lawnchair">Managed by BlownChart</string>
 
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Preferences</string>
@@ -157,7 +157,7 @@
     <string name="folder_import_error">Failed to import folders: invalid file</string>
 
     <!-- A11y description -->
-    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, Lawnchair requires accessibility access.\n\nLawnchair doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. Lawnchair discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, Lawnchair uses the performGlobalAction Accessibility service.</string>
+    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, BlownChart requires accessibility access.\n\nBlownChart doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. BlownChart discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, BlownChart uses the performGlobalAction Accessibility service.</string>
 
     <string name="iconPackPackageDefault" translatable="false">""</string>
 
@@ -210,7 +210,7 @@
     <string name="about_label">About</string>
 
     <string name="app_info_drop_target_label">App info</string>
-    <string name="debug_restart_launcher">Restart Lawnchair</string>
+    <string name="debug_restart_launcher">Restart BlownChart</string>
     <string name="experimental_features_label">Experimental features</string>
 
     <!-- Experimental features -->
@@ -251,7 +251,7 @@
 
     -->
 
-    <string name="set_default_launcher_tip">To access shortcuts and additional features, set Lawnchair as your default launcher</string>
+    <string name="set_default_launcher_tip">To access shortcuts and additional features, set BlownChart as your default launcher</string>
 
     <string name="notification_dots">Notification dots</string>
     <string name="show_notification_count">Show notification counter</string>
@@ -471,7 +471,7 @@
 
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Show on home screen</string>
-    <string name="smartspace_widget_toggle_description">At a Glance can be manually added to the home screen by placing the Lawnchair widget</string>
+    <string name="smartspace_widget_toggle_description">At a Glance can be manually added to the home screen by placing the BlownChart widget</string>
 
     <!-- List of available providers -->
     <string name="smartspace_mode_label">At a Glance provider</string>
@@ -544,6 +544,7 @@
     <string name="what_to_backup">What to back up</string>
     <string name="backup_content_layout_and_settings">Layout and settings</string>
     <string name="backup_content_wallpaper">Wallpaper</string>
+    <string name="backup_content_lock_wallpaper">Lock screen wallpaper</string>
     <string name="backup_create_success">Backup created</string>
     <string name="backup_create_error">Failed to create backup</string>
     <string name="restore_backup">Restore backup</string>
@@ -561,7 +562,7 @@
     <string name="nova_folder_label">Folders</string>
     <string name="nova_shortcut_label">Shortcuts</string>
     <string name="nova_icon_pack_label">Icon pack</string>
-    <string name="restore_nova_subgrid_warning">This backup uses Nova\'s subgrid positioning. Lawnchair does not support subgrids, so any items placed in a subgrid will be aligned to the nearest grid position.</string>
+    <string name="restore_nova_subgrid_warning">This backup uses Nova\'s subgrid positioning. BlownChart does not support subgrids, so any items placed in a subgrid will be aligned to the nearest grid position.</string>
     <string name="restore_nova_smartspace_conflict_toggle">Add extra row to show At a Glance</string>
 
     <!--
@@ -591,22 +592,22 @@
     <string name="pick_app_for_gesture">Pick app</string>
 
     <string name="dt2s_admin_hint_title">Admin permissions required</string>
-    <string name="dt2s_admin_hint">To use Double-Tap to Sleep, set Lawnchair as a device admin app. Tap \"Open settings\", then tap \"Activate this device admin app.\"</string>
+    <string name="dt2s_admin_hint">To use Double-Tap to Sleep, set BlownChart as a device admin app. Tap \"Open settings\", then tap \"Activate this device admin app.\"</string>
     <string name="dt2s_admin_warning">Double-Tap to Sleep will be turned off.</string>
 
 
     <string name="d2ts_recents_a11y_hint_title">Turn on accessibility service</string>
-    <string name="dt2s_a11y_hint">To use Double-Tap to Sleep, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="dt2s_a11y_hint">To use Double-Tap to Sleep, turn on the BlownChart accessibility service. Tap \"Open settings\", select \"BlownChart\" and turn on \"Use BlownChart.\"\n\nBlownChart uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, BlownChart is not configured for that functionality and receives no events.</string>
     <string name="dt2s_recents_warning_open_settings">Open settings</string>
 
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="recents_a11y_hint">To use Open Recents screen, turn on the BlownChart accessibility service. Tap \"Open settings\", select \"BlownChart\" and turn on \"Use BlownChart.\"\n\nBlownChart uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, BlownChart is not configured for that functionality and receives no events.</string>
 
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Lawnchair bug report</string>
+    <string name="lawnchair_bug_report">BlownChart bug report</string>
     <string name="crash_report_notif_title">%1$s crashed</string>
     <string name="action_upload_crash_report">Upload crash log</string>
 
@@ -674,7 +675,7 @@
     <string name="settings_lock_use_biometric_description">Also accept a fingerprint instead of the PIN, if one is enrolled</string>
     <string name="settings_lock_unlock_title">Unlock settings</string>
     <string name="settings_lock_create_pin_title">Set a settings PIN</string>
-    <string name="settings_lock_create_pin_description">This PIN is separate from your device screen lock. It will be required every time you open launcher settings or system settings from Lawnchair.</string>
+    <string name="settings_lock_create_pin_description">This PIN is separate from your device screen lock. It will be required every time you open launcher settings or system settings from BlownChart.</string>
     <string name="settings_lock_pin_label">PIN</string>
     <string name="settings_lock_confirm_pin_label">Confirm PIN</string>
     <string name="settings_lock_set_pin_action">Set PIN</string>
@@ -737,7 +738,7 @@
     <string name="search_bar_settings">Search bar settings</string>
     <string name="hotseat_mode_label">Search bar widget</string>
     <string name="hotseat_mode_disabled">Disabled</string>
-    <string name="hotseat_mode_lawnchair" translatable="false">Lawnchair</string>
+    <string name="hotseat_mode_lawnchair" translatable="false">BlownChart</string>
     <string name="hotseat_mode_google_search">Google Search bar</string>
 
     <string name="qsb_hotseat_background_transparency">Background opacity</string>
@@ -790,7 +791,7 @@
     <string name="search_provider_kagi" translatable="false">Kagi</string>
     <string name="search_provider_custom">Custom</string>
 
-    <string name="search_provider_sponsored_description">%1$s and Lawnchair have a revenue share agreement.\n\nSearching with %1$s helps support Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s and BlownChart have a revenue share agreement.\n\nSearching with %1$s helps support BlownChart.</string>
 
     <string name="app_label">App</string>
     <string name="website_label">Website</string>
@@ -834,7 +835,7 @@
     <string name="max_folder_rows">Maximum folder rows</string>
 
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as BlownChart isn\'t set as the Recents screen provider</string>
 
     <string name="quickstep_incompatible">Incompatible system integration</string>
     <string name="quickstep_incompatible_description">Your device is configured to have system gestures (known as Quickstep) provided by %1$s, but this version of %1$s isn\'t compatible with your Android version. To continue using your device, please uninstall %1$s updates or disable %1$s as a system gesture provider.</string>

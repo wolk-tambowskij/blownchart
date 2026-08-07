@@ -112,15 +112,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import app.lawnchair.DeviceProfileOverrides;
-import app.lawnchair.data.iconoverride.IconOverrideRepository;
-import app.lawnchair.font.FontCache;
-import app.lawnchair.font.FontManager;
-import app.lawnchair.icons.IconPackProvider;
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.smartspace.provider.SmartspaceProvider;
-import app.lawnchair.theme.ThemeProvider;
+import app.blownchart.DeviceProfileOverrides;
+import app.blownchart.data.iconoverride.IconOverrideRepository;
+import app.blownchart.font.FontCache;
+import app.blownchart.font.FontManager;
+import app.blownchart.icons.IconPackProvider;
+import app.blownchart.preferences.PreferenceManager;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.smartspace.provider.SmartspaceProvider;
+import app.blownchart.theme.ThemeProvider;
 
 /**
  * Utility class for generating the preview of Launcher for a given

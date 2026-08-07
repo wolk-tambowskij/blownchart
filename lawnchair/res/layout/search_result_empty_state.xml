@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<app.lawnchair.allapps.views.SearchResultEmptyState xmlns:android="http://schemas.android.com/apk/res/android"
+<app.blownchart.allapps.views.SearchResultEmptyState xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/search_result_empty_state"
     android:layout_width="match_parent"
@@ -33,4 +33,4 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="?android:attr/textColorSecondary" />
 
-</app.lawnchair.allapps.views.SearchResultEmptyState>
+</app.blownchart.allapps.views.SearchResultEmptyState>

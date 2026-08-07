@@ -45,8 +45,8 @@ import com.android.launcher3.util.ScreenOnTracker;
 import com.android.launcher3.util.ScreenOnTracker.ScreenOnListener;
 import com.android.launcher3.util.Themes;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.util.ViewExtensionsKt;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.util.ViewExtensionsKt;
 
 /**
  * View scrim which draws behind hotseat and workspace

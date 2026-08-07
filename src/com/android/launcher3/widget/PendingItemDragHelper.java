@@ -45,7 +45,7 @@ import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.icons.RoundDrawableWrapper;
 
-import app.lawnchair.LawnchairAppWidgetHostView;
+import app.blownchart.BlownChartAppWidgetHostView;
 
 /**
  * Extension of {@link DragPreviewProvider} with logic specific to pending
@@ -91,8 +91,8 @@ public class PendingItemDragHelper extends DragPreviewProvider {
     public void setAppWidgetHostViewPreview(
             @Nullable NavigableAppWidgetHostView appWidgetHostViewPreview) {
         mAppWidgetHostViewPreview = appWidgetHostViewPreview;
-        if (appWidgetHostViewPreview instanceof LawnchairAppWidgetHostView) {
-            ((LawnchairAppWidgetHostView) appWidgetHostViewPreview).disablePreviewMode();
+        if (appWidgetHostViewPreview instanceof BlownChartAppWidgetHostView) {
+            ((BlownChartAppWidgetHostView) appWidgetHostViewPreview).disablePreviewMode();
         }
     }
 
@@ -130,7 +130,7 @@ public class PendingItemDragHelper extends DragPreviewProvider {
             int[] previewSizeBeforeScale = new int[1];
 
             if (mRemoteViewsPreview != null) {
-                mAppWidgetHostViewPreview = new LawnchairAppWidgetHostView(launcher);
+                mAppWidgetHostViewPreview = new BlownChartAppWidgetHostView(launcher);
                 mAppWidgetHostViewPreview.setAppWidget(/* appWidgetId= */ -1,
                         ((PendingAddWidgetInfo) mAddInfo).info);
                 DeviceProfile deviceProfile = launcher.getDeviceProfile();

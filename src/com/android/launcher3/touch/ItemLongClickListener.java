@@ -50,7 +50,7 @@ import com.android.launcher3.widget.WidgetCell;
 import com.android.launcher3.widget.WidgetImageView;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
-import app.lawnchair.preferences2.PreferenceManager2;
+import app.blownchart.preferences2.PreferenceManager2;
 
 /**
  * Class to handle long-clicks on workspace items and start drag as a result.

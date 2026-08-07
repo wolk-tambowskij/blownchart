@@ -16,7 +16,7 @@
   -->
 
 <resources>
-    <string name="app_filter_class" translatable="false">app.lawnchair.DefaultAppFilter</string>
+    <string name="app_filter_class" translatable="false">app.blownchart.DefaultAppFilter</string>
     <string name="calendar_component_name" translatable="false">com.google.android.calendar/com.android.calendar.AllInOneActivity</string>
     <dimen name="settingslib_preferred_minimum_touch_target">48dp</dimen>
     <string-array name="dynamic_calendar_components_name">
@@ -36,15 +36,15 @@
     <!-- String representing the intent for search on the apps market. To specify a query, add
     q=<query> to the data to the intent -->
     <string name="market_search_intent" translatable="false">market://search?c=apps</string>
-    <string name="icon_packs_intent_name" translatable="false">app.lawnchair.icons.THEMED_ICON</string>
+    <string name="icon_packs_intent_name" translatable="false">app.blownchart.icons.THEMED_ICON</string>
     <string name="clock_component_name" translatable="false">com.google.android.deskclock/com.android.deskclock.DeskClock</string>
-    <string name="launcher_activity_logic_class" translatable="false">app.lawnchair.LauncherActivityCachingLogic</string>
-    <string name="main_process_initializer_class" translatable="false">app.lawnchair.LawnchairProcessInitializer</string>
-    <string name="task_overlay_factory_class" translatable="false">app.lawnchair.overview.TaskOverlayFactoryImpl</string>
+    <string name="launcher_activity_logic_class" translatable="false">app.blownchart.LauncherActivityCachingLogic</string>
+    <string name="main_process_initializer_class" translatable="false">app.blownchart.BlownChartProcessInitializer</string>
+    <string name="task_overlay_factory_class" translatable="false">app.blownchart.overview.TaskOverlayFactoryImpl</string>
     <string name="wallpaper_picker_package" translatable="false">com.android.wallpaper</string>
     <string name="wallpaper_picker_package_alt" translatable="false">com.google.android.apps.wallpaper</string>
-    <string name="widget_holder_factory_class" translatable="false">app.lawnchair.factory.LawnchairWidgetHolder$LawnchairHolderFactory</string>
-    <string name="window_manager_proxy_class" translatable="false">app.lawnchair.util.LawnchairWindowManagerProxy</string>
+    <string name="widget_holder_factory_class" translatable="false">app.blownchart.factory.BlownChartWidgetHolder$BlownChartHolderFactory</string>
+    <string name="window_manager_proxy_class" translatable="false">app.blownchart.util.BlownChartWindowManagerProxy</string>
 
     <bool name="config_header_protection_supported">true</bool>
 

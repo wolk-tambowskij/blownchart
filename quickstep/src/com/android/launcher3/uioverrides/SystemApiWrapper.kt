@@ -35,7 +35,7 @@ import android.util.ArrayMap
 import android.widget.Toast
 import android.window.RemoteTransition
 import androidx.annotation.RequiresApi
-import app.lawnchair.LawnchairApp
+import app.blownchart.BlownChartApp
 import com.android.launcher3.Flags.enablePrivateSpace
 import com.android.launcher3.Flags.enablePrivateSpaceInstallShortcut
 import com.android.launcher3.Flags.privateSpaceAppInstallerButton
@@ -74,7 +74,7 @@ open class SystemApiWrapper(context: Context?) : ApiWrapper(context) {
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun queryAllUsers(): Map<UserHandle, UserIconInfo> {
-        if (!enablePrivateSpace() || !LawnchairApp.isRecentsEnabled) {
+        if (!enablePrivateSpace() || !BlownChartApp.isRecentsEnabled) {
             return super.queryAllUsers()
         }
         return try {

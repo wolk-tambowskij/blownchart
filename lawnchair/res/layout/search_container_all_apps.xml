@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<app.lawnchair.allapps.AllAppsSearchInput xmlns:android="http://schemas.android.com/apk/res/android"
+<app.blownchart.allapps.AllAppsSearchInput xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/search_container_all_apps"
@@ -46,7 +46,7 @@
             android:textColor="?android:textColorTertiary"
             android:textSize="20sp" />
 
-        <app.lawnchair.allapps.FallbackSearchInputView
+        <app.blownchart.allapps.FallbackSearchInputView
             android:id="@+id/input"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -89,7 +89,7 @@
         android:orientation="horizontal"
         tools:ignore="RtlSymmetry">
 
-        <app.lawnchair.qsb.AssistantIconView
+        <app.blownchart.qsb.AssistantIconView
             android:id="@+id/mic_btn"
             android:layout_width="@dimen/qsb_icon_width"
             android:layout_height="@dimen/search_box_height"
@@ -126,4 +126,4 @@
             app:tint="?android:textColorSecondary" />
     </LinearLayout>
 
-</app.lawnchair.allapps.AllAppsSearchInput>
+</app.blownchart.allapps.AllAppsSearchInput>

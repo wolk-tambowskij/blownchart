@@ -12,7 +12,7 @@ import com.android.launcher3.provider.RestoreDbTask;
 import java.io.File;
 import java.io.IOException;
 
-import app.lawnchair.data.AppDatabase;
+import app.blownchart.data.AppDatabase;
 
 public class LauncherBackupAgent extends BackupAgent {
 

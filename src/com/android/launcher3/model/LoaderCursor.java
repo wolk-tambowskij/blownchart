@@ -65,8 +65,8 @@ import com.android.launcher3.util.UserIconInfo;
 import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.preferences2.PreferenceManager2;
+import app.blownchart.BlownChartApp;
+import app.blownchart.preferences2.PreferenceManager2;
 
 /**
  * Extension of {@link Cursor} with utility methods for workspace loading.

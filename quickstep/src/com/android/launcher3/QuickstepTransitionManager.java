@@ -176,7 +176,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Manages the opening and closing app transitions from Launcher
@@ -356,9 +356,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
         long statusBarTransitionDelay = duration - STATUS_BAR_TRANSITION_DURATION
                 - STATUS_BAR_TRANSITION_PRE_DELAY;
-        ActivityOptions options = LawnchairQuickstepCompat.getActivityOptionsCompat().makeRemoteAnimation(
+        ActivityOptions options = BlownChartQuickstepCompat.getActivityOptionsCompat().makeRemoteAnimation(
                 new RemoteAnimationAdapter(runner, duration, statusBarTransitionDelay),
-                LawnchairQuickstepCompat.getRemoteTransitionCompat().getRemoteTransition(runner.toRemoteTransition(),
+                BlownChartQuickstepCompat.getRemoteTransitionCompat().getRemoteTransition(runner.toRemoteTransition(),
                         mLauncher.getIApplicationThread(), "QuickstepLaunch"),
                 "Lawnchair");
         IRemoteCallback endCallback = completeRunnableListCallback(onEndCallback);
@@ -1165,7 +1165,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         }
 
         mWallpaperOpenTransitionRunner = createWallpaperOpenRunner(false /* fromUnlock */);
-        mLauncherOpenTransition = LawnchairQuickstepCompat.getRemoteTransitionCompat().getRemoteTransition(
+        mLauncherOpenTransition = BlownChartQuickstepCompat.getRemoteTransitionCompat().getRemoteTransition(
                 new LauncherAnimationRunner(mHandler, mWallpaperOpenTransitionRunner,
                         false /* startAtFrontOfQueue */).toRemoteTransition(),
                 mLauncher.getIApplicationThread(), "QuickstepLaunchHome");
@@ -1307,7 +1307,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     public static int getRotationChange(RemoteAnimationTarget[] appTargets) {
         int rotationChange = 0;
         for (RemoteAnimationTarget target : appTargets) {
-            // LC: https://github.com/LawnchairLauncher/lawnchair/pull/3776
+            // LC: https://github.com/BlownChartLauncher/lawnchair/pull/3776
             try {
                 if (Math.abs(target.rotationChange) > Math.abs(rotationChange)) {
                     rotationChange = target.rotationChange;

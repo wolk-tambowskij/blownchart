@@ -42,8 +42,8 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import java.io.PrintWriter;
 import java.util.function.Consumer;
 
-import app.lawnchair.compat.LawnchairQuickstepCompat;
-import app.lawnchair.preferences2.PreferenceManager2;
+import app.blownchart.compat.BlownChartQuickstepCompat;
+import app.blownchart.preferences2.PreferenceManager2;
 
 /**
  * Controls blur and wallpaper zoom, for the Launcher surface only.
@@ -178,7 +178,7 @@ public class DepthController extends BaseDepthController implements StateHandler
     @Override
     protected void applyDepthAndBlur() {
         try {
-            if (LawnchairQuickstepCompat.ATLEAST_R && mEnableDepth) {
+            if (BlownChartQuickstepCompat.ATLEAST_R && mEnableDepth) {
                 ensureDependencies();
                 super.applyDepthAndBlur();
             }

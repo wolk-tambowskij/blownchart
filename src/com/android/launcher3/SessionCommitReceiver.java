@@ -34,7 +34,7 @@ import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.util.Executors;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
-import app.lawnchair.preferences2.PreferenceManager2;
+import app.blownchart.preferences2.PreferenceManager2;
 
 import java.util.Locale;
 

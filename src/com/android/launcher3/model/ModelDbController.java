@@ -87,8 +87,8 @@ import org.xmlpull.v1.XmlPullParser;
 import java.io.InputStream;
 import java.io.StringReader;
 
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.LawnchairAppKt;
+import app.blownchart.BlownChartApp;
+import app.blownchart.BlownChartAppKt;
 
 /**
  * Utility class which maintains an instance of Launcher database and provides
@@ -122,7 +122,7 @@ public class ModelDbController {
 
         try {
             if (!forMigration && dbName != null) {
-                LawnchairApp app = LawnchairAppKt.getLawnchairApp(mContext);
+                BlownChartApp app = BlownChartAppKt.getBlownChartApp(mContext);
                 app.renameRestoredDb(dbName);
                 app.migrateDbName(dbName);
             }
@@ -496,7 +496,7 @@ public class ModelDbController {
         createDbIfNotExists();
 
         if (!(mContext instanceof LauncherPreviewRenderer.PreviewContext)) {
-            LawnchairAppKt.getLawnchairApp(mContext).cleanUpDatabases();
+            BlownChartAppKt.getBlownChartApp(mContext).cleanUpDatabases();
         }
 
         if (LauncherPrefs.get(mContext).get(getEmptyDbCreatedKey())) {

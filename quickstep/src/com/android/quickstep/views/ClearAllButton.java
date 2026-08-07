@@ -39,8 +39,8 @@ import com.android.quickstep.util.BorderAnimator;
 
 import kotlin.Unit;
 
-import app.lawnchair.font.FontManager;
-import app.lawnchair.theme.drawable.DrawableTokens;
+import app.blownchart.font.FontManager;
+import app.blownchart.theme.drawable.DrawableTokens;
 
 public class ClearAllButton extends Button {
 
