@@ -141,7 +141,7 @@ class LawnchairBackup(
 
         fun generateBackupFileName(): String {
             val fileName = "BlownChart_Backup ${SimpleDateFormat.getDateTimeInstance().format(Date())}"
-            return "$fileName.blownchartbackup"
+            return "$fileName.blownbackup"
         }
 
         fun getFiles(context: Context, forRestore: Boolean): Map<String, File> {
