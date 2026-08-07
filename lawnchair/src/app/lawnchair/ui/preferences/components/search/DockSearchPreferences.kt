@@ -17,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.hotseat.DisabledHotseat
 import app.lawnchair.hotseat.HotseatMode
-import app.lawnchair.hotseat.LawnchairHotseat
+import app.lawnchair.hotseat.BlownChartHotseat
 import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
@@ -51,7 +51,7 @@ fun DockSearchPreference(
     val qsbHotseatStrokeWidth = prefs.hotseatQsbStrokeWidth.getAdapter()
 
     Crossfade(isHotseatEnabled.state.value, label = "transition", modifier = modifier) { hotseatEnabled ->
-        val isLawnchairHotseat = hotseatModeAdapter.state.value == LawnchairHotseat
+        val isBlownChartHotseat = hotseatModeAdapter.state.value == BlownChartHotseat
         if (hotseatEnabled) {
             Column {
                 PreferenceGroup {
@@ -64,7 +64,7 @@ fun DockSearchPreference(
                         DockPreferencesPreview()
                     }
                 }
-                ExpandAndShrink(visible = isLawnchairHotseat) {
+                ExpandAndShrink(visible = isBlownChartHotseat) {
                     Column {
                         val hotseatQsbProviderAdapter by preferenceManager2().hotseatQsbProvider.getAdapter()
                         PreferenceGroup(

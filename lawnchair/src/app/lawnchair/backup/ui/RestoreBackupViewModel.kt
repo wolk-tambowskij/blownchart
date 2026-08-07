@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import app.lawnchair.backup.LawnchairBackup
+import app.lawnchair.backup.BlownChartBackup
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 sealed interface RestoreBackupUiState {
     val isLoading: Boolean
 
-    data class Success(val backup: LawnchairBackup) : RestoreBackupUiState {
+    data class Success(val backup: BlownChartBackup) : RestoreBackupUiState {
         override val isLoading: Boolean = false
     }
 
@@ -31,7 +31,7 @@ sealed interface RestoreBackupUiState {
 }
 
 private data class RestoreBackupViewModelState(
-    val backup: LawnchairBackup? = null,
+    val backup: BlownChartBackup? = null,
     val hasError: Boolean = false,
 ) {
     fun toUiState(): RestoreBackupUiState = when {
@@ -65,7 +65,7 @@ class RestoreBackupViewModel(
         this.backupUri = backupUri
         viewModelScope.launch {
             try {
-                val backup = LawnchairBackup(getApplication(), backupUri)
+                val backup = BlownChartBackup(getApplication(), backupUri)
                 backup.readInfoAndPreview()
                 setBackupContents(backup.info.contents)
                 viewModelState.update { it.copy(backup = backup) }

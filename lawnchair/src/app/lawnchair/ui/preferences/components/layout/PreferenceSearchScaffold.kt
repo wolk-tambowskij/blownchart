@@ -38,8 +38,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import app.lawnchair.ui.theme.LawnchairTheme
-import app.lawnchair.ui.util.preview.PreviewLawnchair
+import app.lawnchair.ui.theme.BlownChartTheme
+import app.lawnchair.ui.util.preview.PreviewBlownChart
 
 @Composable
 fun PreferenceSearchScaffold(
@@ -168,10 +168,10 @@ private fun SearchTextField(
     }
 }
 
-@PreviewLawnchair
+@PreviewBlownChart
 @Composable
 private fun SearchTextFieldPreview() {
-    LawnchairTheme {
+    BlownChartTheme {
         SearchTextField(
             value = "Example",
             onValueChange = {},

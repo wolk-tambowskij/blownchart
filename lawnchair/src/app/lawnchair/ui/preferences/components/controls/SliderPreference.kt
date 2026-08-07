@@ -42,9 +42,9 @@ import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.rememberTransformAdapter
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.BlownChartTheme
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
-import app.lawnchair.ui.util.preview.PreviewLawnchair
+import app.lawnchair.ui.util.preview.PreviewBlownChart
 import com.android.launcher3.R
 import kotlin.math.roundToInt
 
@@ -191,12 +191,12 @@ fun snapSliderValue(start: Float, value: Float, step: Float): Float {
     return start + snappedDistance
 }
 
-@PreviewLawnchair
+@PreviewBlownChart
 @Composable
 private fun SliderPreferencePreview(
     @PreviewParameter(SliderPreferencePreviewParameterProvider::class) sliderValue: Float,
 ) {
-    LawnchairTheme {
+    BlownChartTheme {
         PreferenceGroupPreviewContainer {
             SliderPreference(
                 label = "Label",

@@ -41,7 +41,7 @@ import com.android.launcher3.util.SafeCloseable
 import java.util.function.Supplier
 import org.xmlpull.v1.XmlPullParser
 
-class LawnchairIconProvider @JvmOverloads constructor(
+class BlownChartIconProvider @JvmOverloads constructor(
     private val context: Context,
     supportsIconTheme: Boolean = false,
 ) : IconProvider(context, supportsIconTheme) {
@@ -434,7 +434,7 @@ class LawnchairIconProvider @JvmOverloads constructor(
     }
 
     companion object {
-        const val TAG = "LawnchairIconProvider"
+        const val TAG = "BlownChartIconProvider"
 
         val DISABLED_MAP = emptyMap<ComponentName, ThemedIconDrawable.ThemeData>()
     }

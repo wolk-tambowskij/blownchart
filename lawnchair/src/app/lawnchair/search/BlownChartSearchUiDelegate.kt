@@ -5,9 +5,9 @@ import com.android.launcher3.allapps.search.AllAppsSearchUiDelegate
 import com.android.launcher3.allapps.search.SearchAdapterProvider
 import com.android.launcher3.views.ActivityContext
 
-class LawnchairSearchUiDelegate(private val appsView: ActivityAllAppsContainerView<*>) : AllAppsSearchUiDelegate(appsView) {
+class BlownChartSearchUiDelegate(private val appsView: ActivityAllAppsContainerView<*>) : AllAppsSearchUiDelegate(appsView) {
 
     override fun createMainAdapterProvider(): SearchAdapterProvider<*> {
-        return LawnchairSearchAdapterProvider(ActivityContext.lookupContext(appsView.context), appsView)
+        return BlownChartSearchAdapterProvider(ActivityContext.lookupContext(appsView.context), appsView)
     }
 }

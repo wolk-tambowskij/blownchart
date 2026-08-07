@@ -17,8 +17,8 @@
 package app.lawnchair.gestures
 
 import androidx.lifecycle.lifecycleScope
-import app.lawnchair.LawnchairApp
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.BlownChartApp
+import app.lawnchair.BlownChartLauncher
 import app.lawnchair.gestures.config.GestureHandlerConfig
 import app.lawnchair.gestures.handlers.GestureHandler
 import app.lawnchair.gestures.handlers.NoOpGestureHandler
@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
-class GestureController(private val launcher: LawnchairLauncher) {
+class GestureController(private val launcher: BlownChartLauncher) {
     private val prefs = PreferenceManager2.getInstance(launcher)
     private val scope = MainScope()
 
@@ -57,7 +57,7 @@ class GestureController(private val launcher: LawnchairLauncher) {
     }
 
     fun onHomePressed() {
-        triggerHandler(homePressHandler, LawnchairApp.isRecentsEnabled)
+        triggerHandler(homePressHandler, BlownChartApp.isRecentsEnabled)
     }
 
     fun onBackPressed() {

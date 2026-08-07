@@ -19,7 +19,7 @@ import androidx.activity.viewModels
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.BlownChartLauncher
 import app.lawnchair.data.wallpaper.Wallpaper
 import app.lawnchair.data.wallpaper.model.WallpaperViewModel
 import app.lawnchair.views.component.IconFrame
@@ -39,7 +39,7 @@ class WallpaperCarouselView @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     private val viewModel: WallpaperViewModel by (context as ComponentActivity).viewModels()
-    private val deviceProfile = ActivityContext.lookupContext<LawnchairLauncher>(context).deviceProfile
+    private val deviceProfile = ActivityContext.lookupContext<BlownChartLauncher>(context).deviceProfile
     private var currentItemIndex = 0
     private val iconFrame = IconFrame(context).apply {
         setIcon(R.drawable.ic_tick)

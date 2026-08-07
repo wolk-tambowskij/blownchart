@@ -35,7 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.lawnchair.backup.LawnchairBackup
+import app.lawnchair.backup.BlownChartBackup
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.DummyLauncherBox
@@ -86,7 +86,7 @@ fun CreateBackupScreen(
         scope.launch {
             creatingBackup = true
             try {
-                LawnchairBackup.create(context, contents, screenshot, uri)
+                BlownChartBackup.create(context, contents, screenshot, uri)
                 navController.popBackStack()
                 Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
             } catch (t: Throwable) {
@@ -102,7 +102,7 @@ fun CreateBackupScreen(
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = "*/*"
-        intent.putExtra(Intent.EXTRA_TITLE, LawnchairBackup.generateBackupFileName())
+        intent.putExtra(Intent.EXTRA_TITLE, BlownChartBackup.generateBackupFileName())
         request.launch(intent)
     }
 
@@ -115,8 +115,8 @@ fun CreateBackupScreen(
     ) {
         DisposableEffect(contents, hasLiveWallpaper, hasWallpaperPermission) {
             val canBackupWallpaper = hasLiveWallpaper || !hasWallpaperPermission
-            if (contents.hasFlag(LawnchairBackup.INCLUDE_WALLPAPER) && canBackupWallpaper) {
-                viewModel.setBackupContents(contents.removeFlag(LawnchairBackup.INCLUDE_WALLPAPER))
+            if (contents.hasFlag(BlownChartBackup.INCLUDE_WALLPAPER) && canBackupWallpaper) {
+                viewModel.setBackupContents(contents.removeFlag(BlownChartBackup.INCLUDE_WALLPAPER))
             }
             onDispose { }
         }
@@ -132,13 +132,13 @@ fun CreateBackupScreen(
                         .align(Alignment.CenterHorizontally)
                         .clip(MaterialTheme.shapes.large),
                 ) {
-                    if (contents.hasFlag(LawnchairBackup.INCLUDE_WALLPAPER)) {
+                    if (contents.hasFlag(BlownChartBackup.INCLUDE_WALLPAPER)) {
                         WallpaperPreview(
                             wallpaper = wallpaper,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
-                    if (contents.hasFlag(LawnchairBackup.INCLUDE_LAYOUT_AND_SETTINGS)) {
+                    if (contents.hasFlag(BlownChartBackup.INCLUDE_LAYOUT_AND_SETTINGS)) {
                         Image(
                             bitmap = screenshot.asImageBitmap(),
                             contentDescription = null,
@@ -154,19 +154,19 @@ fun CreateBackupScreen(
             FlagSwitchPreference(
                 flags = contents,
                 setFlags = viewModel::setBackupContents,
-                mask = LawnchairBackup.INCLUDE_LAYOUT_AND_SETTINGS,
+                mask = BlownChartBackup.INCLUDE_LAYOUT_AND_SETTINGS,
                 label = stringResource(id = R.string.backup_content_layout_and_settings),
             )
             FlagSwitchPreference(
                 flags = contents,
                 setFlags = {
-                    if (it.hasFlag(LawnchairBackup.INCLUDE_WALLPAPER) && !hasWallpaperPermission) {
+                    if (it.hasFlag(BlownChartBackup.INCLUDE_WALLPAPER) && !hasWallpaperPermission) {
                         showPermissionDialog = true
                     } else {
                         viewModel.setBackupContents(it)
                     }
                 },
-                mask = LawnchairBackup.INCLUDE_WALLPAPER,
+                mask = BlownChartBackup.INCLUDE_WALLPAPER,
                 label = stringResource(id = R.string.backup_content_wallpaper),
                 enabled = !hasLiveWallpaper,
             )

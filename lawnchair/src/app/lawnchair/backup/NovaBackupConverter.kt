@@ -179,9 +179,9 @@ class NovaBackupConverter(
                 gridState.writeToPrefs(context)
                 InvariantDeviceProfile.INSTANCE.get(context).dbFile = gridInfo.dbFile
             }
-            writeGridToLawnchairPrefs(info, smartspaceEnabled)
+            writeGridToBlownChartPrefs(info, smartspaceEnabled)
 
-            val restoredDbFile = context.getDatabasePath(LawnchairBackup.RESTORED_DB_FILE_NAME)
+            val restoredDbFile = context.getDatabasePath(BlownChartBackup.RESTORED_DB_FILE_NAME)
             restoredDbFile.parentFile?.mkdirs()
             stagedDbFile.copyTo(restoredDbFile, overwrite = true)
 
@@ -201,7 +201,7 @@ class NovaBackupConverter(
         packageName
     }
 
-    private fun writeGridToLawnchairPrefs(info: NovaBackupInfo, smartspaceEnabled: Boolean) {
+    private fun writeGridToBlownChartPrefs(info: NovaBackupInfo, smartspaceEnabled: Boolean) {
         val prefs = PreferenceManager.getInstance(context)
         val adjustedRows = if (smartspaceEnabled && info.rows != null) info.rows + 1 else info.rows
         prefs.sp.edit().apply {

@@ -27,7 +27,7 @@ import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.preferenceManager2
-import app.lawnchair.search.LawnchairRecentSuggestionProvider
+import app.lawnchair.search.BlownChartRecentSuggestionProvider
 import app.lawnchair.ui.preferences.components.PermissionDialog
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.controls.MainSwitchPreference
@@ -255,8 +255,8 @@ fun GenericSearchProviderPreference(
 
                     val suggestionsRecent = SearchRecentSuggestions(
                         context,
-                        LawnchairRecentSuggestionProvider.AUTHORITY,
-                        LawnchairRecentSuggestionProvider.MODE,
+                        BlownChartRecentSuggestionProvider.AUTHORITY,
+                        BlownChartRecentSuggestionProvider.MODE,
                     )
 
                     ClickablePreference(

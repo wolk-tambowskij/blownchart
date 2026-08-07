@@ -59,7 +59,7 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.theme.color.ColorOption;
 import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.lawnchair.util.BlownChartUtilsKt;
 
 /**
  * This object represents a FolderIcon preview background. It stores drawing /
@@ -203,7 +203,7 @@ public class PreviewBackground extends DelegatedCellDrawing {
         } else {
             mBgColor = ColorTokens.FolderPreviewColor.resolveColor(context);
         }
-        mBgColor = ColorUtils.setAlphaComponent(mBgColor, LawnchairUtilsKt.getFolderPreviewAlpha(context));
+        mBgColor = ColorUtils.setAlphaComponent(mBgColor, BlownChartUtilsKt.getFolderPreviewAlpha(context));
         ta.recycle();
 
         DeviceProfile grid = activity.getDeviceProfile();

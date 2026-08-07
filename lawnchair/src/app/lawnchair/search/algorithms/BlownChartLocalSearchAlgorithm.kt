@@ -42,7 +42,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class LawnchairLocalSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm(context) {
+class BlownChartLocalSearchAlgorithm(context: Context) : BlownChartSearchAlgorithm(context) {
 
     private val appState = LauncherAppState.getInstance(context)
 

@@ -7,7 +7,7 @@ import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RoundRectShape
 import android.view.View
 import app.lawnchair.allapps.views.SearchItemBackground
-import app.lawnchair.search.LawnchairSearchAdapterProvider
+import app.lawnchair.search.BlownChartSearchAdapterProvider
 import com.android.launcher3.allapps.BaseAllAppsAdapter
 
 data class SearchAdapterItem(
@@ -46,7 +46,7 @@ data class SearchAdapterItem(
             target: SearchTargetCompat,
             background: SearchItemBackground?,
         ): SearchAdapterItem? {
-            val type = LawnchairSearchAdapterProvider.viewTypeMap[target.layoutType] ?: return null
+            val type = BlownChartSearchAdapterProvider.viewTypeMap[target.layoutType] ?: return null
             return SearchAdapterItem(target, background, type)
         }
     }

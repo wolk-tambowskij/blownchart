@@ -12,7 +12,7 @@ import com.android.launcher3.R
 import com.android.launcher3.util.Themes
 import com.android.launcher3.widget.LauncherAppWidgetHostView
 
-class LawnchairAppWidgetHostView @JvmOverloads constructor(
+class BlownChartAppWidgetHostView @JvmOverloads constructor(
     context: Context,
     private var previewMode: Boolean = false,
 ) : LauncherAppWidgetHostView(context) {

@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.core.os.bundleOf
 import app.lawnchair.ui.theme.EdgeToEdge
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.BlownChartTheme
 import app.lawnchair.util.unsafeLazy
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -44,7 +44,7 @@ class BlankActivity : ComponentActivity() {
             return
         }
         setContent {
-            LawnchairTheme {
+            BlownChartTheme {
                 EdgeToEdge()
                 Surface(
                     modifier = Modifier.fillMaxSize(),

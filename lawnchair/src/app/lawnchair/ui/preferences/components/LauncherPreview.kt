@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import app.lawnchair.LauncherPreviewManager
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.BlownChartTheme
 import app.lawnchair.util.lifecycleState
 import app.lawnchair.wallpaper.WallpaperColorsCompat
 import app.lawnchair.wallpaper.WallpaperManagerCompat
@@ -37,7 +37,7 @@ fun DummyLauncherBox(
     val ratio = dp.widthPx.toFloat() / dp.heightPx.toFloat()
 
     Box(modifier = modifier.aspectRatio(ratio, matchHeightConstraintsFirst = true)) {
-        LawnchairTheme(darkTheme = !darkText) {
+        BlownChartTheme(darkTheme = !darkText) {
             Spacer(
                 modifier = Modifier
                     .fillMaxSize()

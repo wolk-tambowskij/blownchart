@@ -35,11 +35,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import app.lawnchair.LawnchairApp.Companion.showQuickstepWarningIfNecessary
-import app.lawnchair.compat.LawnchairQuickstepCompat
+import app.lawnchair.BlownChartApp.Companion.showQuickstepWarningIfNecessary
+import app.lawnchair.compat.BlownChartQuickstepCompat
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.data.wallpaper.service.WallpaperService
-import app.lawnchair.factory.LawnchairWidgetHolder
+import app.lawnchair.factory.BlownChartWidgetHolder
 import app.lawnchair.gestures.GestureController
 import app.lawnchair.gestures.VerticalSwipeTouchController
 import app.lawnchair.gestures.config.GestureHandlerConfig
@@ -53,10 +53,10 @@ import app.lawnchair.security.SettingsLockUnlockActivity
 import app.lawnchair.security.startIntentSafely
 import app.lawnchair.theme.ThemeProvider
 import app.lawnchair.ui.popup.LauncherOptionsPopup
-import app.lawnchair.ui.popup.LawnchairShortcut
+import app.lawnchair.ui.popup.BlownChartShortcut
 import app.lawnchair.util.getThemedIconPacksInstalled
 import app.lawnchair.util.unsafeLazy
-import app.lawnchair.views.LawnchairFloatingSurfaceView
+import app.lawnchair.views.BlownChartFloatingSurfaceView
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.BubbleTextView
@@ -97,7 +97,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class LawnchairLauncher : QuickstepLauncher() {
+class BlownChartLauncher : QuickstepLauncher() {
     // Runnable (rather than a Kotlin function type) so this can also be called cleanly from the
     // Java call sites in Launcher3 (e.g. OptionsPopupView's "System settings" long-press item).
     private var pendingSettingsUnlockCallback: Runnable? = null
@@ -172,7 +172,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                 is OverviewState,
                 is AllAppsState,
                 -> {
-                    LawnchairApp.instance.restoreClockInStatusBar()
+                    BlownChartApp.instance.restoreClockInStatusBar()
                 }
 
                 else -> {
@@ -206,7 +206,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                 ),
             )
         }
-        layoutInflater.factory2 = LawnchairLayoutFactory(this)
+        layoutInflater.factory2 = BlownChartLayoutFactory(this)
         super.onCreate(savedInstanceState)
 
         prefs.launcherTheme.subscribeChanges(this, ::updateTheme)
@@ -219,7 +219,7 @@ class LawnchairLauncher : QuickstepLauncher() {
         if (prefs.autoLaunchRoot.get()) {
             lifecycleScope.launch {
                 try {
-                    RootHelperManager.INSTANCE.get(this@LawnchairLauncher)
+                    RootHelperManager.INSTANCE.get(this@BlownChartLauncher)
                 } catch (_: RootNotAvailableException) {
                 }
             }
@@ -249,7 +249,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                 } else {
                     removeStateListener(statusBarClockListener)
                     // Make sure status bar clock is restored when the preference is toggled off
-                    LawnchairApp.instance.restoreClockInStatusBar()
+                    BlownChartApp.instance.restoreClockInStatusBar()
                 }
             }
         }
@@ -306,12 +306,12 @@ class LawnchairLauncher : QuickstepLauncher() {
     }
 
     override fun getSupportedShortcuts(): Stream<SystemShortcut.Factory<*>> = Stream.concat(
-        // Replace the base APP_INFO with LawnchairShortcut.APP_INFO, which gates the "App info"
+        // Replace the base APP_INFO with BlownChartShortcut.APP_INFO, which gates the "App info"
         // shortcut behind the settings lock (the base one launches system Settings directly).
         super.getSupportedShortcuts().filter { it !== SystemShortcut.APP_INFO },
         Stream.concat(
-            Stream.of(LawnchairShortcut.UNINSTALL, LawnchairShortcut.CUSTOMIZE, LawnchairShortcut.APP_INFO),
-            if (LawnchairApp.isRecentsEnabled) Stream.of(LawnchairShortcut.PAUSE_APPS) else Stream.empty(),
+            Stream.of(BlownChartShortcut.UNINSTALL, BlownChartShortcut.CUSTOMIZE, BlownChartShortcut.APP_INFO),
+            if (BlownChartApp.isRecentsEnabled) Stream.of(BlownChartShortcut.PAUSE_APPS) else Stream.empty(),
         ),
     )
 
@@ -333,7 +333,7 @@ class LawnchairLauncher : QuickstepLauncher() {
     }
 
     override fun registerBackDispatcher() {
-        if (LawnchairApp.isAtleastT) {
+        if (BlownChartApp.isAtleastT) {
             super.registerBackDispatcher()
         }
     }
@@ -352,7 +352,7 @@ class LawnchairLauncher : QuickstepLauncher() {
     }
 
     override fun handleGestureContract(intent: Intent?) {
-        if (!LawnchairApp.isRecentsEnabled && prefs.enableGnc.get()) {
+        if (!BlownChartApp.isRecentsEnabled && prefs.enableGnc.get()) {
             val gnc = GestureNavContract.fromIntent(intent)
             if (gnc != null) {
                 AbstractFloatingView.closeOpenViews(
@@ -360,7 +360,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                     false,
                     AbstractFloatingView.TYPE_ICON_SURFACE,
                 )
-                LawnchairFloatingSurfaceView.show(this, gnc)
+                BlownChartFloatingSurfaceView.show(this, gnc)
             }
         }
     }
@@ -375,7 +375,7 @@ class LawnchairLauncher : QuickstepLauncher() {
         val showWallpaperCarousel = "+carousel" in preferenceManager2.launcherPopupOrder.firstBlocking()
 
         if (showWallpaperCarousel) {
-            show<LawnchairLauncher>(
+            show<BlownChartLauncher>(
                 this,
                 getPopupTarget(x, y),
                 OptionsPopupView.getOptions(this),
@@ -418,7 +418,7 @@ class LawnchairLauncher : QuickstepLauncher() {
     }
 
     override fun createAppWidgetHolder(): LauncherWidgetHolder {
-        val factory = LauncherWidgetHolder.HolderFactory.newFactory(this) as LawnchairWidgetHolder.LawnchairHolderFactory
+        val factory = LauncherWidgetHolder.HolderFactory.newFactory(this) as BlownChartWidgetHolder.BlownChartHolderFactory
         return factory.newInstance(
             this,
         ) { appWidgetId: Int ->
@@ -431,7 +431,7 @@ class LawnchairLauncher : QuickstepLauncher() {
     override fun makeDefaultActivityOptions(splashScreenStyle: Int): ActivityOptionsWrapper {
         val callbacks = RunnableList()
         val options = if (Utilities.ATLEAST_Q) {
-            LawnchairQuickstepCompat.activityOptionsCompat.makeCustomAnimation(
+            BlownChartQuickstepCompat.activityOptionsCompat.makeCustomAnimation(
                 this,
                 0,
                 0,
@@ -557,14 +557,14 @@ class LawnchairLauncher : QuickstepLauncher() {
 
         var sRestartFlags = 0
 
-        val instance get() = LauncherAppState.getInstanceNoCreate()?.launcher as? LawnchairLauncher
+        val instance get() = LauncherAppState.getInstanceNoCreate()?.launcher as? BlownChartLauncher
     }
 }
 
-val Context.launcher: LawnchairLauncher
+val Context.launcher: BlownChartLauncher
     get() = BaseActivity.fromContext(this)
 
-val Context.launcherNullable: LawnchairLauncher? get() = try {
+val Context.launcherNullable: BlownChartLauncher? get() = try {
     launcher
 } catch (_: IllegalArgumentException) {
     null

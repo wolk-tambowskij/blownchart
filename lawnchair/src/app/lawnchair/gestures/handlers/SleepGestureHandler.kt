@@ -36,8 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import app.lawnchair.LawnchairLauncher
-import app.lawnchair.lawnchairApp
+import app.lawnchair.BlownChartLauncher
+import app.lawnchair.blownChartApp
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.util.requireSystemService
 import app.lawnchair.views.ComposeBottomSheet
@@ -47,7 +47,7 @@ import com.topjohnwu.superuser.Shell
 
 class SleepGestureHandler(context: Context) : GestureHandler(context) {
 
-    override suspend fun onTrigger(launcher: LawnchairLauncher) {
+    override suspend fun onTrigger(launcher: BlownChartLauncher) {
         methods.first { it.isSupported() }.sleep(launcher)
     }
 
@@ -59,7 +59,7 @@ class SleepGestureHandler(context: Context) : GestureHandler(context) {
 
     sealed class SleepMethod(protected val context: Context) {
         abstract suspend fun isSupported(): Boolean
-        abstract suspend fun sleep(launcher: LawnchairLauncher)
+        abstract suspend fun sleep(launcher: BlownChartLauncher)
     }
 }
 
@@ -67,7 +67,7 @@ class SleepMethodRoot(context: Context) : SleepGestureHandler.SleepMethod(contex
 
     override suspend fun isSupported() = Shell.getShell().isRoot
 
-    override suspend fun sleep(launcher: LawnchairLauncher) {
+    override suspend fun sleep(launcher: BlownChartLauncher) {
         Shell.cmd("input keyevent 26").exec()
     }
 }
@@ -76,8 +76,8 @@ class SleepMethodPieAccessibility(context: Context) : SleepGestureHandler.SleepM
     override suspend fun isSupported() = Utilities.ATLEAST_P
 
     @TargetApi(Build.VERSION_CODES.P)
-    override suspend fun sleep(launcher: LawnchairLauncher) {
-        val app = context.lawnchairApp
+    override suspend fun sleep(launcher: BlownChartLauncher) {
+        val app = context.blownChartApp
         if (!app.isAccessibilityServiceBound()) {
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -90,14 +90,14 @@ class SleepMethodPieAccessibility(context: Context) : SleepGestureHandler.SleepM
             }
             return
         }
-        launcher.lawnchairApp.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
+        launcher.blownChartApp.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
     }
 }
 
 class SleepMethodDeviceAdmin(context: Context) : SleepGestureHandler.SleepMethod(context) {
     override suspend fun isSupported() = true
 
-    override suspend fun sleep(launcher: LawnchairLauncher) {
+    override suspend fun sleep(launcher: BlownChartLauncher) {
         val devicePolicyManager: DevicePolicyManager = context.requireSystemService()
         if (!devicePolicyManager.isAdminActive(ComponentName(context, SleepDeviceAdmin::class.java))) {
             val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)

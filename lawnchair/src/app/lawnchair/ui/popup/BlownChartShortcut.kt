@@ -17,7 +17,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.BlownChartLauncher
 import app.lawnchair.override.CustomizeAppDialog
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.views.ComposeBottomSheet
@@ -36,12 +36,12 @@ import com.android.launcher3.util.PackageManagerHelper
 import com.patrykmichalik.opto.core.firstBlocking
 import java.net.URISyntaxException
 
-class LawnchairShortcut {
+class BlownChartShortcut {
 
     companion object {
 
         val CUSTOMIZE =
-            SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo, originalView ->
+            SystemShortcut.Factory { activity: BlownChartLauncher, itemInfo, originalView ->
                 if (isLockedForItem(activity, itemInfo)) {
                     null
                 } else {
@@ -49,7 +49,7 @@ class LawnchairShortcut {
                 }
             }
 
-        private fun getAppInfo(launcher: LawnchairLauncher, itemInfo: ItemInfo): ModelAppInfo? {
+        private fun getAppInfo(launcher: BlownChartLauncher, itemInfo: ItemInfo): ModelAppInfo? {
             if (itemInfo is ModelAppInfo) return itemInfo
             if (itemInfo.itemType != ITEM_TYPE_APPLICATION) return null
             val key = ComponentKey(itemInfo.targetComponent, itemInfo.user)
@@ -88,7 +88,7 @@ class LawnchairShortcut {
                 UnInstall(activity, itemInfo, view)
             }
 
-        val PAUSE_APPS = SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo: ItemInfo, originalView: View ->
+        val PAUSE_APPS = SystemShortcut.Factory { activity: BlownChartLauncher, itemInfo: ItemInfo, originalView: View ->
             val targetCmp = itemInfo.targetComponent
             val packageName = targetCmp?.packageName ?: return@Factory null
 
@@ -99,17 +99,17 @@ class LawnchairShortcut {
 
         // Replaces the base SystemShortcut.APP_INFO: same "App info" shortcut, but gated behind
         // the settings lock, since it launches system Settings.
-        val APP_INFO = SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo: ItemInfo, originalView: View ->
+        val APP_INFO = SystemShortcut.Factory { activity: BlownChartLauncher, itemInfo: ItemInfo, originalView: View ->
             GatedAppInfo(activity, itemInfo, originalView)
         }
     }
 
     class Customize(
-        private val launcher: LawnchairLauncher,
+        private val launcher: BlownChartLauncher,
         private val appInfo: ModelAppInfo,
         itemInfo: ItemInfo,
         originalView: View,
-    ) : SystemShortcut<LawnchairLauncher>(R.drawable.ic_edit, R.string.action_customize, launcher, itemInfo, originalView) {
+    ) : SystemShortcut<BlownChartLauncher>(R.drawable.ic_edit, R.string.action_customize, launcher, itemInfo, originalView) {
 
         override fun onClick(v: View) {
             val outObj = Array<Any?>(1) { null }
@@ -140,10 +140,10 @@ class LawnchairShortcut {
     }
 
     class GatedAppInfo(
-        private val launcher: LawnchairLauncher,
+        private val launcher: BlownChartLauncher,
         itemInfo: ItemInfo,
         originalView: View,
-    ) : SystemShortcut.AppInfo<LawnchairLauncher>(launcher, itemInfo, originalView) {
+    ) : SystemShortcut.AppInfo<BlownChartLauncher>(launcher, itemInfo, originalView) {
 
         override fun onClick(view: View) {
             launcher.requestSettingsUnlock { super@GatedAppInfo.onClick(view) }
@@ -151,10 +151,10 @@ class LawnchairShortcut {
     }
 
     class PauseApps(
-        target: LawnchairLauncher,
+        target: BlownChartLauncher,
         itemInfo: ItemInfo,
         originalView: View,
-    ) : SystemShortcut<LawnchairLauncher>(
+    ) : SystemShortcut<BlownChartLauncher>(
         R.drawable.ic_hourglass_top,
         R.string.paused_apps_drop_target_label,
         target,
@@ -195,7 +195,7 @@ class LawnchairShortcut {
                             mItemInfo.user.identifier,
                         )
                     } catch (e: Throwable) {
-                        Log.e("LawnchairShortcut", "Failed to pause app", e)
+                        Log.e("BlownChartShortcut", "Failed to pause app", e)
                     }
                 }
                 .show()

@@ -46,7 +46,7 @@ import app.lawnchair.wallpaper.WallpaperManagerCompat
 import com.android.launcher3.Utilities
 
 @Composable
-fun LawnchairTheme(
+fun BlownChartTheme(
     darkTheme: Boolean = isSelectedThemeDark,
     content: @Composable () -> Unit,
 ) {

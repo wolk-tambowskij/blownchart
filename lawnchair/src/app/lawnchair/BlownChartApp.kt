@@ -36,7 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import app.lawnchair.backup.LawnchairBackup
+import app.lawnchair.backup.BlownChartBackup
 import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.ui.ModalBottomSheetContent
@@ -53,12 +53,12 @@ import com.android.quickstep.RecentsActivity
 import com.android.systemui.shared.system.QuickStepContract
 import java.io.File
 
-class LawnchairApp : Application() {
+class BlownChartApp : Application() {
     private val compatible = Build.VERSION.SDK_INT in BuildConfig.QUICKSTEP_MIN_SDK..BuildConfig.QUICKSTEP_MAX_SDK
     private val isRecentsComponent: Boolean by unsafeLazy { checkRecentsComponent() }
     private val recentsEnabled: Boolean get() = compatible && isRecentsComponent
     private val isAtleastT = Utilities.ATLEAST_T
-    internal var accessibilityService: LawnchairAccessibilityService? = null
+    internal var accessibilityService: BlownChartAccessibilityService? = null
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
     override fun onCreate() {
@@ -106,7 +106,7 @@ class LawnchairApp : Application() {
     }
 
     fun renameRestoredDb(dbName: String) {
-        val restoredDbFile = getDatabasePath(LawnchairBackup.RESTORED_DB_FILE_NAME)
+        val restoredDbFile = getDatabasePath(BlownChartBackup.RESTORED_DB_FILE_NAME)
         if (!restoredDbFile.exists()) return
         val dbFile = getDatabasePath(dbName)
         restoredDbFile.renameTo(dbFile)
@@ -221,10 +221,10 @@ class LawnchairApp : Application() {
     }
 
     companion object {
-        private const val TAG = "LawnchairApp"
+        private const val TAG = "BlownChartApp"
 
         @JvmStatic
-        lateinit var instance: LawnchairApp
+        lateinit var instance: BlownChartApp
             private set
 
         @JvmStatic
@@ -235,7 +235,7 @@ class LawnchairApp : Application() {
 
         fun Launcher.showQuickstepWarningIfNecessary() {
             val launcher = this
-            if (!lawnchairApp.isRecentsComponent || isRecentsEnabled) return
+            if (!blownChartApp.isRecentsComponent || isRecentsEnabled) return
             ComposeBottomSheet.show(this) {
                 ModalBottomSheetContent(
                     title = { Text(text = stringResource(id = R.string.quickstep_incompatible)) },
@@ -273,4 +273,4 @@ class LawnchairApp : Application() {
     }
 }
 
-val Context.lawnchairApp get() = applicationContext as LawnchairApp
+val Context.blownChartApp get() = applicationContext as BlownChartApp

@@ -56,7 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntConsumer;
 
-import app.lawnchair.LawnchairAppWidgetHostView;
+import app.lawnchair.BlownChartAppWidgetHostView;
 
 /**
  * A wrapper for LauncherAppWidgetHost. This class is created so the

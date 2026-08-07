@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 
 import app.lawnchair.theme.color.ColorOption;
 import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.lawnchair.util.BlownChartUtilsKt;
 
 /**
  * Manages the opening and closing animations for a {@link Folder}.
@@ -186,7 +186,7 @@ public class FolderAnimationManager {
 
         // Set up the Folder background.
         int previewColor = ColorTokens.FolderPreviewColor.resolveColor(mContext);
-        int initialColor = ColorUtils.setAlphaComponent(previewColor, LawnchairUtilsKt.getFolderPreviewAlpha(mContext));
+        int initialColor = ColorUtils.setAlphaComponent(previewColor, BlownChartUtilsKt.getFolderPreviewAlpha(mContext));
         int finalColor = ColorTokens.FolderBackgroundColor.resolveColor(mContext);
 
         ColorOption colorOption = PreferenceExtensionsKt.firstBlocking(mFolder.preferenceManager2.getFolderColor());

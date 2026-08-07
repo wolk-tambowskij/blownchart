@@ -80,7 +80,7 @@ import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
 import java.io.PrintWriter;
 import java.util.StringJoiner;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.BlownChartApp;
 
 /**
  * Class to manage taskbar lifecycle
@@ -296,7 +296,7 @@ public class TaskbarManager {
             public void onLowMemory() { }
         };
 
-        if (LawnchairApp.isRecentsEnabled ()) {
+        if (BlownChartApp.isRecentsEnabled ()) {
             final Uri USER_SETUP_COMPLETE_URI = Settings.Secure.getUriFor(
                     Settings.Secure.USER_SETUP_COMPLETE);
 
@@ -595,7 +595,7 @@ public class TaskbarManager {
         if (mUserUnlocked) {
             DisplayController.INSTANCE.get(mContext).removeChangeListener(mRecreationListener);
         }
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (BlownChartApp.isRecentsEnabled()) {
             final Uri USER_SETUP_COMPLETE_URI = Settings.Secure.getUriFor(
                     Settings.Secure.USER_SETUP_COMPLETE);
             final Uri NAV_BAR_KIDS_MODE = Settings.Secure.getUriFor(

@@ -1,11 +1,11 @@
 package app.lawnchair.search.algorithms
 
 import android.content.Context
-import app.lawnchair.LawnchairApp
+import app.lawnchair.BlownChartApp
 import app.lawnchair.allapps.views.SearchItemBackground
 import app.lawnchair.allapps.views.SearchResultView.Companion.EXTRA_QUICK_LAUNCH
 import app.lawnchair.preferences2.PreferenceManager2
-import app.lawnchair.search.LawnchairSearchAdapterProvider
+import app.lawnchair.search.BlownChartSearchAdapterProvider
 import app.lawnchair.search.adapter.START_PAGE
 import app.lawnchair.search.adapter.SearchAdapterItem
 import app.lawnchair.search.adapter.SearchTargetCompat
@@ -31,7 +31,7 @@ import com.android.launcher3.search.SearchAlgorithm
 import com.android.launcher3.search.SearchCallback
 import com.patrykmichalik.opto.core.firstBlocking
 
-sealed class LawnchairSearchAlgorithm(
+sealed class BlownChartSearchAlgorithm(
     protected val context: Context,
 ) : SearchAlgorithm<BaseAllAppsAdapter.AdapterItem> {
 
@@ -76,7 +76,7 @@ sealed class LawnchairSearchAlgorithm(
         val filtered = results
             .asSequence()
             .filter { it.packageName != BuildConfig.APPLICATION_ID }
-            .filter { LawnchairSearchAdapterProvider.viewTypeMap[it.layoutType] != null }
+            .filter { BlownChartSearchAdapterProvider.viewTypeMap[it.layoutType] != null }
             .removeDuplicateDividers()
             .toList()
 
@@ -208,27 +208,27 @@ sealed class LawnchairSearchAlgorithm(
 
         fun isASISearchEnabled(context: Context): Boolean {
             if (!Utilities.ATLEAST_S) return false
-            if (!LawnchairApp.isRecentsEnabled) return false
+            if (!BlownChartApp.isRecentsEnabled) return false
 
             if (!ranCompatibilityCheck) {
                 ranCompatibilityCheck = true
-                LawnchairASISearchAlgorithm.checkSearchCompatibility(context)
+                BlownChartASISearchAlgorithm.checkSearchCompatibility(context)
             }
             return true
         }
 
-        fun create(context: Context): LawnchairSearchAlgorithm {
+        fun create(context: Context): BlownChartSearchAlgorithm {
             val prefs = PreferenceManager2.getInstance(context)
             val searchAlgorithm = prefs.searchAlgorithm.firstBlocking()
 
             return when {
-                searchAlgorithm == ASI_SEARCH && isASISearchEnabled(context) -> LawnchairASISearchAlgorithm(
+                searchAlgorithm == ASI_SEARCH && isASISearchEnabled(context) -> BlownChartASISearchAlgorithm(
                     context,
                 )
 
-                searchAlgorithm == LOCAL_SEARCH -> LawnchairLocalSearchAlgorithm(context)
+                searchAlgorithm == LOCAL_SEARCH -> BlownChartLocalSearchAlgorithm(context)
 
-                else -> LawnchairAppSearchAlgorithm(context)
+                else -> BlownChartAppSearchAlgorithm(context)
             }
         }
     }

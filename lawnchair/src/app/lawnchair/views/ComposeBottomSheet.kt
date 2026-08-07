@@ -33,7 +33,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.lawnchair.theme.color.tokens.ColorTokens
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.BlownChartTheme
 import app.lawnchair.util.ProvideLifecycleState
 import app.lawnchair.util.minus
 import com.android.launcher3.Launcher
@@ -186,7 +186,7 @@ class ComposeBottomSheet<T>(context: Context) : AbstractSlideInView<T>(context, 
     private fun Providers(
         content: @Composable () -> Unit,
     ) {
-        LawnchairTheme {
+        BlownChartTheme {
             ProvideLifecycleState {
                 CompositionLocalProvider(
                     LocalContentColor provides MaterialTheme.colorScheme.onSurface,

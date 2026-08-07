@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import app.lawnchair.FeedBridge
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.BlownChartLauncher
 import app.lawnchair.preferences2.PreferenceManager2
 import com.android.launcher3.Launcher
 import com.android.launcher3.Utilities
@@ -25,7 +25,7 @@ import com.patrykmichalik.opto.core.firstBlocking
  *
  * Implements [LauncherClientCallbacks] and sends all the corresponding callbacks to [Launcher].
  */
-class OverlayCallbackImpl(private val mLauncher: LawnchairLauncher) :
+class OverlayCallbackImpl(private val mLauncher: BlownChartLauncher) :
     LauncherOverlay,
     LauncherClientCallbacks,
     LauncherOverlayManager,

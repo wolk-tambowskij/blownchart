@@ -24,7 +24,7 @@ import com.android.launcher3.util.window.WindowManagerProxy
 import kotlin.math.max
 
 @Keep
-class LawnchairWindowManagerProxy(context: Context) : WindowManagerProxy(Utilities.ATLEAST_T) {
+class BlownChartWindowManagerProxy(context: Context) : WindowManagerProxy(Utilities.ATLEAST_T) {
 
     override fun estimateInternalDisplayBounds(displayInfoContext: Context): ArrayMap<CachedDisplayInfo, List<WindowBounds>> {
         val info = getDisplayInfo(displayInfoContext).normalize(this)

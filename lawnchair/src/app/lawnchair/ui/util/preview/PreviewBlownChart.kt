@@ -15,4 +15,4 @@ import androidx.compose.ui.tooling.preview.Wallpapers
     uiMode = Configuration.UI_MODE_NIGHT_YES,
     wallpaper = Wallpapers.NONE,
 )
-annotation class PreviewLawnchair
+annotation class PreviewBlownChart

@@ -45,7 +45,7 @@ import androidx.core.net.toUri
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 
 @Composable
-fun LawnchairLink(
+fun BlownChartLink(
     @DrawableRes iconResId: Int,
     label: String,
     url: String,
@@ -84,7 +84,7 @@ fun LawnchairLink(
 }
 
 @Composable
-fun HorizontalLawnchairLink(
+fun HorizontalBlownChartLink(
     @DrawableRes iconResId: Int,
     label: String,
     url: String,

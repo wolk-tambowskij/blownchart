@@ -13,7 +13,7 @@ import app.lawnchair.util.isOnePlusStock
 import com.android.launcher3.R
 import com.android.quickstep.views.OverviewActionsView
 
-class LawnchairOverviewActionsView @JvmOverloads constructor(
+class BlownChartOverviewActionsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,

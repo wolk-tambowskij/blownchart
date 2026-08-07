@@ -301,7 +301,7 @@ android {
         }
 
         configureEach {
-            resValue("string", "launcher_component", "${applicationId}/app.lawnchair.LawnchairLauncher")
+            resValue("string", "launcher_component", "${applicationId}/app.lawnchair.BlownChartLauncher")
         }
     }
 

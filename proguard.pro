@@ -1,4 +1,4 @@
-# The rules from AOSP are located in proguard.flags file, we can just maintain Lawnchair related rules here.
+# The rules from AOSP are located in proguard.flags file, we can just maintain BlownChart-related rules here.
 
 # Optimization options.
 -allowaccessmodification
@@ -48,10 +48,10 @@
   public static final ** CREATOR;
 }
 
-# Lawnchair specific rules.
--keep class app.lawnchair.LawnchairProto$* { *; }
--keep class app.lawnchair.LawnchairApp { *; }
--keep class app.lawnchair.LawnchairLauncher { *; }
+# BlownChart-specific rules.
+-keep class app.lawnchair.BlownChartProto$* { *; }
+-keep class app.lawnchair.BlownChartApp { *; }
+-keep class app.lawnchair.BlownChartLauncher { *; }
 -keep class app.lawnchair.compatlib.** { *; }
 -keep class android.view.** { *; }
 

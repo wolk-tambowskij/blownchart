@@ -5,7 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.util.Log
-import app.lawnchair.LawnchairApp
+import app.lawnchair.BlownChartApp
 import app.lawnchair.util.MainThreadInitializedObject
 import app.lawnchair.util.requireSystemService
 import com.android.launcher3.BuildConfig
@@ -14,7 +14,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class LawnchairBugReporter(private val context: Context) {
+class BlownChartBugReporter(private val context: Context) {
 
     private val notificationManager: NotificationManager = context.requireSystemService()
     private val logsFolder by lazy { File(context.cacheDir, "logs").apply { mkdirs() } }
@@ -112,7 +112,7 @@ class LawnchairBugReporter(private val context: Context) {
             .appendLine("version.release: ${Build.VERSION.RELEASE}")
             .appendLine("version.sdk_int: ${Build.VERSION.SDK_INT}")
             .appendLine("display.density_dpi: ${context.resources.displayMetrics.densityDpi}")
-            .appendLine("isRecentsEnabled: ${LawnchairApp.isRecentsEnabled}")
+            .appendLine("isRecentsEnabled: ${BlownChartApp.isRecentsEnabled}")
             .appendLine()
             .appendLine("error: $error")
             .also {
@@ -126,6 +126,6 @@ class LawnchairBugReporter(private val context: Context) {
     }
 
     companion object {
-        val INSTANCE = MainThreadInitializedObject(::LawnchairBugReporter)
+        val INSTANCE = MainThreadInitializedObject(::BlownChartBugReporter)
     }
 }

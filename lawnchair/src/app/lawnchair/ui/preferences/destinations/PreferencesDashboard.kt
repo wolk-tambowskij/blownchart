@@ -41,8 +41,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
-import app.lawnchair.LawnchairApp
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.BlownChartApp
+import app.lawnchair.BlownChartLauncher
 import app.lawnchair.backup.ui.restoreBackupOpener
 import app.lawnchair.backup.ui.restoreNovaBackupOpener
 import app.lawnchair.preferences.getAdapter
@@ -186,7 +186,7 @@ fun PreferencesDashboard(
                 isSelected = currentRoute is Gestures,
             )
 
-            if (LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG) {
+            if (BlownChartApp.isRecentsEnabled || BuildConfig.DEBUG) {
                 PreferenceCategory(
                     label = stringResource(id = R.string.quickstep_label),
                     description = stringResource(id = R.string.quickstep_description),
@@ -457,6 +457,6 @@ fun PreferencesBatteryOptimizationWarning(
 
 fun openAppInfo(context: Context) {
     val launcherApps = context.getSystemService<LauncherApps>()
-    val componentName = ComponentName(context, LawnchairLauncher::class.java)
+    val componentName = ComponentName(context, BlownChartLauncher::class.java)
     launcherApps?.startAppDetailsActivity(componentName, Process.myUserHandle(), null, null)
 }

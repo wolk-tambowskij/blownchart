@@ -21,7 +21,7 @@ import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.smartspace.SmartspaceViewContainer
-import app.lawnchair.smartspace.model.LawnchairSmartspace
+import app.lawnchair.smartspace.model.BlownChartSmartspace
 import app.lawnchair.smartspace.model.SmartspaceCalendar
 import app.lawnchair.smartspace.model.SmartspaceMode
 import app.lawnchair.smartspace.model.SmartspaceTimeFormat
@@ -52,7 +52,7 @@ fun SmartspacePreferences(
     val smartspaceAdapter = preferenceManager2.enableSmartspace.getAdapter()
     val smartspaceModeAdapter = preferenceManager2.smartspaceMode.getAdapter()
     val selectedMode = smartspaceModeAdapter.state.value
-    val modeIsLawnchair = selectedMode == LawnchairSmartspace
+    val modeIsBlownChart = selectedMode == BlownChartSmartspace
 
     PreferenceLayout(
         label = stringResource(id = R.string.smartspace_widget),
@@ -60,12 +60,12 @@ fun SmartspacePreferences(
         modifier = modifier,
     ) {
         if (fromWidget) {
-            LawnchairSmartspaceSettings(smartspaceProvider)
+            BlownChartSmartspaceSettings(smartspaceProvider)
         } else {
             MainSwitchPreference(
                 adapter = smartspaceAdapter,
                 label = stringResource(R.string.smartspace_widget_toggle_label),
-                description = stringResource(id = R.string.smartspace_widget_toggle_description).takeIf { modeIsLawnchair },
+                description = stringResource(id = R.string.smartspace_widget_toggle_description).takeIf { modeIsBlownChart },
             ) {
                 PreferenceGroup {
                     SmartspaceProviderPreference(
@@ -78,8 +78,8 @@ fun SmartspacePreferences(
                     label = "Smartspace setting transision",
                 ) { targetState ->
                     when (targetState) {
-                        LawnchairSmartspace -> {
-                            LawnchairSmartspaceSettings(smartspaceProvider)
+                        BlownChartSmartspace -> {
+                            BlownChartSmartspaceSettings(smartspaceProvider)
                         }
 
                         Smartspacer -> {
@@ -95,7 +95,7 @@ fun SmartspacePreferences(
 }
 
 @Composable
-private fun LawnchairSmartspaceSettings(
+private fun BlownChartSmartspaceSettings(
     smartspaceProvider: SmartspaceProvider,
     modifier: Modifier = Modifier,
 ) {

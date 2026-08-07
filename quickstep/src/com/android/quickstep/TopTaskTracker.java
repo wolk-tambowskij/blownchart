@@ -55,7 +55,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.compat.BlownChartQuickstepCompat;
 
 /**
  * This class tracked the top-most task and  some 'approximate' task history to allow faster
@@ -252,7 +252,7 @@ public class TopTaskTracker extends ISplitScreenListener.Stub
                 return null;
             }
             List<RunningTaskInfo> visibleNonExcludedTasks = mAllCachedTasks.stream()
-                    .filter(t -> LawnchairQuickstepCompat.ATLEAST_S && t.isVisible
+                    .filter(t -> BlownChartQuickstepCompat.ATLEAST_S && t.isVisible
                             && (t.baseIntent.getFlags() & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) == 0
                             && t.getActivityType() != ACTIVITY_TYPE_HOME
                             && t.getActivityType() != ACTIVITY_TYPE_RECENTS)

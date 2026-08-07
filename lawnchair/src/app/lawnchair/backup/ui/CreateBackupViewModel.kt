@@ -9,7 +9,7 @@ import android.view.View.MeasureSpec.EXACTLY
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import app.lawnchair.backup.LawnchairBackup
+import app.lawnchair.backup.BlownChartBackup
 import app.lawnchair.util.FileAccessManager
 import app.lawnchair.views.LauncherPreviewView
 import com.android.launcher3.LauncherAppState
@@ -39,7 +39,7 @@ class CreateBackupViewModel(
 
     val backupContents = savedStateHandle.getStateFlow(
         "contents",
-        LawnchairBackup.INCLUDE_LAYOUT_AND_SETTINGS or LawnchairBackup.INCLUDE_WALLPAPER,
+        BlownChartBackup.INCLUDE_LAYOUT_AND_SETTINGS or BlownChartBackup.INCLUDE_WALLPAPER,
     )
 
     init {

@@ -9,7 +9,7 @@ import com.android.launcher3.util.SystemUiController
 import com.android.launcher3.util.Themes
 import com.android.launcher3.views.ScrimView
 
-class LawnchairScrimView(context: Context, attrs: AttributeSet?) : ScrimView(context, attrs) {
+class BlownChartScrimView(context: Context, attrs: AttributeSet?) : ScrimView(context, attrs) {
 
     private var drawerOpacity = 0f
 

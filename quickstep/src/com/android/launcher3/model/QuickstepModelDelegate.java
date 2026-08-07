@@ -90,8 +90,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.BlownChartApp;
+import app.lawnchair.compat.BlownChartQuickstepCompat;
 
 /**
  * Model delegate which loads prediction items
@@ -257,7 +257,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
         // ModelDelegate
         // instance, as there will be additional instances that may be destroyed at any
         // time.
-        if (mIsPrimaryInstance && LawnchairApp.isRecentsEnabled()) {
+        if (mIsPrimaryInstance && BlownChartApp.isRecentsEnabled()) {
             registerSnapshotLoggingCallback();
         }
     }
@@ -270,7 +270,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
      * atom.
      */
     protected void registerSnapshotLoggingCallback() {
-        if (mStatsManager == null || !LawnchairQuickstepCompat.ATLEAST_R) {
+        if (mStatsManager == null || !BlownChartQuickstepCompat.ATLEAST_R) {
             Log.d(TAG, "Failed to get StatsManager");
             return;
         }
@@ -343,7 +343,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
         super.destroy();
         mActive = false;
         StatsLogCompatManager.LOGS_CONSUMER.remove(mAppEventProducer);
-        if (mIsPrimaryInstance && mStatsManager != null && LawnchairQuickstepCompat.ATLEAST_R) {
+        if (mIsPrimaryInstance && mStatsManager != null && BlownChartQuickstepCompat.ATLEAST_R) {
             try {
                 mStatsManager.clearPullAtomCallback(SysUiStatsLog.LAUNCHER_LAYOUT_SNAPSHOT);
             } catch (Throwable e) {

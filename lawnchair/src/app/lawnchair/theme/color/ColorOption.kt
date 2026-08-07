@@ -35,7 +35,7 @@ sealed class ColorOption {
             { context ->
                 val wallpaperManager = WallpaperManagerCompat.INSTANCE.get(context)
                 val primaryColor = wallpaperManager.wallpaperColors?.primaryColor
-                primaryColor ?: LawnchairBlue.color
+                primaryColor ?: BlownChartBlue.color
             },
         )
 
@@ -73,7 +73,7 @@ sealed class ColorOption {
     }
 
     companion object {
-        val LawnchairBlue = CustomColor(0xFF007FFF)
+        val BlownChartBlue = CustomColor(0xFF007FFF)
 
         fun fromString(stringValue: String) = when (stringValue) {
             "system_accent" -> SystemAccent
@@ -93,7 +93,7 @@ sealed class ColorOption {
             return when {
                 Utilities.ATLEAST_S -> SystemAccent
                 Utilities.ATLEAST_O_MR1 -> WallpaperPrimary
-                else -> LawnchairBlue
+                else -> BlownChartBlue
             }
         }
     }

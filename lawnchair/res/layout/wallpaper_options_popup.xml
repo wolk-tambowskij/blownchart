@@ -4,7 +4,7 @@
     android:id="@+id/popup_container"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    class="app.lawnchair.ui.popup.LawnchairPopupDialog$LawnchairOptionsPopUp">
+    class="app.lawnchair.ui.popup.BlownChartPopupDialog$BlownChartOptionsPopUp">
     <LinearLayout
         android:orientation="vertical"
         android:id="@+id/wallpaper_container"

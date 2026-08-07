@@ -60,7 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.compat.BlownChartQuickstepCompat;
 import app.lawnchair.compatlib.RecentsAnimationRunnerCompat;
 import app.lawnchair.compatlib.eleven.ActivityManagerCompatVR;
 
@@ -109,7 +109,7 @@ public class ActivityManagerWrapper {
      */
     @NonNull
     public List<ActivityManager.RecentTaskInfo> getRecentTasks(int numTasks, int userId) {
-        return LawnchairQuickstepCompat.getActivityManagerCompat().getRecentTasks(numTasks, userId);
+        return BlownChartQuickstepCompat.getActivityManagerCompat().getRecentTasks(numTasks, userId);
     }
 
     /**
@@ -266,11 +266,11 @@ public class ActivityManagerWrapper {
                      * compat for android 12/11/10
                      */
                     public void onAnimationCanceled(Object taskSnapshot) {
-                        if (LawnchairQuickstepCompat.ATLEAST_S) {
+                        if (BlownChartQuickstepCompat.ATLEAST_S) {
                             animationHandler.onAnimationCanceled(
                                     ThumbnailData.wrap(new int[]{0}, new TaskSnapshot[]{(TaskSnapshot) taskSnapshot}));
-                        } else if (LawnchairQuickstepCompat.ATLEAST_R) {
-                            ActivityManagerCompatVR compat = (ActivityManagerCompatVR) LawnchairQuickstepCompat.getActivityManagerCompat();
+                        } else if (BlownChartQuickstepCompat.ATLEAST_R) {
+                            ActivityManagerCompatVR compat = (ActivityManagerCompatVR) BlownChartQuickstepCompat.getActivityManagerCompat();
                             ActivityManagerCompatVR.ThumbnailData data = compat.convertTaskSnapshotToThumbnailData(taskSnapshot);
                             HashMap<Integer, ThumbnailData> thumbnailDatas = new HashMap<>();
                             if (data != null) {
@@ -295,7 +295,7 @@ public class ActivityManagerWrapper {
                     }
                 };
             }
-            LawnchairQuickstepCompat.getActivityManagerCompat().startRecentsActivity(intent, eventTime, runner);
+            BlownChartQuickstepCompat.getActivityManagerCompat().startRecentsActivity(intent, eventTime, runner);
             return true;
         } catch (Exception e) {
             return false;

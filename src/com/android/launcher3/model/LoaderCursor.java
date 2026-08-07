@@ -65,7 +65,7 @@ import com.android.launcher3.util.UserIconInfo;
 import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.BlownChartApp;
 import app.lawnchair.preferences2.PreferenceManager2;
 
 /**

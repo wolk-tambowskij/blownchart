@@ -25,7 +25,7 @@ import com.patrykmichalik.opto.core.onEach
 import java.util.function.Predicate
 
 @Suppress("SYNTHETIC_PROPERTY_WITHOUT_JAVA_ORIGIN")
-class LawnchairAlphabeticalAppsList<T>(
+class BlownChartAlphabeticalAppsList<T>(
     private val context: T,
     private val appsStore: AllAppsStore<T>,
     workProfileManager: WorkProfileManager?,

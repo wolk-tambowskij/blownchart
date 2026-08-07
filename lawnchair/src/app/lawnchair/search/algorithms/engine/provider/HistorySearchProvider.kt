@@ -6,7 +6,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
-import app.lawnchair.search.LawnchairRecentSuggestionProvider
+import app.lawnchair.search.BlownChartRecentSuggestionProvider
 import app.lawnchair.search.algorithms.data.RecentKeyword
 import app.lawnchair.search.algorithms.engine.SearchResult
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +25,7 @@ object HistorySearchProvider {
         return withContext(Dispatchers.IO) {
             try {
                 val contentResolver: ContentResolver = context.contentResolver
-                val uri: Uri = "content://${LawnchairRecentSuggestionProvider.AUTHORITY}/suggestions".toUri()
+                val uri: Uri = "content://${BlownChartRecentSuggestionProvider.AUTHORITY}/suggestions".toUri()
 
                 val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
                 val recentKeywords = mutableListOf<RecentKeyword>()

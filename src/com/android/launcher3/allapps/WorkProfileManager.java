@@ -81,7 +81,7 @@ public class WorkProfileManager extends UserProfileManager
                 if (android.os.Process.myUserHandle().equals(userProfile)) {
                     continue;
                 }
-                // https://github.com/LawnchairLauncher/lawnchair/issues/3145
+                // https://github.com/BlownChartLauncher/lawnchair/issues/3145
                 try {
                     mUserManager.requestQuietModeEnabled(!enabled, userProfile);
                 } catch (RuntimeException e) {

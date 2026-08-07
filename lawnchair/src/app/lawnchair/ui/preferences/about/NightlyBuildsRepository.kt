@@ -133,7 +133,7 @@ class NightlyBuildsRepository(
     private suspend fun getCommitsSinceCurrentVersion(): List<GitHubCommit>? {
         return try {
             // Get the latest commits (last 100)
-            val commits = api.getRepositoryCommits("LawnchairLauncher", "lawnchair")
+            val commits = api.getRepositoryCommits("BlownChartLauncher", "lawnchair")
 
             // Find the index of current commit
             val currentIndex = commits.indexOfFirst { it.sha.startsWith(currentCommitHash) }

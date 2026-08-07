@@ -20,15 +20,15 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import app.lawnchair.LawnchairLauncher
-import app.lawnchair.lawnchairApp
+import app.lawnchair.BlownChartLauncher
+import app.lawnchair.blownChartApp
 import app.lawnchair.views.ComposeBottomSheet
 import com.android.launcher3.R
 
 class RecentsGestureHandler(context: Context) : GestureHandler(context) {
 
-    override suspend fun onTrigger(launcher: LawnchairLauncher) {
-        val app = launcher.lawnchairApp
+    override suspend fun onTrigger(launcher: BlownChartLauncher) {
+        val app = launcher.blownChartApp
         if (!app.isAccessibilityServiceBound()) {
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

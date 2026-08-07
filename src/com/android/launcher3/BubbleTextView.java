@@ -93,12 +93,12 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.BlownChartApp;
 import app.lawnchair.font.FontManager;
 import app.lawnchair.gestures.IconGestureListener;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.lawnchair.util.BlownChartUtilsKt;
 
 /**
  * TextView that draws a bubble behind the text. We cannot use a
@@ -263,7 +263,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.allAppsIconTextSizePx);
             setCompoundDrawablePadding(mDeviceProfile.allAppsIconDrawablePaddingPx);
             defaultIconSize = mDeviceProfile.allAppsIconSizePx;
-            LawnchairUtilsKt.overrideAllAppsTextColor(this);
+            BlownChartUtilsKt.overrideAllAppsTextColor(this);
         } else if (mDisplay == DISPLAY_FOLDER) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.folderChildTextSizePx);
             setCompoundDrawablePadding(mDeviceProfile.folderChildDrawablePaddingPx);

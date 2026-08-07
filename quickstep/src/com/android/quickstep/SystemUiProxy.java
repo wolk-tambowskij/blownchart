@@ -110,7 +110,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.compat.BlownChartQuickstepCompat;
 
 /**
  * Holds the reference to SystemUI.
@@ -202,7 +202,7 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
                         ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
             }
 
-            mRecentsPendingIntent = LawnchairQuickstepCompat.ATLEAST_V ? PendingIntent.getActivity(mContext, 0, baseIntent,
+            mRecentsPendingIntent = BlownChartQuickstepCompat.ATLEAST_V ? PendingIntent.getActivity(mContext, 0, baseIntent,
                     PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT
                             | Intent.FILL_IN_COMPONENT, options.toBundle()) :  PendingIntent.getActivity(mContext, 0, baseIntent,
                     PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT
@@ -1215,7 +1215,7 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
      * if Launcher and SystemUI need to coordinate transactions (eg. for shell transitions).
      */
     public void shareTransactionQueue() {
-        if (!LawnchairQuickstepCompat.ATLEAST_V) return;
+        if (!BlownChartQuickstepCompat.ATLEAST_V) return;
         if (mOriginalTransactionToken == null) {
             mOriginalTransactionToken = SurfaceControl.Transaction.getDefaultApplyToken();
         }
@@ -1226,7 +1226,7 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
      * Switch back to using Launcher's independent transaction queue.
      */
     public void unshareTransactionQueue() {
-        if (!LawnchairQuickstepCompat.ATLEAST_V) return;
+        if (!BlownChartQuickstepCompat.ATLEAST_V) return;
         if (mOriginalTransactionToken == null) {
             return;
         }
@@ -1235,7 +1235,7 @@ public class SystemUiProxy implements ISystemUiProxy, NavHandle, SafeCloseable {
     }
 
     private void setupTransactionQueue() {
-        if (!LawnchairQuickstepCompat.ATLEAST_V) return;
+        if (!BlownChartQuickstepCompat.ATLEAST_V) return;
         if (mOriginalTransactionToken == null) {
             return;
         }

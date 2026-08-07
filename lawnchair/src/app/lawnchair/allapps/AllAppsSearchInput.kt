@@ -37,8 +37,8 @@ import app.lawnchair.qsb.providers.Google
 import app.lawnchair.qsb.providers.GoogleGo
 import app.lawnchair.qsb.providers.PixelSearch
 import app.lawnchair.qsb.setThemedIconResource
-import app.lawnchair.search.LawnchairRecentSuggestionProvider
-import app.lawnchair.search.algorithms.LawnchairSearchAlgorithm
+import app.lawnchair.search.BlownChartRecentSuggestionProvider
+import app.lawnchair.search.algorithms.BlownChartSearchAlgorithm
 import app.lawnchair.theme.drawable.DrawableTokens
 import app.lawnchair.util.viewAttachedScope
 import com.android.launcher3.Insettable
@@ -84,9 +84,9 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         Selection.setSelection(this, 0)
     }
 
-    private lateinit var apps: LawnchairAlphabeticalAppsList<*>
+    private lateinit var apps: BlownChartAlphabeticalAppsList<*>
     private lateinit var appsView: ActivityAllAppsContainerView<*>
-    private var searchAlgorithm: LawnchairSearchAlgorithm? = null
+    private var searchAlgorithm: BlownChartSearchAlgorithm? = null
 
     private var focusedResultTitle = ""
     private var canShowHint = false
@@ -98,7 +98,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     }
     private var bgVisible = true
     private var bgAlpha = 1f
-    private val suggestionsRecent = SearchRecentSuggestions(launcher, LawnchairRecentSuggestionProvider.AUTHORITY, LawnchairRecentSuggestionProvider.MODE)
+    private val suggestionsRecent = SearchRecentSuggestions(launcher, BlownChartRecentSuggestionProvider.AUTHORITY, BlownChartRecentSuggestionProvider.MODE)
     private val prefs = PreferenceManager.getInstance(launcher)
     private val prefs2 = PreferenceManager2.getInstance(launcher)
 
@@ -185,7 +185,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         val currentPaddingRight = initialPaddingRight
         input.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                if (prefs2.searchAlgorithm.firstBlocking() != LawnchairSearchAlgorithm.APP_SEARCH) {
+                if (prefs2.searchAlgorithm.firstBlocking() != BlownChartSearchAlgorithm.APP_SEARCH) {
                     input.setHint(R.string.all_apps_device_search_hint)
                 } else {
                     input.setHint(R.string.all_apps_search_bar_hint)
@@ -340,9 +340,9 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     }
 
     override fun initializeSearch(appsView: ActivityAllAppsContainerView<*>) {
-        apps = appsView.searchResultList as LawnchairAlphabeticalAppsList<*>
+        apps = appsView.searchResultList as BlownChartAlphabeticalAppsList<*>
         this.appsView = appsView
-        val algorithm = LawnchairSearchAlgorithm.create(context)
+        val algorithm = BlownChartSearchAlgorithm.create(context)
         this.searchAlgorithm = algorithm
         searchBarController.initialize(
             algorithm,

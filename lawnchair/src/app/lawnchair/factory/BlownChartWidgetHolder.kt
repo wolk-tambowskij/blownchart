@@ -8,10 +8,10 @@ import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.widget.LauncherWidgetHolder
 import java.util.function.IntConsumer
 
-class LawnchairWidgetHolder(context: Context, intConsumer: IntConsumer?) : LauncherWidgetHolder(context, intConsumer) {
+class BlownChartWidgetHolder(context: Context, intConsumer: IntConsumer?) : LauncherWidgetHolder(context, intConsumer) {
 
     @Keep
-    class LawnchairHolderFactory
+    class BlownChartHolderFactory
     @Suppress("unused")
     constructor(
         @Suppress("UNUSED_PARAMETER") context: Context,
@@ -52,7 +52,7 @@ class LawnchairWidgetHolder(context: Context, intConsumer: IntConsumer?) : Launc
                     }
                 }
             } else {
-                LawnchairWidgetHolder(context, appWidgetRemovedCallback)
+                BlownChartWidgetHolder(context, appWidgetRemovedCallback)
             }
         }
     }

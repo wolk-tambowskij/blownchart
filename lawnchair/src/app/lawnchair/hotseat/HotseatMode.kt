@@ -14,7 +14,7 @@ sealed class HotseatMode(
         fun fromString(value: String): HotseatMode = when (value) {
             "disabled" -> DisabledHotseat
             "google_search" -> GoogleSearchHotseat
-            else -> LawnchairHotseat
+            else -> BlownChartHotseat
         }
 
         /**
@@ -22,7 +22,7 @@ sealed class HotseatMode(
          */
         fun values() = listOf(
             DisabledHotseat,
-            LawnchairHotseat,
+            BlownChartHotseat,
             GoogleSearchHotseat,
         )
     }
@@ -30,7 +30,7 @@ sealed class HotseatMode(
     abstract fun isAvailable(context: Context): Boolean
 }
 
-object LawnchairHotseat : HotseatMode(
+object BlownChartHotseat : HotseatMode(
     nameResourceId = R.string.hotseat_mode_lawnchair,
     layoutResourceId = R.layout.search_container_hotseat,
 ) {

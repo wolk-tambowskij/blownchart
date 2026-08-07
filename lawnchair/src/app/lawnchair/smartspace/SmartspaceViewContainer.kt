@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.BlownChartLauncher
 import app.lawnchair.launcher
 import app.lawnchair.launcherNullable
 import app.lawnchair.ui.preferences.PreferenceActivity
@@ -31,7 +31,7 @@ class SmartspaceViewContainer @JvmOverloads constructor(
         val inflater = LayoutInflater.from(context)
         smartspaceView = inflater.inflate(R.layout.smartspace_enhanced, this, false) as BcSmartspaceView
         smartspaceView.previewMode = previewMode
-        val ctx = LawnchairLauncher.instance?.launcherNullable
+        val ctx = BlownChartLauncher.instance?.launcherNullable
         val dp = ctx?.deviceProfile
         val leftPadding = dp?.widgetPadding?.left
         smartspaceView.setPadding(leftPadding ?: (left + 16), top, right, bottom)
@@ -48,7 +48,7 @@ class SmartspaceViewContainer @JvmOverloads constructor(
         val launcher = context.launcher
         val pos = Rect()
         launcher.dragLayer.getDescendantRectRelativeToSelf(smartspaceView, pos)
-        OptionsPopupView.show<LawnchairLauncher>(launcher, RectF(pos), listOf(getCustomizeOption()), true)
+        OptionsPopupView.show<BlownChartLauncher>(launcher, RectF(pos), listOf(getCustomizeOption()), true)
     }
 
     private fun getCustomizeOption() = OptionsPopupView.OptionItem(

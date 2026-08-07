@@ -16,7 +16,7 @@
 -->
 <!-- NOTE! don't add dimensions for margins / gravity to root view in this file, they need to be
      loaded at runtime. -->
-<app.lawnchair.overview.LawnchairOverviewActionsView xmlns:android="http://schemas.android.com/apk/res/android"
+<app.lawnchair.overview.BlownChartOverviewActionsView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center_horizontal|bottom">
@@ -136,4 +136,4 @@
         android:layout_gravity="bottom|center_horizontal"
         android:visibility="gone" />
 
-</app.lawnchair.overview.LawnchairOverviewActionsView>
+</app.lawnchair.overview.BlownChartOverviewActionsView>

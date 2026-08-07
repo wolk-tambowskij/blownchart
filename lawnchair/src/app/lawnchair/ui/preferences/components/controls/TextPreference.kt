@@ -19,10 +19,10 @@ import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.BlownChartTheme
 import app.lawnchair.ui.util.bottomSheetHandler
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
-import app.lawnchair.ui.util.preview.PreviewLawnchair
+import app.lawnchair.ui.util.preview.PreviewBlownChart
 
 @Composable
 fun TextPreference(
@@ -110,10 +110,10 @@ fun TextPreferenceDialog(
     )
 }
 
-@PreviewLawnchair
+@PreviewBlownChart
 @Composable
 private fun TextPreferencePreview() {
-    LawnchairTheme {
+    BlownChartTheme {
         PreferenceGroupPreviewContainer {
             TextPreference(
                 value = "Value",

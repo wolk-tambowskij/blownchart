@@ -34,8 +34,8 @@ import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 
 import java.util.concurrent.TimeUnit;
 
-import app.lawnchair.LawnchairLauncher;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.lawnchair.BlownChartLauncher;
+import app.lawnchair.util.BlownChartUtilsKt;
 
 /**
  * Definition for AllApps state
@@ -219,6 +219,6 @@ public class AllAppsState extends LauncherState {
     public int getWorkspaceScrimColor(Launcher launcher) {
         return launcher.getDeviceProfile().isTablet 
             ? launcher.getResources().getColor(android.R.color.transparent) 
-            : LawnchairUtilsKt.getAllAppsScrimColor(launcher);
+            : BlownChartUtilsKt.getAllAppsScrimColor(launcher);
     }
 }

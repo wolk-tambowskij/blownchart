@@ -13,7 +13,7 @@ import app.lawnchair.preferences.not
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.preferences2.preferenceManager2
-import app.lawnchair.search.algorithms.LawnchairSearchAlgorithm
+import app.lawnchair.search.algorithms.BlownChartSearchAlgorithm
 import app.lawnchair.search.algorithms.engine.provider.web.CustomWebSearchProvider
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.HiddenAppsInSearchPreference
@@ -66,9 +66,9 @@ fun DrawerSearchPreference(
 
         PreferenceGroup(heading = stringResource(id = R.string.show_search_result_types)) {
             val searchAlgorithm = preferenceManager2().searchAlgorithm.getAdapter().state.value
-            if (searchAlgorithm != LawnchairSearchAlgorithm.ASI_SEARCH) {
+            if (searchAlgorithm != BlownChartSearchAlgorithm.ASI_SEARCH) {
                 val navController = LocalNavController.current
-                val canDisable = searchAlgorithm != LawnchairSearchAlgorithm.APP_SEARCH
+                val canDisable = searchAlgorithm != BlownChartSearchAlgorithm.APP_SEARCH
                 val adapter = prefs.searchResultApps.getAdapter()
 
                 TwoTargetSwitchPreference(
@@ -82,7 +82,7 @@ fun DrawerSearchPreference(
                 )
             }
             when (searchAlgorithm) {
-                LawnchairSearchAlgorithm.LOCAL_SEARCH -> {
+                BlownChartSearchAlgorithm.LOCAL_SEARCH -> {
                     LocalSearchSettings(
                         prefs = prefs,
                         prefs2 = prefs2,
@@ -90,7 +90,7 @@ fun DrawerSearchPreference(
                     )
                 }
 
-                LawnchairSearchAlgorithm.ASI_SEARCH -> {
+                BlownChartSearchAlgorithm.ASI_SEARCH -> {
                     ASISearchSettings(prefs)
                 }
             }
@@ -124,12 +124,12 @@ private fun SearchProvider(
 ) {
     val searchAlgorithmEntries = remember {
         sequenceOf(
-            ListPreferenceEntry(LawnchairSearchAlgorithm.APP_SEARCH) { stringResource(R.string.search_algorithm_app_search) },
-            ListPreferenceEntry(LawnchairSearchAlgorithm.LOCAL_SEARCH) { stringResource(R.string.search_algorithm_global_search_on_device) },
-            ListPreferenceEntry(LawnchairSearchAlgorithm.ASI_SEARCH) { stringResource(R.string.search_algorithm_global_search_via_asi) },
+            ListPreferenceEntry(BlownChartSearchAlgorithm.APP_SEARCH) { stringResource(R.string.search_algorithm_app_search) },
+            ListPreferenceEntry(BlownChartSearchAlgorithm.LOCAL_SEARCH) { stringResource(R.string.search_algorithm_global_search_on_device) },
+            ListPreferenceEntry(BlownChartSearchAlgorithm.ASI_SEARCH) { stringResource(R.string.search_algorithm_global_search_via_asi) },
         ).filter {
             when (it.value) {
-                LawnchairSearchAlgorithm.ASI_SEARCH -> LawnchairSearchAlgorithm.isASISearchEnabled(
+                BlownChartSearchAlgorithm.ASI_SEARCH -> BlownChartSearchAlgorithm.isASISearchEnabled(
                     context,
                 )
 

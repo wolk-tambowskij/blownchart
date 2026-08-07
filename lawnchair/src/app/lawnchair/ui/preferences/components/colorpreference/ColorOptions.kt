@@ -7,7 +7,7 @@ val staticColors: List<ColorPreferenceEntry<ColorOption>> = sequenceOf(
     ColorOption.CustomColor(0xFFF20D69),
     ColorOption.CustomColor(0xFF7452FF),
     ColorOption.CustomColor(0xFF2C41C9),
-    ColorOption.LawnchairBlue,
+    ColorOption.BlownChartBlue,
     ColorOption.CustomColor(0xFF00BAD6),
     ColorOption.CustomColor(0xFF00A399),
     ColorOption.CustomColor(0xFF47B84F),

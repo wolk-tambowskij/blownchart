@@ -31,7 +31,7 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.BlownChartTheme
 import com.android.launcher3.R
 
 /**
@@ -55,7 +55,7 @@ class SettingsLockUnlockActivity : FragmentActivity() {
         }
 
         setContent {
-            LawnchairTheme {
+            BlownChartTheme {
                 SettingsLockUnlockScreen(
                     startInCreatePinMode = isSetupMode,
                     canUseBiometric = canUseBiometric(),

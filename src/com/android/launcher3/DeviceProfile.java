@@ -82,8 +82,8 @@ import java.util.Locale;
 import java.util.function.Consumer;
 
 import app.lawnchair.DeviceProfileOverrides;
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.BlownChartApp;
+import app.lawnchair.BlownChartAppKt;
 import app.lawnchair.hotseat.HotseatMode;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.theme.color.ColorOption;

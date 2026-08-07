@@ -28,10 +28,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.BlownChartTheme
 import app.lawnchair.ui.util.bottomSheetHandler
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
-import app.lawnchair.ui.util.preview.PreviewLawnchair
+import app.lawnchair.ui.util.preview.PreviewBlownChart
 
 @Composable
 fun ClickablePreference(
@@ -94,10 +94,10 @@ fun PreferenceClickConfirmation(
     )
 }
 
-@PreviewLawnchair
+@PreviewBlownChart
 @Composable
 private fun ClickablePreferencePreview() {
-    LawnchairTheme {
+    BlownChartTheme {
         PreferenceGroupPreviewContainer {
             ClickablePreference(
                 label = "Label",

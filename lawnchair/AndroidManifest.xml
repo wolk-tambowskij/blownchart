@@ -106,7 +106,7 @@
         </receiver>
 
         <service
-            android:name="app.lawnchair.LawnchairAccessibilityService"
+            android:name="app.lawnchair.BlownChartAccessibilityService"
             android:exported="false"
             android:label="@string/derived_app_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
@@ -129,8 +129,8 @@
         </provider>
 
         <provider
-            android:name="app.lawnchair.search.LawnchairRecentSuggestionProvider"
-            android:authorities="${applicationId}.search.LawnchairRecentSuggestionProvider"
+            android:name="app.lawnchair.search.BlownChartRecentSuggestionProvider"
+            android:authorities="${applicationId}.search.BlownChartRecentSuggestionProvider"
             android:syncable="true"
             android:exported="false" />
 

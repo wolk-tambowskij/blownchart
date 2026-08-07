@@ -86,12 +86,12 @@ class ThemeProvider(private val context: Context) : SafeCloseable {
 
         is ColorOption.WallpaperPrimary -> {
             val wallpaperPrimary = wallpaperManager.wallpaperColors?.primaryColor
-            getColorScheme(wallpaperPrimary ?: ColorOption.LawnchairBlue.color, colorStyle.style)
+            getColorScheme(wallpaperPrimary ?: ColorOption.BlownChartBlue.color, colorStyle.style)
         }
 
         is ColorOption.CustomColor -> getColorScheme(accentColor.color, colorStyle.style)
 
-        else -> getColorScheme(ColorOption.LawnchairBlue.color, colorStyle.style)
+        else -> getColorScheme(ColorOption.BlownChartBlue.color, colorStyle.style)
     }
 
     private val systemColorScheme get() = when {

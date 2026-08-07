@@ -26,7 +26,7 @@ import androidx.datastore.core.DataMigration
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.BlownChartLauncher
 import com.android.launcher3.util.ComponentKey
 
 /**
@@ -41,7 +41,7 @@ class LauncherSelfHideMigration(private val context: Context) : DataMigration<Pr
     private val hiddenAppsKey = stringSetPreferencesKey("hidden_apps")
 
     private val selfComponentKey by lazy {
-        ComponentKey(ComponentName(context, LawnchairLauncher::class.java), Process.myUserHandle()).toString()
+        ComponentKey(ComponentName(context, BlownChartLauncher::class.java), Process.myUserHandle()).toString()
     }
 
     override suspend fun shouldMigrate(currentData: Preferences): Boolean = currentData[appliedKey] != true

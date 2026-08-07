@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import app.lawnchair.LawnchairApp
+import app.lawnchair.BlownChartApp
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.observeAsState
 import app.lawnchair.preferences.preferenceManager
@@ -23,7 +23,7 @@ import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
-import app.lawnchair.ui.util.preview.PreviewLawnchair
+import app.lawnchair.ui.util.preview.PreviewBlownChart
 import app.lawnchair.util.isOnePlusStock
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
@@ -72,7 +72,7 @@ fun QuickstepPreferences(
         label = stringResource(id = R.string.quickstep_label),
         modifier = modifier,
     ) {
-        if (!LawnchairApp.isRecentsEnabled) QuickSwitchIgnoredWarning()
+        if (!BlownChartApp.isRecentsEnabled) QuickSwitchIgnoredWarning()
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             SwitchPreference(
                 adapter = prefs.recentsTranslucentBackground.getAdapter(),
@@ -128,7 +128,7 @@ fun QuickstepPreferences(
     }
 }
 
-@PreviewLawnchair
+@PreviewBlownChart
 @Composable
 private fun QuickSwitchIgnoredWarning(
     modifier: Modifier = Modifier,

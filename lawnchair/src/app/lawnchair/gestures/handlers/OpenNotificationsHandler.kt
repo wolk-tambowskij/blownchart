@@ -2,13 +2,13 @@ package app.lawnchair.gestures.handlers
 
 import android.annotation.SuppressLint
 import android.content.Context
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.BlownChartLauncher
 import java.lang.reflect.InvocationTargetException
 
 class OpenNotificationsHandler(context: Context) : GestureHandler(context) {
 
     @SuppressLint("WrongConstant")
-    override suspend fun onTrigger(launcher: LawnchairLauncher) {
+    override suspend fun onTrigger(launcher: BlownChartLauncher) {
         try {
             Class.forName("android.app.StatusBarManager")
                 .getMethod("expandNotificationsPanel")

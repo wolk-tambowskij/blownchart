@@ -7,7 +7,7 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import androidx.viewpager.widget.ViewPager
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.BlownChartLauncher
 import app.lawnchair.launcher
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.preferences2.subscribeBlocking
@@ -60,7 +60,7 @@ class SmartspacerView(context: Context, attrs: AttributeSet?) : BcSmartspaceView
                     getDismissOption(target, dismissAction),
                 ).ifEmpty { listOf(getCustomizeOptionFallback()) }
                 val popup = OptionsPopupView
-                    .show<LawnchairLauncher>(launcher, RectF(pos), options, true)
+                    .show<BlownChartLauncher>(launcher, RectF(pos), options, true)
                 return object : Popup {
                     override fun dismiss() {
                         popup.close(true)

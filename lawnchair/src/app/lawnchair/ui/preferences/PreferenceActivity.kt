@@ -32,7 +32,7 @@ import app.lawnchair.security.SettingsLockGate
 import app.lawnchair.security.SettingsLockUnlockActivity
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 import app.lawnchair.ui.theme.EdgeToEdge
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.BlownChartTheme
 import com.google.accompanist.adaptive.calculateDisplayFeatures
 import kotlinx.serialization.json.Json
 
@@ -71,7 +71,7 @@ class PreferenceActivity : ComponentActivity() {
         }
 
         setContent {
-            LawnchairTheme {
+            BlownChartTheme {
                 EdgeToEdge()
                 if (isUnlocked) {
                     Preferences(

@@ -13,7 +13,7 @@ import app.lawnchair.compatlib.ten.QuickstepCompatFactoryVQ
 import app.lawnchair.compatlib.thirteen.QuickstepCompatFactoryVT
 import app.lawnchair.compatlib.twelve.QuickstepCompatFactoryVS
 
-object LawnchairQuickstepCompat {
+object BlownChartQuickstepCompat {
 
     @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
     @JvmField

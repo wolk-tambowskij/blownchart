@@ -18,7 +18,7 @@ class TaskOverlayFactoryImpl(@Suppress("UNUSED_PARAMETER") context: Context) : T
 
     class TaskOverlay(
         taskThumbnailView: TaskContainer,
-    ) : TaskOverlayFactory.TaskOverlay<LawnchairOverviewActionsView>(taskThumbnailView) {
+    ) : TaskOverlayFactory.TaskOverlay<BlownChartOverviewActionsView>(taskThumbnailView) {
 
         override fun initOverlay(
             task: Task?,
@@ -41,7 +41,7 @@ class TaskOverlayFactoryImpl(@Suppress("UNUSED_PARAMETER") context: Context) : T
         private inner class OverlayUICallbacksImpl(
             isAllowedByPolicy: Boolean,
             task: Task?,
-        ) : TaskOverlayFactory.TaskOverlay<LawnchairOverviewActionsView>.OverlayUICallbacksImpl(
+        ) : TaskOverlayFactory.TaskOverlay<BlownChartOverviewActionsView>.OverlayUICallbacksImpl(
             isAllowedByPolicy,
             task,
         ),

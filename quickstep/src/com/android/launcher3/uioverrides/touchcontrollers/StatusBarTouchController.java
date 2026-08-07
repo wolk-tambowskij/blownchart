@@ -46,7 +46,7 @@ import com.android.quickstep.SystemUiProxy;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 
-import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.BlownChartAppKt;
 import app.lawnchair.util.CompatibilityKt;
 
 /**
@@ -118,7 +118,7 @@ public class StatusBarTouchController implements TouchController {
     }
 
     private void vibrate() {
-        if (!LawnchairAppKt.getLawnchairApp(mLauncher).isVibrateOnIconAnimation()) {
+        if (!BlownChartAppKt.getBlownChartApp(mLauncher).isVibrateOnIconAnimation()) {
             VibratorWrapper.INSTANCE.get(mLauncher).vibrate(VibratorWrapper.OVERVIEW_HAPTIC);
         }
     }
