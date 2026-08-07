@@ -25,7 +25,7 @@ import androidx.core.graphics.ColorUtils;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 
-import app.lawnchair.theme.color.tokens.ColorTokens;
+import app.blownchart.theme.color.tokens.ColorTokens;
 
 /**
  * Scale down workspace/hotseat to hint at going to either overview (on pause) or first home screen.

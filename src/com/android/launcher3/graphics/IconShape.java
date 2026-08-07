@@ -42,7 +42,7 @@ import com.android.launcher3.views.ClipPathView;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import app.lawnchair.icons.CustomAdaptiveIconDrawable;
-import app.lawnchair.preferences2.PreferenceManager2;
+import app.blownchart.preferences2.PreferenceManager2;
 
 /**
  * Abstract representation of the shape of an icon shape
@@ -164,7 +164,7 @@ public final class IconShape implements SafeCloseable {
 
     public static final class AdaptiveIconShape extends PathShape {
 
-        private final app.lawnchair.icons.shape.IconShape mIconShape;
+        private final app.blownchart.icons.shape.IconShape mIconShape;
         private final Matrix mMatrix = new Matrix();
 
         public AdaptiveIconShape(Context context) {

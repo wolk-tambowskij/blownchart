@@ -46,7 +46,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
-import app.lawnchair.preferences2.PreferenceManager2;
+import app.blownchart.preferences2.PreferenceManager2;
 
 /**
  * Represents a system shortcut for a given app. The shortcut should have a

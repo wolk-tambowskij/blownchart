@@ -72,7 +72,7 @@
 
     <application
         android:backupAgent="com.android.launcher3.LauncherBackupAgent"
-        android:name="app.lawnchair.LawnchairApp"
+        android:name="app.blownchart.BlownChartApp"
         android:fullBackupOnly="true"
         android:backupInForeground="true"
         android:fullBackupContent="@xml/backupscheme"

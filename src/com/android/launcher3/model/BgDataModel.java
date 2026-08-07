@@ -79,7 +79,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import app.lawnchair.LawnchairApp;
+import app.blownchart.BlownChartApp;
 
 /**
  * All the data stored in-memory and managed by the LauncherModel
@@ -166,7 +166,7 @@ public class BgDataModel {
                 screenSet.add(item.screenId);
             }
         }
-        if (FeatureFlags.topQsbOnFirstScreenEnabled(LawnchairApp.getInstance()) || screenSet.isEmpty()) {
+        if (FeatureFlags.topQsbOnFirstScreenEnabled(BlownChartApp.getInstance()) || screenSet.isEmpty()) {
             screenSet.add(Workspace.FIRST_SCREEN_ID);
         }
         return screenSet.getArray();

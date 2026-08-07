@@ -52,7 +52,7 @@ import android.widget.ScrollView;
 
 import androidx.annotation.Nullable;
 
-import app.lawnchair.preferences2.PreferenceManager2;
+import app.blownchart.preferences2.PreferenceManager2;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.pageindicators.PageIndicator;
@@ -67,8 +67,8 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.ui.StretchEdgeEffect;
+import app.blownchart.preferences.PreferenceManager;
+import app.blownchart.ui.StretchEdgeEffect;
 
 /**
  * An abstraction of the original Workspace which supports browsing through a

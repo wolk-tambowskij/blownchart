@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace 'app.lawnchair.baseline'
+    namespace 'app.blownchart.baseline'
 
     defaultConfig {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

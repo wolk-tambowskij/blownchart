@@ -33,7 +33,7 @@ import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
-import app.lawnchair.preferences2.PreferenceManager2;
+import app.blownchart.preferences2.PreferenceManager2;
 
 public class DeleteDropTarget extends ButtonDropTarget {
 

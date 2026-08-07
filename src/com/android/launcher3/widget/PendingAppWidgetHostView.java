@@ -65,7 +65,7 @@ import com.android.launcher3.util.Themes;
 
 import java.util.List;
 
-import app.lawnchair.theme.color.tokens.ColorTokens;
+import app.blownchart.theme.color.tokens.ColorTokens;
 
 public class PendingAppWidgetHostView extends LauncherAppWidgetHostView
         implements OnClickListener, ItemInfoUpdateReceiver {

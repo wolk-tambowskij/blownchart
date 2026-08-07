@@ -24,10 +24,10 @@ import com.android.launcher3.util.window.WindowManagerProxy;
 import java.util.Collections;
 import java.util.List;
 
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.util.FileAccessManager;
-import app.lawnchair.util.FileAccessState;
+import app.blownchart.preferences.PreferenceManager;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.util.FileAccessManager;
+import app.blownchart.util.FileAccessState;
 
 public class LauncherRootView extends InsettableFrameLayout {
 

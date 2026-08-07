@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'app.lawnchair.compatlib.fifteen'
+    namespace 'app.blownchart.compatlib.fifteen'
 }
 
 addFrameworkJar('framework-15.jar')

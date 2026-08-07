@@ -37,7 +37,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.util.ActivityOptionsWrapper;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 
-import app.lawnchair.LawnchairApp;
+import app.blownchart.BlownChartApp;
 import dev.rikka.tools.refine.Refine;
 
 /**

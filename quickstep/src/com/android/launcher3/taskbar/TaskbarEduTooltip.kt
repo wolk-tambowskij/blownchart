@@ -29,7 +29,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.animation.Interpolator
 import android.window.OnBackInvokedDispatcher
 import androidx.core.view.updateLayoutParams
-import app.lawnchair.theme.color.tokens.ColorTokens
+import app.blownchart.theme.color.tokens.ColorTokens
 import com.android.app.animation.Interpolators.EMPHASIZED_ACCELERATE
 import com.android.app.animation.Interpolators.EMPHASIZED_DECELERATE
 import com.android.app.animation.Interpolators.STANDARD

@@ -48,7 +48,7 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.WallpaperColorHints;
 import com.android.launcher3.util.WindowBounds;
 
-import app.lawnchair.wallpaper.WallpaperManagerCompat;
+import app.blownchart.wallpaper.WallpaperManagerCompat;
 
 /**
  * Extension of BaseActivity allowing support for drag-n-drop

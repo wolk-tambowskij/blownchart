@@ -35,8 +35,8 @@ import com.android.launcher3.icons.DotRenderer;
 import com.android.launcher3.icons.IconNormalizer;
 import com.android.wm.shell.animation.Interpolators;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.theme.color.ColorOption;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.theme.color.ColorOption;
 
 import java.util.EnumSet;
 

@@ -104,12 +104,12 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import app.lawnchair.allapps.LawnchairAlphabeticalAppsList;
-import app.lawnchair.font.FontManager;
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.ui.StretchRecyclerViewContainer;
+import app.blownchart.allapps.BlownChartAlphabeticalAppsList;
+import app.blownchart.font.FontManager;
+import app.blownchart.preferences.PreferenceManager;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.theme.color.tokens.ColorTokens;
+import app.blownchart.ui.StretchRecyclerViewContainer;
 
 /**
  * All apps container view with search support for use in a dragging activity.
@@ -289,11 +289,11 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         mMainAdapterProvider = mSearchUiDelegate.createMainAdapterProvider();
 
         mAH.set(AdapterHolder.MAIN, new AdapterHolder(AdapterHolder.MAIN,
-                new LawnchairAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, mPrivateProfileManager)));
+                new BlownChartAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, mPrivateProfileManager)));
         mAH.set(AdapterHolder.WORK, new AdapterHolder(AdapterHolder.WORK,
-                new LawnchairAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, mWorkManager, null)));
+                new BlownChartAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, mWorkManager, null)));
         mAH.set(SEARCH, new AdapterHolder(SEARCH,
-                new LawnchairAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, null)));
+                new BlownChartAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, null)));
 
         getLayoutInflater().inflate(R.layout.all_apps_content, this);
         mHeader = findViewById(R.id.all_apps_header);

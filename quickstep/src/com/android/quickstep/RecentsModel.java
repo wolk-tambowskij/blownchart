@@ -58,8 +58,8 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.blownchart.BlownChartApp;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Singleton class to load and manage recents model.
@@ -127,7 +127,7 @@ public class RecentsModel implements RecentTasksDataSource, IconChangeListener,
         }
 
         mTaskStackChangeListeners = taskStackChangeListeners;
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (BlownChartApp.isRecentsEnabled()) {
             TaskStackChangeListeners.getInstance().registerTaskStackListener(this);
         }
         iconProvider.registerIconChangeListener(this, MAIN_EXECUTOR.getHandler());
@@ -219,7 +219,7 @@ public class RecentsModel implements RecentTasksDataSource, IconChangeListener,
 
         // Keep the cache up to date with the latest thumbnails
         ActivityManager.RunningTaskInfo runningTask =
-                LawnchairQuickstepCompat.getActivityManagerCompat().getRunningTask(true);
+                BlownChartQuickstepCompat.getActivityManagerCompat().getRunningTask(true);
         int runningTaskId = runningTask != null ? runningTask.id : -1;
         mTaskList.getTaskKeys(mThumbnailCache.getCacheSize(), taskGroups -> {
             for (GroupTask group : taskGroups) {

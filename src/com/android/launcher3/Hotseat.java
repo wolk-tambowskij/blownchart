@@ -44,12 +44,12 @@ import com.android.launcher3.taskbar.BlurredBitmapDrawable;
 import com.hoko.blur.HokoBlur;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
-import app.lawnchair.hotseat.DisabledHotseat;
-import app.lawnchair.hotseat.HotseatMode;
-import app.lawnchair.hotseat.LawnchairHotseat;
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.theme.drawable.DrawableTokens;
+import app.blownchart.hotseat.DisabledHotseat;
+import app.blownchart.hotseat.HotseatMode;
+import app.blownchart.hotseat.BlownChartHotseat;
+import app.blownchart.preferences.PreferenceManager;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.theme.drawable.DrawableTokens;
 
 import com.android.launcher3.util.HorizontalInsettableView;
 import com.android.launcher3.util.MultiTranslateDelegate;
@@ -98,7 +98,7 @@ public class Hotseat extends CellLayout implements Insettable {
         if (!hotseatMode.isAvailable(context)) {
             // The current hotseat mode is not available,
             // setting the hotseat mode to one that is always available
-            hotseatMode = LawnchairHotseat.INSTANCE;
+            hotseatMode = BlownChartHotseat.INSTANCE;
             PreferenceExtensionsKt.setBlocking(preferenceManager2.getHotseatMode(), hotseatMode);
         }
         int layoutId = hotseatMode.getLayoutResourceId();

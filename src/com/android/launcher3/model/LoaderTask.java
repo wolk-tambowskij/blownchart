@@ -113,7 +113,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.stream.Collectors;
 
-import app.lawnchair.preferences.PreferenceManager;
+import app.blownchart.preferences.PreferenceManager;
 
 /**
  * Runnable for the thread that loads the contents of the launcher:

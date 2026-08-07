@@ -23,8 +23,8 @@ import android.view.WindowManager.LayoutParams;
 
 import androidx.annotation.NonNull;
 
-import app.lawnchair.FeedBridge;
-import app.lawnchair.FeedBridge.BridgeInfo;
+import app.blownchart.FeedBridge;
+import app.blownchart.FeedBridge.BridgeInfo;
 import java.lang.ref.WeakReference;
 
 public class LauncherClient {
