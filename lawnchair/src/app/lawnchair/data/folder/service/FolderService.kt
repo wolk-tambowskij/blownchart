@@ -27,6 +27,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
@@ -79,6 +80,10 @@ class FolderService(val context: Context) : SafeCloseable {
         // invalidation still re-emits this Flow when a subfolder's own row or items change; since
         // its query touches the same Folders/FolderItems tables (see getSubfoldersWithItems()).
         folderDao.getAllFoldersWithItems().collect { foldersWithItems ->
+            if (foldersWithItems.isEmpty()) {
+                emit(emptyList())
+                return@collect
+            }
             val appInfoByComponentKey = cachedAppInfoByComponentKey
                 ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
             // Sort the entities (which carry .rank) before mapping to the domain FolderInfo
@@ -94,7 +99,7 @@ class FolderService(val context: Context) : SafeCloseable {
             }
             emit(mapped)
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     /**
      * Every folder (top-level and nested) as a flat list, each paired with its parent's id if
@@ -106,6 +111,10 @@ class FolderService(val context: Context) : SafeCloseable {
         var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
         val manualOrder = prefs2.folderManualOrder.firstBlocking()
         folderDao.getAllFoldersFlatWithItems().collect { foldersWithItems ->
+            if (foldersWithItems.isEmpty()) {
+                emit(emptyList())
+                return@collect
+            }
             val appInfoByComponentKey = cachedAppInfoByComponentKey
                 ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
             // Sort the entities (which carry .rank) before mapping, same as getFoldersFlow(), so
@@ -121,7 +130,7 @@ class FolderService(val context: Context) : SafeCloseable {
             }
             emit(mapped)
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>) = withContext(Dispatchers.IO) {
         // Ordinary edits (ticking a checkbox in the app picker) replace every item row, since
