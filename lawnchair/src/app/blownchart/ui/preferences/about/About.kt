@@ -243,6 +243,31 @@ fun About(
         }
         item {
             PreferenceGroupHeading(
+                stringResource(R.string.about_recommendations_heading),
+            )
+        }
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            ) {
+                Text(
+                    text = stringResource(id = R.string.about_recommendation_device_admin),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(id = R.string.about_recommendation_autostart),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        item {
+            PreferenceGroupHeading(
                 stringResource(R.string.donate_label),
             )
         }
