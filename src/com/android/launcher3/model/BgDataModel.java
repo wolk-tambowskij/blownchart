@@ -79,7 +79,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import app.lawnchair.BlownChartApp;
+import app.blownchart.BlownChartApp;
 
 /**
  * All the data stored in-memory and managed by the LauncherModel

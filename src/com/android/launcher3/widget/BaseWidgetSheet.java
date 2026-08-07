@@ -57,7 +57,7 @@ import com.android.launcher3.views.AbstractSlideInView;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import app.lawnchair.theme.color.tokens.ColorTokens;
+import app.blownchart.theme.color.tokens.ColorTokens;
 
 /**
  * Base class for various widgets popup

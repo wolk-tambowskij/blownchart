@@ -39,7 +39,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.function.IntConsumer;
 
-import app.lawnchair.BlownChartAppWidgetHostView;
+import app.blownchart.BlownChartAppWidgetHostView;
 
 /**
  * Specific {@link AppWidgetHost} that creates our

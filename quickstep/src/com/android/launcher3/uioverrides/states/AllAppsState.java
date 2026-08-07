@@ -34,8 +34,8 @@ import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 
 import java.util.concurrent.TimeUnit;
 
-import app.lawnchair.BlownChartLauncher;
-import app.lawnchair.util.BlownChartUtilsKt;
+import app.blownchart.BlownChartLauncher;
+import app.blownchart.util.BlownChartUtilsKt;
 
 /**
  * Definition for AllApps state

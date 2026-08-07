@@ -93,12 +93,12 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 
-import app.lawnchair.BlownChartApp;
-import app.lawnchair.font.FontManager;
-import app.lawnchair.gestures.IconGestureListener;
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.util.BlownChartUtilsKt;
+import app.blownchart.BlownChartApp;
+import app.blownchart.font.FontManager;
+import app.blownchart.gestures.IconGestureListener;
+import app.blownchart.preferences.PreferenceManager;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.util.BlownChartUtilsKt;
 
 /**
  * TextView that draws a bubble behind the text. We cannot use a

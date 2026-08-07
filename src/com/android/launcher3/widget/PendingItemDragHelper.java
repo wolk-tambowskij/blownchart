@@ -45,7 +45,7 @@ import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.icons.RoundDrawableWrapper;
 
-import app.lawnchair.BlownChartAppWidgetHostView;
+import app.blownchart.BlownChartAppWidgetHostView;
 
 /**
  * Extension of {@link DragPreviewProvider} with logic specific to pending

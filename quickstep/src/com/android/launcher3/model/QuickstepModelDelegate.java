@@ -90,8 +90,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import app.lawnchair.BlownChartApp;
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.BlownChartApp;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Model delegate which loads prediction items

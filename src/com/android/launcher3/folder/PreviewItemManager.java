@@ -59,7 +59,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-import app.lawnchair.preferences.PreferenceManager;
+import app.blownchart.preferences.PreferenceManager;
 
 /**
  * Manages the drawing and animations of {@link PreviewItemDrawingParams} for a

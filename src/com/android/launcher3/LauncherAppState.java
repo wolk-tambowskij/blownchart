@@ -65,8 +65,8 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.TraceHelper;
 import com.android.launcher3.widget.custom.CustomWidgetManager;
 
-import app.lawnchair.BlownChartAppKt;
-import app.lawnchair.icons.BlownChartIconProvider;
+import app.blownchart.BlownChartAppKt;
+import app.blownchart.icons.BlownChartIconProvider;
 
 public class LauncherAppState implements SafeCloseable {
 

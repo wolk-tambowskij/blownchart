@@ -87,8 +87,8 @@ import org.xmlpull.v1.XmlPullParser;
 import java.io.InputStream;
 import java.io.StringReader;
 
-import app.lawnchair.BlownChartApp;
-import app.lawnchair.BlownChartAppKt;
+import app.blownchart.BlownChartApp;
+import app.blownchart.BlownChartAppKt;
 
 /**
  * Utility class which maintains an instance of Launcher database and provides

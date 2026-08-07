@@ -55,7 +55,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * This class tracked the top-most task and  some 'approximate' task history to allow faster

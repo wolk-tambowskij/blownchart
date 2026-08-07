@@ -81,7 +81,7 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import app.lawnchair.BlownChartLauncher;
+import app.blownchart.BlownChartLauncher;
 
 /**
  * Class for handling clicks on workspace and all-apps items

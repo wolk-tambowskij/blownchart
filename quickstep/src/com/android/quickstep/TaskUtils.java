@@ -39,7 +39,7 @@ import com.android.systemui.shared.system.ActivityManagerWrapper;
 
 import java.util.List;
 
-import app.lawnchair.BlownChartApp;
+import app.blownchart.BlownChartApp;
 
 /**
  * Contains helpful methods for retrieving data from {@link Task}s.

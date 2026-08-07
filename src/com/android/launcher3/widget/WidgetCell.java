@@ -70,9 +70,9 @@ import com.android.launcher3.widget.util.WidgetSizes;
 
 import java.util.function.Consumer;
 
-import app.lawnchair.BlownChartAppWidgetHostView;
-import app.lawnchair.font.FontManager;
-import app.lawnchair.theme.drawable.DrawableTokens;
+import app.blownchart.BlownChartAppWidgetHostView;
+import app.blownchart.font.FontManager;
+import app.blownchart.theme.drawable.DrawableTokens;
 
 /**
  * Represents the individual cell of the widget inside the widget tray. The

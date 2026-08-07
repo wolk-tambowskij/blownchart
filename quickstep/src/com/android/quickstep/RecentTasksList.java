@@ -54,8 +54,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import app.lawnchair.BlownChartApp;
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.BlownChartApp;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Manages the recent task list from the system, caching it as necessary.

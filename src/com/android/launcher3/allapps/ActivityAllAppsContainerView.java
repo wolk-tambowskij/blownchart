@@ -104,12 +104,12 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import app.lawnchair.allapps.BlownChartAlphabeticalAppsList;
-import app.lawnchair.font.FontManager;
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.ui.StretchRecyclerViewContainer;
+import app.blownchart.allapps.BlownChartAlphabeticalAppsList;
+import app.blownchart.font.FontManager;
+import app.blownchart.preferences.PreferenceManager;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.theme.color.tokens.ColorTokens;
+import app.blownchart.ui.StretchRecyclerViewContainer;
 
 /**
  * All apps container view with search support for use in a dragging activity.

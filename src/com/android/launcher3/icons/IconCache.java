@@ -82,7 +82,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import app.lawnchair.icons.BlownChartIconProvider;
+import app.blownchart.icons.BlownChartIconProvider;
 
 /**
  * Cache of application icons. Icons can be made from any thread.

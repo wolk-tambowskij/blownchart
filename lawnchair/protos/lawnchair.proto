@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "app.lawnchair";
+option java_package = "app.blownchart";
 option java_outer_classname = "BlownChartProto";
 
 import "google/protobuf/timestamp.proto";

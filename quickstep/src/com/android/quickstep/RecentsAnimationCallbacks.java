@@ -47,7 +47,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
 
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Wrapper around {@link com.android.systemui.shared.system.RecentsAnimationListener} which

@@ -34,7 +34,7 @@
         android:layout_height="match_parent"
         android:clipChildren="false">
 
-        <app.lawnchair.views.BlownChartScrimView
+        <app.blownchart.views.BlownChartScrimView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/scrim_view"

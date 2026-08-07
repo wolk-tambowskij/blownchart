@@ -46,8 +46,8 @@ import com.android.quickstep.SystemUiProxy;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 
-import app.lawnchair.BlownChartAppKt;
-import app.lawnchair.util.CompatibilityKt;
+import app.blownchart.BlownChartAppKt;
+import app.blownchart.util.CompatibilityKt;
 
 /**
  * TouchController for handling touch events that get sent to the StatusBar.

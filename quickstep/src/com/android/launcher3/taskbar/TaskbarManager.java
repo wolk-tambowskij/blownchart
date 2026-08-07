@@ -80,7 +80,7 @@ import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
 import java.io.PrintWriter;
 import java.util.StringJoiner;
 
-import app.lawnchair.BlownChartApp;
+import app.blownchart.BlownChartApp;
 
 /**
  * Class to manage taskbar lifecycle

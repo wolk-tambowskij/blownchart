@@ -114,7 +114,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.lawnchair.icons.ExtendedBitmapDrawable;
-import app.lawnchair.preferences.PreferenceManager;
+import app.blownchart.preferences.PreferenceManager;
 
 /**
  * Various utilities shared amongst the Launcher's classes.

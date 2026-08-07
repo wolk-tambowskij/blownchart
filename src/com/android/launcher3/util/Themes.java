@@ -16,8 +16,8 @@
 
 package com.android.launcher3.util;
 
-import static app.lawnchair.wallpaper.WallpaperColorsCompat.HINT_SUPPORTS_DARK_TEXT;
-import static app.lawnchair.wallpaper.WallpaperColorsCompat.HINT_SUPPORTS_DARK_THEME;
+import static app.blownchart.wallpaper.WallpaperColorsCompat.HINT_SUPPORTS_DARK_TEXT;
+import static app.blownchart.wallpaper.WallpaperColorsCompat.HINT_SUPPORTS_DARK_THEME;
 
 import static com.android.launcher3.LauncherPrefs.THEMED_ICONS;
 
@@ -39,13 +39,13 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.icons.GraphicsUtils;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.theme.color.ColorMode;
-import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.wallpaper.WallpaperColorsCompat;
-import app.lawnchair.wallpaper.WallpaperManagerCompat;
-import app.lawnchair.ui.theme.ColorKt;
+import app.blownchart.preferences.PreferenceManager;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.theme.color.ColorMode;
+import app.blownchart.theme.color.tokens.ColorTokens;
+import app.blownchart.wallpaper.WallpaperColorsCompat;
+import app.blownchart.wallpaper.WallpaperManagerCompat;
+import app.blownchart.ui.theme.ColorKt;
 import com.android.launcher3.views.ActivityContext;
 
 /**

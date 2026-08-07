@@ -42,7 +42,7 @@ import com.android.launcher3.util.MainThreadInitializedObject.SandboxContext;
 import java.util.Locale;
 import java.util.Objects;
 
-import app.lawnchair.BlownChartProto;
+import app.blownchart.BlownChartProto;
 
 /**
  * Utility class representing persisted grid properties.

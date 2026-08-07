@@ -49,7 +49,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
 
-import app.lawnchair.theme.color.tokens.ColorTokens;
+import app.blownchart.theme.color.tokens.ColorTokens;
 
 /**
  * {@link PageIndicator} which shows dots per page. The active page is shown

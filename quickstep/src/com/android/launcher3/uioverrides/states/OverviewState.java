@@ -35,8 +35,8 @@ import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskView;
 
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.theme.color.tokens.ColorTokens;
+import app.blownchart.preferences.PreferenceManager;
+import app.blownchart.theme.color.tokens.ColorTokens;
 
 /**
  * Definition for overview state

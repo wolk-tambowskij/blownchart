@@ -52,7 +52,7 @@ import com.android.launcher3.views.ActivityContext;
 
 import java.util.Arrays;
 
-import app.lawnchair.BlownChartLauncher;
+import app.blownchart.BlownChartLauncher;
 
 /**
  * Base state for various states used for the Launcher

@@ -34,7 +34,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.StringJoiner;
 
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Various shared constants between Launcher and SysUI as part of quickstep

@@ -49,10 +49,10 @@
 }
 
 # BlownChart-specific rules.
--keep class app.lawnchair.BlownChartProto$* { *; }
--keep class app.lawnchair.BlownChartApp { *; }
--keep class app.lawnchair.BlownChartLauncher { *; }
--keep class app.lawnchair.compatlib.** { *; }
+-keep class app.blownchart.BlownChartProto$* { *; }
+-keep class app.blownchart.BlownChartApp { *; }
+-keep class app.blownchart.BlownChartLauncher { *; }
+-keep class app.blownchart.compatlib.** { *; }
 -keep class android.view.** { *; }
 
 -keep class com.google.protobuf.Timestamp { *; }

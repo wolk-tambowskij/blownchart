@@ -54,9 +54,9 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
 
-import app.lawnchair.BlownChartLauncher;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.ui.popup.LauncherOptionsPopup;
+import app.blownchart.BlownChartLauncher;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.ui.popup.LauncherOptionsPopup;
 
 /**
  * Popup shown on long pressing an empty space in launcher

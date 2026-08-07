@@ -58,8 +58,8 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import app.lawnchair.BlownChartApp;
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.BlownChartApp;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Singleton class to load and manage recents model.

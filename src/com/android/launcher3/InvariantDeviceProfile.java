@@ -77,7 +77,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import app.lawnchair.DeviceProfileOverrides;
+import app.blownchart.DeviceProfileOverrides;
 
 public class InvariantDeviceProfile implements SafeCloseable {
 

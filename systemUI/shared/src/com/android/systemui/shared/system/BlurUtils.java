@@ -21,7 +21,7 @@ import static android.view.CrossWindowBlurListeners.CROSS_WINDOW_BLUR_SUPPORTED;
 import android.app.ActivityManager;
 import android.os.SystemProperties;
 
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 public abstract class BlurUtils {
 

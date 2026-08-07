@@ -35,7 +35,7 @@ import android.util.ArrayMap
 import android.widget.Toast
 import android.window.RemoteTransition
 import androidx.annotation.RequiresApi
-import app.lawnchair.BlownChartApp
+import app.blownchart.BlownChartApp
 import com.android.launcher3.Flags.enablePrivateSpace
 import com.android.launcher3.Flags.enablePrivateSpaceInstallShortcut
 import com.android.launcher3.Flags.privateSpaceAppInstallerButton

@@ -25,7 +25,7 @@ import com.android.launcher3.Utilities;
 
 import java.util.function.BooleanSupplier;
 
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Utility class for helpful methods related to {@link View} objects.

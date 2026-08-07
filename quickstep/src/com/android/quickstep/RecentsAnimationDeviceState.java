@@ -83,7 +83,7 @@ import com.android.systemui.shared.system.TaskStackChangeListeners;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import app.lawnchair.BlownChartApp;
+import app.blownchart.BlownChartApp;
 
 /**
  * Manages the state of the system during a swipe up gesture.

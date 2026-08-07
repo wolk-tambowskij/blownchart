@@ -28,7 +28,7 @@ import android.view.ViewRootImpl;
 import com.android.launcher3.Utilities;
 import com.android.quickstep.RemoteAnimationTargets.ReleaseCheck;
 
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Helper class to apply surface transactions in sync with RenderThread similar to

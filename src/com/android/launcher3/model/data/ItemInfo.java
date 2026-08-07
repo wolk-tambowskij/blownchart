@@ -73,7 +73,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import app.lawnchair.BlownChartApp;
+import app.blownchart.BlownChartApp;
 
 /**
  * Represents an item in the launcher.

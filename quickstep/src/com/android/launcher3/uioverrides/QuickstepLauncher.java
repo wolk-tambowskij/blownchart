@@ -192,8 +192,8 @@ import com.android.systemui.unfold.dagger.UnfoldMain;
 import com.android.systemui.unfold.progress.RemoteUnfoldTransitionReceiver;
 import com.android.systemui.unfold.updates.RotationChangeProvider;
 
-import app.lawnchair.BlownChartApp;
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.BlownChartApp;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 import kotlin.Unit;
 
 import java.io.FileDescriptor;

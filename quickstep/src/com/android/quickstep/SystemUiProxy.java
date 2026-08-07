@@ -110,7 +110,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Holds the reference to SystemUI.

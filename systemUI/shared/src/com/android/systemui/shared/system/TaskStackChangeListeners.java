@@ -36,7 +36,7 @@ import com.android.systemui.shared.recents.model.ThumbnailData;
 import java.util.ArrayList;
 import java.util.List;
 
-import app.lawnchair.compat.BlownChartQuickstepCompat;
+import app.blownchart.compat.BlownChartQuickstepCompat;
 
 /**
  * Tracks all the task stack listeners

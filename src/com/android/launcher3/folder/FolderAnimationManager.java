@@ -55,9 +55,9 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import app.lawnchair.theme.color.ColorOption;
-import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.util.BlownChartUtilsKt;
+import app.blownchart.theme.color.ColorOption;
+import app.blownchart.theme.color.tokens.ColorTokens;
+import app.blownchart.util.BlownChartUtilsKt;
 
 /**
  * Manages the opening and closing animations for a {@link Folder}.

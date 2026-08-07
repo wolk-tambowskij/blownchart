@@ -60,9 +60,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
-import app.lawnchair.compat.BlownChartQuickstepCompat;
-import app.lawnchair.compatlib.RecentsAnimationRunnerCompat;
-import app.lawnchair.compatlib.eleven.ActivityManagerCompatVR;
+import app.blownchart.compat.BlownChartQuickstepCompat;
+import app.blownchart.compatlib.RecentsAnimationRunnerCompat;
+import app.blownchart.compatlib.eleven.ActivityManagerCompatVR;
 
 public class ActivityManagerWrapper {
 
