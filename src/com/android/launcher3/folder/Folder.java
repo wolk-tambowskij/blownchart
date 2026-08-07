@@ -1214,6 +1214,15 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (!mIsExternalDrag && d.dragSource == this) {
             mInfo.remove(draggedInfo, false);
         }
+
+        // Same drag-completion state cleanup Folder#onDrop's normal path does at its end -
+        // without it the launcher is left stuck in whatever spring-loaded/edit state it entered
+        // for this drag, since this method's caller returns before ever reaching that code.
+        mIsDragInProgress = false;
+        Launcher launcher = mLauncherDelegate.getLauncher();
+        if (launcher != null && !launcher.isInState(EDIT_MODE)) {
+            launcher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
+        }
     }
 
     @Override
@@ -1642,10 +1651,18 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             createNestedFolder(d, mergeTarget);
             return;
         }
-        // If the icon was dropped while the page was being scrolled, we need to compute
-        // the target location again such that the icon is placed of the final page.
-        if (!mContent.rankOnCurrentPage(mEmptyCellRank)) {
-            // Reorder again.
+        if (mIsExternalDrag || d.dragSource != this) {
+            // mEmptyCellRank normally tracks a live placeholder gap left behind by one of this
+            // folder's own children being dragged out, which FolderPagedView#realTimeReorder
+            // (below, via mReorderAlarmListener) animates the other icons around - meaningless
+            // for an item that was never one of them, and whatever it's leftover at (this
+            // folder's own last internal drag, or its Java default of 0) can be badly out of
+            // bounds for the current item count by now, crashing that reorder. Skip straight to
+            // the freshly computed target rank instead of animating from a stale one.
+            mEmptyCellRank = getTargetRank(d, null);
+        } else if (!mContent.rankOnCurrentPage(mEmptyCellRank)) {
+            // If the icon was dropped while the page was being scrolled, we need to compute
+            // the target location again such that the icon is placed of the final page.
             mTargetRank = getTargetRank(d, null);
 
             // Rearrange items immediately.
