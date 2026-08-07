@@ -347,6 +347,7 @@
     <string name="what_to_backup">Параметры резервирования</string>
     <string name="backup_content_layout_and_settings">Макет и настройки</string>
     <string name="backup_content_wallpaper">Обои</string>
+    <string name="backup_content_lock_wallpaper">Обои экрана блокировки</string>
     <string name="backup_create_success">Резервная копия создана</string>
     <string name="backup_create_error">Не удалось создать резервную копию</string>
     <string name="restore_backup">Восстановить резерв. копию</string>

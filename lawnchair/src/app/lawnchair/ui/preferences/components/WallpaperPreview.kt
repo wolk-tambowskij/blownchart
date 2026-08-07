@@ -2,6 +2,8 @@ package app.lawnchair.ui.preferences.components
 
 import android.annotation.SuppressLint
 import android.app.WallpaperManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.util.Size
 import androidx.compose.foundation.Image
@@ -144,4 +146,38 @@ fun wallpaperDrawable(
     }
 
     return wallpaperDrawable
+}
+
+/**
+ * Live lock-screen wallpaper, mirroring [wallpaperDrawable] but reading
+ * [WallpaperManager.FLAG_LOCK] specifically - see [app.lawnchair.backup.LawnchairBackup.create]'s
+ * matching read for why this is null on the common "lock mirrors home" setup.
+ */
+@SuppressLint("MissingPermission")
+@Composable
+fun lockWallpaperDrawable(
+    hasPermission: Boolean,
+): Drawable? {
+    val context = LocalContext.current
+    val wallpaperManager = remember { WallpaperManager.getInstance(context) }
+
+    val lockWallpaperDrawable by produceState<Drawable?>(
+        key1 = hasPermission,
+        initialValue = null,
+    ) {
+        value = if (hasPermission) {
+            withContext(Dispatchers.IO) {
+                wallpaperManager.getWallpaperFile(WallpaperManager.FLAG_LOCK)?.use { pfd ->
+                    BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)?.let {
+                        val size = Size(it.width, it.height).scaleDownToDisplaySize(context)
+                        Bitmap.createScaledBitmap(it, size.width, size.height, true).toDrawable(context.resources)
+                    }
+                }
+            }
+        } else {
+            null
+        }
+    }
+
+    return lockWallpaperDrawable
 }
