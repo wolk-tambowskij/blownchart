@@ -23,7 +23,6 @@ import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherFiles
 import com.android.launcher3.R
 import com.android.launcher3.model.DeviceGridState
-import com.android.launcher3.model.ModelDbController
 import com.android.launcher3.provider.RestoreDbTask
 import com.google.protobuf.Timestamp
 import java.io.File
@@ -102,8 +101,16 @@ class BlownChartBackup(
         DeviceGridState(info.gridState).writeToPrefs(context, true)
         readZip(handlers)
 
-        var dbController = ModelDbController(context)
-        RestoreDbTask.performRestore(context, dbController)
+        // Mirrors LauncherBackupAgent#onRestoreFinished(): mark the restore pending and let
+        // ModelDbController's normal DB-open path (RestoreDbTask#restoreIfNeeded, on the next
+        // cold start after restartLauncher()) do the actual restore, same as a real Android
+        // backup/restore. Calling RestoreDbTask#performRestore() directly here instead, on an
+        // ad-hoc ModelDbController while the app was still running, skipped the
+        // InvariantDeviceProfile reinit that only restoreIfNeeded() does - home-screen items
+        // silently dropped (grid-bound), while app-drawer contents and settings didn't (not
+        // grid-bound), until the same backup was restored a second time and that reinit had
+        // already happened as an ordinary side effect of the launcher running in between.
+        RestoreDbTask.setPending(context)
     }
 
     private suspend fun readZip(handlers: Map<String, suspend (InputStream) -> Unit>) {
