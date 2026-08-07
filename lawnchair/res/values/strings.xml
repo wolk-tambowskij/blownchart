@@ -544,6 +544,7 @@
     <string name="what_to_backup">What to back up</string>
     <string name="backup_content_layout_and_settings">Layout and settings</string>
     <string name="backup_content_wallpaper">Wallpaper</string>
+    <string name="backup_content_lock_wallpaper">Lock screen wallpaper</string>
     <string name="backup_create_success">Backup created</string>
     <string name="backup_create_error">Failed to create backup</string>
     <string name="restore_backup">Restore backup</string>

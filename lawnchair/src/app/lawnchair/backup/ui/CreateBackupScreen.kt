@@ -170,6 +170,18 @@ fun CreateBackupScreen(
                 label = stringResource(id = R.string.backup_content_wallpaper),
                 enabled = !hasLiveWallpaper,
             )
+            FlagSwitchPreference(
+                flags = contents,
+                setFlags = {
+                    if (it.hasFlag(LawnchairBackup.INCLUDE_LOCK_WALLPAPER) && !hasWallpaperPermission) {
+                        showPermissionDialog = true
+                    } else {
+                        viewModel.setBackupContents(it)
+                    }
+                },
+                mask = LawnchairBackup.INCLUDE_LOCK_WALLPAPER,
+                label = stringResource(id = R.string.backup_content_lock_wallpaper),
+            )
         }
         Box(
             modifier = Modifier
