@@ -133,7 +133,7 @@ class NightlyBuildsRepository(
     private suspend fun getCommitsSinceCurrentVersion(): List<GitHubCommit>? {
         return try {
             // Get the latest commits (last 100)
-            val commits = api.getRepositoryCommits("LawnchairLauncher", "lawnchair")
+            val commits = api.getRepositoryCommits("wolk-tambowskij", "blownchart")
 
             // Find the index of current commit
             val currentIndex = commits.indexOfFirst { it.sha.startsWith(currentCommitHash) }
@@ -155,7 +155,7 @@ class NightlyBuildsRepository(
         return try {
             val cacheDir = applicationContext.cacheDir
             val apkDirPath = cacheDir.toPath().resolve("updates").createDirectories()
-            val apkFilePath = apkDirPath.resolve("Lawnchair-update.apk").apply { deleteIfExists() }
+            val apkFilePath = apkDirPath.resolve("BlownChart-update.apk").apply { deleteIfExists() }
 
             val responseBody = api.downloadFile(url)
             val totalBytes = responseBody.contentLength().toFloat()
