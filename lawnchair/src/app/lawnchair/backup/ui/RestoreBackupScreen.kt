@@ -9,8 +9,10 @@ import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -144,31 +146,53 @@ fun ColumnScope.RestoreBackupOptions(
     }
 
     if (isPortrait) {
-        DummyLauncherBox(
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .padding(top = 8.dp)
                 .weight(1f)
-                .align(Alignment.CenterHorizontally)
-                .clip(MaterialTheme.shapes.large),
-            darkText = backup.info.previewDarkText,
+                .align(Alignment.CenterHorizontally),
         ) {
-            val wallpaper = backup.wallpaper
-            if (contents.hasFlag(LawnchairBackup.INCLUDE_WALLPAPER) && wallpaper != null) {
-                Image(
-                    bitmap = wallpaper.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillHeight,
-                )
+            DummyLauncherBox(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(MaterialTheme.shapes.large),
+                darkText = backup.info.previewDarkText,
+            ) {
+                val wallpaper = backup.wallpaper
+                if (contents.hasFlag(LawnchairBackup.INCLUDE_WALLPAPER) && wallpaper != null) {
+                    Image(
+                        bitmap = wallpaper.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.FillHeight,
+                    )
+                }
+                val screenshot = backup.screenshot
+                if (contents.hasFlag(LawnchairBackup.INCLUDE_LAYOUT_AND_SETTINGS) && screenshot != null) {
+                    Image(
+                        bitmap = screenshot.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.FillHeight,
+                    )
+                }
             }
-            val screenshot = backup.screenshot
-            if (contents.hasFlag(LawnchairBackup.INCLUDE_LAYOUT_AND_SETTINGS) && screenshot != null) {
-                Image(
-                    bitmap = screenshot.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillHeight,
-                )
+            val lockWallpaper = backup.lockWallpaper
+            if (contents.hasFlag(LawnchairBackup.INCLUDE_LOCK_WALLPAPER) && lockWallpaper != null) {
+                DummyLauncherBox(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(MaterialTheme.shapes.large),
+                    darkText = backup.info.previewDarkText,
+                ) {
+                    Image(
+                        bitmap = lockWallpaper.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.FillHeight,
+                    )
+                }
             }
         }
     }
