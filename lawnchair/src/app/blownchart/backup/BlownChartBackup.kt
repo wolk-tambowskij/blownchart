@@ -86,7 +86,9 @@ class BlownChartBackup(
                     // size (stored via classic SharedPreferences) back to default on the first
                     // restore pass.
                     PREFS_FILE_NAME -> { input -> restoreSharedPreferencesFile(file, input) }
+
                     PREFS_DATASTORE_FILE_NAME -> { input -> restoreDataStoreFile(file, input) }
+
                     else -> {
                         { input ->
                             file.parentFile?.mkdirs()
@@ -172,11 +174,18 @@ class BlownChartBackup(
                     staged.all.forEach { (key, value) ->
                         when (value) {
                             is Boolean -> putBoolean(key, value)
+
                             is Int -> putInt(key, value)
+
                             is Long -> putLong(key, value)
+
                             is Float -> putFloat(key, value)
+
                             is String -> putString(key, value)
-                            is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(key, value as Set<String>)
+
+                            is Set<*> ->
+                                @Suppress("UNCHECKED_CAST")
+                                putStringSet(key, value as Set<String>)
                         }
                     }
                 }
