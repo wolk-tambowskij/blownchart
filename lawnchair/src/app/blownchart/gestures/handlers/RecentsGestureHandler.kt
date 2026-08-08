@@ -16,7 +16,6 @@
 
 package app.blownchart.gestures.handlers
 
-import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
@@ -41,6 +40,13 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
             }
             return
         }
-        app.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
+        // TEST: route through RecentsBounceActivity instead of calling
+        // performGlobalAction(GLOBAL_ACTION_RECENTS) directly from the launcher, to check
+        // whether the system Recents screen renders correctly when it isn't invoked with the
+        // launcher itself as the resumed foreground task.
+        launcher.startActivity(
+            Intent(launcher, RecentsBounceActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
     }
 }
