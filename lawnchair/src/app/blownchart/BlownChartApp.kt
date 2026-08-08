@@ -66,10 +66,10 @@ class BlownChartApp : Application() {
      * detect the physical Recents button/gesture on firmware where it doesn't route to us) knows
      * which package to watch for.
      */
-    val systemRecentsComponentName: ComponentName? by unsafeLazy {
+    val systemRecentsComponentName: ComponentName? by lazy(LazyThreadSafetyMode.NONE) {
         @SuppressLint("DiscouragedApi")
         val resId = resources.getIdentifier("config_recentsComponentName", "string", "android")
-        if (resId == 0) return@unsafeLazy null
+        if (resId == 0) return@lazy null
         ComponentName.unflattenFromString(resources.getString(resId))
     }
     private val isAtleastT = Utilities.ATLEAST_T
