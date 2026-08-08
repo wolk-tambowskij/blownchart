@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.blownchart.BlownChartApp
+import app.blownchart.blownChartApp
 import app.blownchart.preferences.getAdapter
 import app.blownchart.preferences.observeAsState
 import app.blownchart.preferences.preferenceManager
@@ -25,6 +26,7 @@ import app.blownchart.ui.preferences.components.layout.PreferenceGroup
 import app.blownchart.ui.preferences.components.layout.PreferenceLayout
 import app.blownchart.ui.util.preview.PreviewBlownChart
 import app.blownchart.util.isOnePlusStock
+import app.blownchart.util.lifecycleState
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 
@@ -78,10 +80,22 @@ fun QuickstepPreferences(
                 heading = stringResource(id = R.string.recents_interception_label),
                 description = stringResource(id = R.string.recents_button_interception_description),
             ) {
+                val recentsButtonInterception = prefs2.recentsButtonInterception.getAdapter()
                 SwitchPreference(
-                    adapter = prefs2.recentsButtonInterception.getAdapter(),
+                    adapter = recentsButtonInterception,
                     label = stringResource(id = R.string.recents_button_interception_label),
                 )
+                // Unlike the gesture path, this toggle alone doesn't prompt to turn on
+                // Accessibility - nothing runs to show that prompt until the service is already
+                // live. Surface it here instead so turning the switch on without the service
+                // enabled isn't silently a no-op. Re-checked on every lifecycle change (e.g.
+                // returning from the accessibility settings screen).
+                val accessibilityServiceBound = remember(lifecycleState()) {
+                    context.blownChartApp.isAccessibilityServiceBound()
+                }
+                ExpandAndShrink(visible = recentsButtonInterception.state.value && !accessibilityServiceBound) {
+                    WarningPreference(text = stringResource(id = R.string.recents_button_interception_a11y_hint))
+                }
             }
         }
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {

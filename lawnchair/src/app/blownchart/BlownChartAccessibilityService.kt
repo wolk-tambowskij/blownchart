@@ -27,8 +27,6 @@ import com.patrykmichalik.opto.core.firstBlocking
 
 class BlownChartAccessibilityService : AccessibilityService() {
 
-    private var lastSelfTriggeredAtMs = 0L
-
     override fun onServiceConnected() {
         // TEST: on firmware where BlownChart isn't config_recentsComponentName, watch that
         // component's window so we can catch the physical Recents button/gesture (which the OS
@@ -57,17 +55,24 @@ class BlownChartAccessibilityService : AccessibilityService() {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         if (BlownChartApp.isRecentsEnabled) return
         val recentsComponent = blownChartApp.systemRecentsComponentName ?: return
-        if (event.packageName != recentsComponent.packageName) return
+        // Matched on the full component, not just the package: that package can host other
+        // windows too (e.g. system UI surfaces unrelated to Recents), and matching on package
+        // alone caught those as well, causing spurious redirects that had nothing to do with the
+        // Recents button/gesture.
+        if (event.packageName?.toString() != recentsComponent.packageName) return
+        if (event.className?.toString() != recentsComponent.className) return
 
-        // The redirect below opens that same component's window itself (correctly, per
-        // RecentsBounceActivity) - without this cooldown, that self-triggered reopening would
-        // immediately fire this same event handler again.
+        // RecentsBounceActivity firing GLOBAL_ACTION_RECENTS itself makes this same window
+        // reappear - without this cooldown, that self-caused reappearance would immediately fire
+        // this same event handler again. Stamped from RecentsBounceActivity itself (shared with
+        // the gesture path), not just here, since that's the actual call that causes the window
+        // to reappear regardless of which path launched the bounce activity in the first place.
         val now = SystemClock.elapsedRealtime()
-        if (now - lastSelfTriggeredAtMs < SELF_TRIGGER_COOLDOWN_MS) return
+        if (now - blownChartApp.lastRecentsSelfTriggerAtMs < SELF_TRIGGER_COOLDOWN_MS) return
 
         if (!PreferenceManager2.getInstance(this).recentsButtonInterception.firstBlocking()) return
 
-        lastSelfTriggeredAtMs = now
+        blownChartApp.lastRecentsSelfTriggerAtMs = now
         startActivity(
             Intent(this, RecentsBounceActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS),

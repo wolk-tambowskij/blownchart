@@ -23,6 +23,7 @@ import android.accessibilityservice.AccessibilityService
 import android.app.Activity
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import app.blownchart.blownChartApp
 
 /**
@@ -37,6 +38,11 @@ class RecentsBounceActivity : Activity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private val triggerRecents = Runnable {
+        // Stamped right here, not by whichever caller launched this activity: this is the actual
+        // call that makes the real Recents window reappear, so this is what
+        // BlownChartAccessibilityService needs to recognize as self-caused, regardless of whether
+        // the gesture path or the button-watcher path is what got us here.
+        blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
         blownChartApp.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
     }
 

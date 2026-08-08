@@ -74,6 +74,19 @@ class BlownChartApp : Application() {
     }
     private val isAtleastT = Utilities.ATLEAST_T
     internal var accessibilityService: BlownChartAccessibilityService? = null
+
+    /**
+     * Timestamp ([android.os.SystemClock.elapsedRealtime]) of the last time this app itself
+     * invoked [performGlobalAction] with GLOBAL_ACTION_RECENTS from [RecentsBounceActivity] -
+     * regardless of whether that bounce was launched from the gesture path
+     * ([app.blownchart.gestures.handlers.RecentsGestureHandler]) or the physical-button
+     * accessibility watcher ([BlownChartAccessibilityService]). Both of those launch paths funnel
+     * into the same bounce activity, which is what actually fires the action that makes the real
+     * Recents window appear - so this single shared timestamp is what
+     * [BlownChartAccessibilityService] checks to tell a self-caused reappearance of that window
+     * apart from a genuine new button press, no matter which path caused it.
+     */
+    var lastRecentsSelfTriggerAtMs: Long = 0L
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
     override fun onCreate() {
