@@ -57,6 +57,21 @@ class BlownChartApp : Application() {
     private val compatible = Build.VERSION.SDK_INT in BuildConfig.QUICKSTEP_MIN_SDK..BuildConfig.QUICKSTEP_MAX_SDK
     private val isRecentsComponent: Boolean by unsafeLazy { checkRecentsComponent() }
     private val recentsEnabled: Boolean get() = compatible && isRecentsComponent
+
+    /**
+     * The component the OS actually invokes for the system Recents/Overview screen, read from
+     * config_recentsComponentName. Null when unreadable/unset; otherwise set regardless of
+     * whether it happens to be us - see [checkRecentsComponent], which is what actually decides
+     * [isRecentsComponent]. Exposed so a fallback (e.g. watching for that component's window to
+     * detect the physical Recents button/gesture on firmware where it doesn't route to us) knows
+     * which package to watch for.
+     */
+    val systemRecentsComponentName: ComponentName? by unsafeLazy {
+        @SuppressLint("DiscouragedApi")
+        val resId = resources.getIdentifier("config_recentsComponentName", "string", "android")
+        if (resId == 0) return@unsafeLazy null
+        ComponentName.unflattenFromString(resources.getString(resId))
+    }
     private val isAtleastT = Utilities.ATLEAST_T
     internal var accessibilityService: BlownChartAccessibilityService? = null
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
@@ -186,16 +201,9 @@ class BlownChartApp : Application() {
     }
 
     private fun checkRecentsComponent(): Boolean {
-        @SuppressLint("DiscouragedApi")
-        val resId = resources.getIdentifier("config_recentsComponentName", "string", "android")
-        if (resId == 0) {
-            Log.d(TAG, "config_recentsComponentName not found, disabling recents")
-            return false
-        }
-
-        val recentsComponent = ComponentName.unflattenFromString(resources.getString(resId))
+        val recentsComponent = systemRecentsComponentName
         if (recentsComponent == null) {
-            Log.d(TAG, "config_recentsComponentName is empty, disabling recents")
+            Log.d(TAG, "config_recentsComponentName not found or empty, disabling recents")
             return false
         }
 

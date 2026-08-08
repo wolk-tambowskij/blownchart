@@ -19,20 +19,27 @@ package app.blownchart
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
+import android.os.SystemClock
 import android.view.accessibility.AccessibilityEvent
+import app.blownchart.gestures.handlers.RecentsBounceActivity
+import app.blownchart.preferences2.PreferenceManager2
+import com.patrykmichalik.opto.core.firstBlocking
 
 class BlownChartAccessibilityService : AccessibilityService() {
 
-    override fun onServiceConnected() {
-        serviceInfo = AccessibilityServiceInfo().apply {
-            // Set the type of events that this service wants to listen to.  Others
-            // won't be passed to this service.
-            eventTypes = 0
+    private var lastSelfTriggeredAtMs = 0L
 
-            // If you only want this service to work with specific applications, set their
-            // package names here.  Otherwise, when the service is activated, it will listen
-            // to events from all applications.
-            packageNames = emptyArray()
+    override fun onServiceConnected() {
+        // TEST: on firmware where BlownChart isn't config_recentsComponentName, watch that
+        // component's window so we can catch the physical Recents button/gesture (which the OS
+        // routes there directly, bypassing our own gesture handling entirely) and redirect
+        // through RecentsBounceActivity - see RecentsGestureHandler for why routing through it
+        // matters. Only watches that one package, not everything.
+        val recentsComponent = blownChartApp.systemRecentsComponentName
+        serviceInfo = AccessibilityServiceInfo().apply {
+            eventTypes = if (recentsComponent != null) AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED else 0
+            packageNames = recentsComponent?.let { arrayOf(it.packageName) } ?: emptyArray()
+            notificationTimeout = 0
         }
         blownChartApp.accessibilityService = this
     }
@@ -46,5 +53,28 @@ class BlownChartAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {}
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        if (BlownChartApp.isRecentsEnabled) return
+        val recentsComponent = blownChartApp.systemRecentsComponentName ?: return
+        if (event.packageName != recentsComponent.packageName) return
+
+        // The redirect below opens that same component's window itself (correctly, per
+        // RecentsBounceActivity) - without this cooldown, that self-triggered reopening would
+        // immediately fire this same event handler again.
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastSelfTriggeredAtMs < SELF_TRIGGER_COOLDOWN_MS) return
+
+        if (!PreferenceManager2.getInstance(this).recentsButtonInterception.firstBlocking()) return
+
+        lastSelfTriggeredAtMs = now
+        startActivity(
+            Intent(this, RecentsBounceActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+
+    companion object {
+        private const val SELF_TRIGGER_COOLDOWN_MS = 1500L
+    }
 }

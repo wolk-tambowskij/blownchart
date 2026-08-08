@@ -72,7 +72,18 @@ fun QuickstepPreferences(
         label = stringResource(id = R.string.quickstep_label),
         modifier = modifier,
     ) {
-        if (!BlownChartApp.isRecentsEnabled) QuickSwitchIgnoredWarning()
+        if (!BlownChartApp.isRecentsEnabled) {
+            QuickSwitchIgnoredWarning()
+            PreferenceGroup(
+                heading = stringResource(id = R.string.recents_interception_label),
+                description = stringResource(id = R.string.recents_button_interception_description),
+            ) {
+                SwitchPreference(
+                    adapter = prefs2.recentsButtonInterception.getAdapter(),
+                    label = stringResource(id = R.string.recents_button_interception_label),
+                )
+            }
+        }
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             SwitchPreference(
                 adapter = prefs.recentsTranslucentBackground.getAdapter(),
