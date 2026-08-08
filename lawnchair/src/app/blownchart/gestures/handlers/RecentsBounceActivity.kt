@@ -48,7 +48,11 @@ class RecentsBounceActivity : Activity() {
     override fun onPause() {
         super.onPause()
         handler.removeCallbacks(triggerRecents)
-        finish()
+        // finish() alone leaves the task around for the recents UI to pick up as the most
+        // recently used entry on firmware that doesn't honor excludeFromRecents for a task that
+        // was only ever briefly foregrounded; finishAndRemoveTask() drops the task itself instead
+        // of just the activity, which is what actually keeps it out of that list.
+        finishAndRemoveTask()
     }
 
     companion object {

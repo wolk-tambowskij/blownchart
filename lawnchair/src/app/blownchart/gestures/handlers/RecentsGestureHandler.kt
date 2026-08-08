@@ -46,7 +46,7 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
         // launcher itself as the resumed foreground task.
         launcher.startActivity(
             Intent(launcher, RecentsBounceActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS),
         )
     }
 }
