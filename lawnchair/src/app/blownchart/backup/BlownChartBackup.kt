@@ -116,7 +116,15 @@ class BlownChartBackup(
                 wallpaperManager.setBitmap(BitmapFactory.decodeStream(it), null, true, WallpaperManager.FLAG_LOCK)
             }
         }
-        context.getDatabasePath(LAUNCHER_DB_FILE_NAME).parentFile?.deleteRecursively()
+        // Only clears out a stale restored.db (and its -wal/-shm/-journal sidecars) left over
+        // from a previous restore attempt - NOT the whole databases/ directory. That directory
+        // is also home to unrelated SQLite databases this process has open independently (e.g.
+        // the icon cache), and deleting it out from under them raced with a background write on
+        // one of those and crashed the whole process with SQLITE_READONLY_DBMOVED.
+        val restoredDbFile = context.getDatabasePath(RESTORED_DB_FILE_NAME)
+        restoredDbFile.parentFile?.listFiles()
+            ?.filter { it.name.startsWith(RESTORED_DB_FILE_NAME) }
+            ?.forEach { it.delete() }
         readZip(handlers)
 
         // Mirrors LauncherBackupAgent#onRestoreFinished(): mark the restore pending and let
@@ -203,7 +211,10 @@ class BlownChartBackup(
      */
     private suspend fun restoreDataStoreFile(destFile: File, sourceStream: InputStream) {
         destFile.parentFile?.mkdirs()
-        val stagingFile = File(destFile.parentFile, "restore_staging_${destFile.name}_${System.nanoTime()}")
+        // PreferenceDataStoreFactory.create() requires the file name to end with the
+        // "preferences_pb" extension - the timestamp has to go before it, not after, or this
+        // throws IllegalStateException before ever reading the staged bytes back.
+        val stagingFile = File(destFile.parentFile, "restore_staging_${System.nanoTime()}.preferences_pb")
         sourceStream.copyTo(stagingFile.outputStream())
         try {
             val stagedPrefs = PreferenceDataStoreFactory.create { stagingFile }.data.first()
