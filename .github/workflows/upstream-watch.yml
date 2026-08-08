@@ -28,7 +28,6 @@ jobs:
         with:
           ref: ${{ env.OUR_BRANCH }}
           fetch-depth: 0
-          submodules: true
 
       - name: Configure git identity
         run: |
