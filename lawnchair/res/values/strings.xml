@@ -531,6 +531,10 @@
     <string name="about_change_13">Faster first launch and app drawer loading with a large number of installed apps, building in part on a thread-scheduling fix and a batched icon-loading optimization borrowed from Lawnchair 16\'s development branch</string>
     <string name="about_privacy_note">All settings, folder data, and the optional settings PIN are stored locally on this device. This fork does not add analytics or telemetry beyond what upstream Lawnchair already includes; see Lawnchair\'s own privacy policy below for the inherited baseline.</string>
 
+    <string name="about_recommendations_heading">Recommendations for reliability</string>
+    <string name="about_recommendation_device_admin">If you use the \"Double tap to sleep\" gesture, granting BlownChart device administrator access when prompted (Gestures → Double tap → Sleep) makes it lock the screen reliably on devices where the accessibility-based method doesn\'t work.</string>
+    <string name="about_recommendation_autostart">Some device manufacturers restrict background apps more aggressively than stock Android, which can affect widgets, notifications, and system gesture integration. If BlownChart misbehaves after switching away from it, check your device\'s battery/autostart settings — for example, DuraSpeed on some MediaTek-based devices, or the separate Autostart manager on MIUI-based Xiaomi devices. The exact menu name and location vary by manufacturer.</string>
+
     <string name="contributor_status_active">Active</string>
 
     <string name="update_check_failed">Failed to check for updates</string>

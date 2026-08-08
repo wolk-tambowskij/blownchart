@@ -88,6 +88,27 @@ see [`docs/UPSTREAM_SYNC.md`](docs/UPSTREAM_SYNC.md) for how later
 upstream changes are tracked, and the CI/release workflows under
 [`.github/workflows/`](.github/workflows/).
 
+### Known issues and recommendations
+
+- **Background restrictions**: some device manufacturers limit background
+  apps more aggressively than stock Android, which can affect widgets,
+  notifications, and system gesture integration. If BlownChart misbehaves
+  after switching away from it, check your device's battery/autostart
+  settings — for example, DuraSpeed on some MediaTek-based devices, or the
+  separate Autostart manager on MIUI-based Xiaomi devices. The exact menu
+  name and location vary by manufacturer.
+- **Double tap to sleep**: for the most reliable screen lock on devices
+  where the accessibility-based method doesn't work, grant BlownChart
+  device administrator access when prompted (Gestures → Double tap →
+  Sleep).
+- **Recents/Overview screen not taking over**: on some firmware, the OS
+  hardcodes a different app as the system's Recents-screen provider
+  (`config_recentsComponentName`) regardless of BlownChart being set as
+  the default launcher. When this happens, BlownChart detects the
+  mismatch and disables its own Quickstep/Recents integration rather than
+  silently failing. This is a device/firmware-level restriction, outside
+  what this fork — or upstream Lawnchair — can fix from application code.
+
 ### Build
 
 Requirements: JDK 17, Android SDK, and the NDK/CMake versions pinned in
@@ -217,6 +238,30 @@ BlownChart появился из-за того, что на простое же�
 о том, как отслеживаются последующие изменения апстрима, см.
 `docs/UPSTREAM_SYNC.md`; сами сценарии сборки — в
 [`.github/workflows/`](.github/workflows/).
+
+### Известные проблемы и рекомендации
+
+- **Ограничения фоновой работы**: на некоторых устройствах производитель
+  ограничивает работу приложений в фоне сильнее, чем в чистом Android —
+  это может влиять на виджеты, уведомления и интеграцию с системными
+  жестами. Если BlownChart ведёт себя нестабильно после переключения на
+  другое приложение, проверьте настройки батареи/автозапуска на вашем
+  устройстве — например, DuraSpeed на некоторых устройствах с
+  процессорами MediaTek или отдельный менеджер автозапуска на устройствах
+  Xiaomi с MIUI. Точное название и расположение пункта меню зависят от
+  производителя.
+- **Двойное касание для блокировки**: для надёжной блокировки экрана на
+  устройствах, где способ через спец. возможности не срабатывает,
+  предоставьте BlownChart права администратора устройства при запросе
+  (Жесты → Двойное касание → Блокировка).
+- **Экран «Недавние» не переключается на BlownChart**: на некоторых
+  прошивках ОС жёстко прописывает другое приложение как системного
+  провайдера экрана «Недавние» (`config_recentsComponentName`) — даже
+  если BlownChart установлен лончером по умолчанию. В этом случае
+  BlownChart обнаруживает несовпадение и сам отключает свою интеграцию с
+  Quickstep/Недавними, вместо того чтобы молча работать некорректно. Это
+  ограничение на уровне устройства/прошивки, которое нельзя обойти со
+  стороны кода ни этого форка, ни оригинального Lawnchair.
 
 ### Сборка
 
