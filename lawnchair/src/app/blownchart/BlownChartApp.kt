@@ -62,9 +62,7 @@ class BlownChartApp : Application() {
      * The component the OS actually invokes for the system Recents/Overview screen, read from
      * config_recentsComponentName. Null when unreadable/unset; otherwise set regardless of
      * whether it happens to be us - see [checkRecentsComponent], which is what actually decides
-     * [isRecentsComponent]. Exposed so a fallback (e.g. watching for that component's window to
-     * detect the physical Recents button/gesture on firmware where it doesn't route to us) knows
-     * which package to watch for.
+     * [isRecentsComponent].
      */
     val systemRecentsComponentName: ComponentName? by lazy(LazyThreadSafetyMode.NONE) {
         @SuppressLint("DiscouragedApi")

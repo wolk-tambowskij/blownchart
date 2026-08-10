@@ -78,11 +78,13 @@ class RecentsBounceActivity : Activity() {
     companion object {
         private const val TAG = "BlownChartRecents"
 
-        // TEST: was 80ms. Long enough for the real Recents window's own natural (buggy) opening
-        // to fully settle/dismiss before this activity fires its own GLOBAL_ACTION_RECENTS, in
-        // case the two overlapping is what makes the OS treat them as a double-tap and bounce
-        // back to the previously open app instead of opening Recents cleanly. Unconfirmed -
-        // tunable if this value turns out to be wrong.
-        private const val TRIGGER_DELAY_MS = 300L
+        // Was raised to 300ms while a since-removed fallback path could still land here racing a
+        // natural (buggy) system attempt at opening Recents, and needed to wait that out first.
+        // Both remaining callers (BlownChartAccessibilityService's overlay tap, and
+        // RecentsGestureHandler) never trigger a competing natural attempt in the first place -
+        // the overlay intercepts the touch before SystemUI ever sees it, and the gesture path
+        // never touches the physical button at all - so there's nothing left to wait out. Back
+        // to a minimal delay just to let this activity finish resuming before firing the action.
+        private const val TRIGGER_DELAY_MS = 80L
     }
 }
