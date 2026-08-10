@@ -11,13 +11,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -148,13 +151,18 @@ fun SelectAppsForDrawerFolder(
 
     // Apps are already sorted alphabetically by appsState(); folder membership is a filter/toggle
     // only, not a manual order, so the displayed order never changes when items are (de)selected.
-    val displayedApps = remember(apps, filterNonUniqueItems, allFolderPackages, selectedIds, searchQuery) {
+    // In manual-order mode, already-selected apps are dropped from this list entirely - they're
+    // shown (and removable) in the "Folder contents" group above instead, via +/- buttons rather
+    // than a checkbox; in automatic-sort mode this stays the single list of everything, toggled
+    // by checkbox.
+    val displayedApps = remember(apps, filterNonUniqueItems, allFolderPackages, selectedIds, searchQuery, manualOrder) {
         apps.filter { app ->
-            (
-                !filterNonUniqueItems ||
-                    !allFolderPackages.contains(app.key.componentName.packageName) ||
-                    selectedIds.contains(app.key.toString())
-                ) &&
+            (!manualOrder || !selectedIds.contains(app.key.toString())) &&
+                (
+                    !filterNonUniqueItems ||
+                        !allFolderPackages.contains(app.key.componentName.packageName) ||
+                        selectedIds.contains(app.key.toString())
+                    ) &&
                 app.label.contains(searchQuery, ignoreCase = true)
         }
     }
@@ -295,26 +303,48 @@ fun SelectAppsForDrawerFolder(
                                             onDragStop = { onDraggingChange(false) },
                                         )
                                     },
+                                    endWidget = {
+                                        IconButton(onClick = { persistSelection(selectedIds - app.key.toString()) }) {
+                                            Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.delete_label))
+                                        }
+                                    },
                                 )
                             }
                         }
                     }
                     preferenceGroupItems(
                         items = displayedApps,
-                        isFirstChild = true,
+                        heading = if (manualOrder && selectedOrder.isNotEmpty()) {
+                            { stringResource(R.string.add_apps) }
+                        } else {
+                            null
+                        },
+                        isFirstChild = !(manualOrder && selectedOrder.isNotEmpty()),
                         dividerStartIndent = 40.dp,
                     ) { _, app ->
-                        val isSelected = selectedIds.contains(app.key.toString())
-                        AppItem(
-                            app = app,
-                            onClick = { toggledApp: App ->
-                                val key = toggledApp.key.toString()
-                                persistSelection(if (isSelected) selectedIds - key else selectedIds + key)
-                            },
-                            endWidget = {
-                                Checkbox(checked = isSelected, onCheckedChange = null)
-                            },
-                        )
+                        if (manualOrder) {
+                            AppItem(
+                                app = app,
+                                onClick = { toggledApp: App ->
+                                    persistSelection(selectedIds + toggledApp.key.toString())
+                                },
+                                widget = {
+                                    Icon(Icons.Rounded.Add, contentDescription = null)
+                                },
+                            )
+                        } else {
+                            val isSelected = selectedIds.contains(app.key.toString())
+                            AppItem(
+                                app = app,
+                                onClick = { toggledApp: App ->
+                                    val key = toggledApp.key.toString()
+                                    persistSelection(if (isSelected) selectedIds - key else selectedIds + key)
+                                },
+                                endWidget = {
+                                    Checkbox(checked = isSelected, onCheckedChange = null)
+                                },
+                            )
+                        }
                     }
                 }
             }
