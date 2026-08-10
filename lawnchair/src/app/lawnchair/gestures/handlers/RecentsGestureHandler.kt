@@ -18,6 +18,7 @@ package app.lawnchair.gestures.handlers
 
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import android.provider.Settings
 import app.lawnchair.LawnchairLauncher
 import app.lawnchair.lawnchairApp
@@ -46,6 +47,7 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
         // makes the OS flash it and immediately fall back to the launcher, as if a stray back
         // press had dismissed it. Standing in as a plain, non-launcher foreground activity first
         // works around that - see RecentsBounceActivity for the full explanation.
+        app.lastRecentsBounceActivityLaunchedAtMs = SystemClock.elapsedRealtime()
         launcher.startActivity(
             Intent(launcher, RecentsBounceActivity::class.java)
                 .addFlags(

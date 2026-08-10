@@ -231,6 +231,7 @@ class LawnchairAccessibilityService : AccessibilityService() {
             return
         }
         lawnchairApp.lastRecentsSelfTriggerAtMs = now
+        lawnchairApp.lastRecentsBounceActivityLaunchedAtMs = now
         startActivity(
             Intent(this, RecentsBounceActivity::class.java)
                 .addFlags(

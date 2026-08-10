@@ -87,6 +87,21 @@ class LawnchairApp : Application() {
      */
     var lastRecentsSelfTriggerAtMs: Long = 0L
 
+    /**
+     * Timestamp ([android.os.SystemClock.elapsedRealtime]) of the last time
+     * [app.lawnchair.gestures.handlers.RecentsGestureHandler]/[LawnchairAccessibilityService]
+     * actually asked the system to launch
+     * [app.lawnchair.gestures.handlers.RecentsBounceActivity], stamped immediately before the
+     * `startActivity()` call that does so.
+     * [app.lawnchair.gestures.handlers.RecentsBounceActivity.onCreate] checks this to tell a
+     * genuine fresh launch apart from the system/vendor Recents UI resurrecting a stale card for
+     * an already-finished instance of this activity when the user taps it directly - on firmware
+     * where excludeFromRecents/finishAndRemoveTask aren't reliably honored, that stale card can
+     * outlive the task it depicts, and tapping it otherwise leaves a bare, non-interactive
+     * transparent activity on screen with nothing to show and nothing to tap.
+     */
+    var lastRecentsBounceActivityLaunchedAtMs: Long = 0L
+
     override fun onCreate() {
         super.onCreate()
         instance = this
