@@ -35,19 +35,36 @@ jobs:
           distribution: 'zulu'
           java-version: 21
       - uses: gradle/actions/setup-gradle@v5
-      - name: Write sign info
-        id: sign-release-apk
-        if: github.repository_owner == 'LawnchairLauncher'
+      - name: Write signing config from secrets
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
-          if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
-            echo storePassword='${{ secrets.KEYSTORE_PASSWORD }}' >> keystore.properties
-            echo keyAlias='${{ secrets.KEY_ALIAS }}' >> keystore.properties
-            echo keyPassword='${{ secrets.KEY_PASSWORD }}' >> keystore.properties
-            echo storeFile='${{ github.workspace }}/key.jks' >> keystore.properties
-            echo ${{ secrets.KEYSTORE }} | base64 --decode > ${{ github.workspace }}/key.jks
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "::error::SIGNING_KEYSTORE_BASE64 secret is not set - refusing to publish an unsigned release."
+            exit 1
           fi
+          KEYSTORE_PATH="${{ runner.temp }}/release.jks"
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          {
+            echo "storeFile=$KEYSTORE_PATH"
+            echo "storePassword=$SIGNING_KEYSTORE_PASSWORD"
+            echo "keyAlias=$SIGNING_KEY_ALIAS"
+            echo "keyPassword=$SIGNING_KEY_PASSWORD"
+          } > keystore.properties
+
+          # Fail fast here, with a clear message, instead of silently falling through to an
+          # unsigned/wrongly-signed release several steps later: confirms the base64 actually
+          # decodes to a real keystore and that the alias/passwords are correct.
+          keytool -list -keystore "$KEYSTORE_PATH" -storepass "$SIGNING_KEYSTORE_PASSWORD" -alias "$SIGNING_KEY_ALIAS" > /dev/null
       - name: Build release APK
         run: ./gradlew assembleLawnWithQuickstepGithubRelease
+      - name: Remove temporary keystore
+        if: always()
+        run: |
+          rm -f keystore.properties "${{ runner.temp }}/release.jks"
       - name: Rename artifact
         env:
           ARTIFACT_NAME: ${{ github.event.inputs.artifactName }}
