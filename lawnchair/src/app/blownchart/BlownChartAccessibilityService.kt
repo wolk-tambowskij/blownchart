@@ -122,7 +122,11 @@ class BlownChartAccessibilityService : AccessibilityService() {
         blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
         startActivity(
             Intent(this, RecentsBounceActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS),
+                .addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION,
+                ),
         )
     }
 

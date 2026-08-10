@@ -49,7 +49,11 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
         Log.i("BlownChartRecents", "RecentsGestureHandler: launching bounce activity t=${SystemClock.elapsedRealtime()}")
         launcher.startActivity(
             Intent(launcher, RecentsBounceActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS),
+                .addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION,
+                ),
         )
     }
 }
