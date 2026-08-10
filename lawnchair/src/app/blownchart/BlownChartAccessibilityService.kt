@@ -67,14 +67,28 @@ class BlownChartAccessibilityService : AccessibilityService() {
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode != KeyEvent.KEYCODE_APP_SWITCH) return super.onKeyEvent(event)
+        // Unconditional and unfiltered by preference/isRecentsEnabled, unlike everywhere else in
+        // this file: this is the only way to find out whether this firmware ever delivers this
+        // key to onKeyEvent at all (for either action), since every other log capture so far
+        // never logged a single line from in here - but this method previously only logged deep
+        // inside the ACTION_UP branch, so a DOWN-only or otherwise-gated delivery would have been
+        // invisible. Answers that before anything below here matters.
+        Log.i(TAG, "onKeyEvent: APP_SWITCH action=${event.action} t=${SystemClock.elapsedRealtime()}")
+
         if (BlownChartApp.isRecentsEnabled) return super.onKeyEvent(event)
         if (!PreferenceManager2.getInstance(this).recentsButtonInterception.firstBlocking()) return super.onKeyEvent(event)
 
-        // Consume both DOWN and UP so the OS's own (buggy) handling of this key never runs at
-        // all, rather than reacting after the fact to a window it already half-opened - launch
-        // directly on UP, same as a normal button release.
-        if (event.action == KeyEvent.ACTION_UP) {
-            Log.i(TAG, "onKeyEvent: consuming APP_SWITCH, launching bounce activity directly")
+        // TEST (attempt 2): previously launched on ACTION_UP, i.e. only after the OS's own window
+        // event already fired and we reacted to it via onAccessibilityEvent below - onKeyEvent
+        // itself was never actually confirmed to be delivered at all (no log line ever showed up
+        // from in here, for either action, before the unconditional log above was added). If it
+        // does fire, launching on ACTION_DOWN instead - the moment the button is physically
+        // pressed, before the OS's own broken attempt has a chance to start on release - is worth
+        // trying: having a foreign foreground activity already in place before that broken attempt
+        // begins may avoid it altogether, rather than racing/settling around it after the fact.
+        // Still consuming both actions so the OS's own handling never runs if this does fire.
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            Log.i(TAG, "onKeyEvent: consuming APP_SWITCH, launching bounce activity directly on DOWN")
             launchRecentsBounceActivity()
         }
         return true
@@ -120,22 +134,10 @@ class BlownChartAccessibilityService : AccessibilityService() {
 
         // The window event we just matched is the OS's own attempt to open recentsComponent from
         // the physical button - already known to render incorrectly, which is why we redirect at
-        // all. Logs show that attempt is still unwinding internally (a SnapshotStartingWindow
-        // artifact, then focus landing back on whatever was open before the button was pressed)
-        // for a few hundred ms after it starts. Launching RecentsBounceActivity and firing our
-        // own GLOBAL_ACTION_RECENTS while that's still in flight overlapped the two attempts and
-        // the transition aborted back to the previous app - it never happens on the gesture path,
-        // which never has a competing natural attempt to begin with. Waiting for it to settle
-        // before we intervene fixed this (confirmed on real hardware).
-        //
-        // Tried also sending GLOBAL_ACTION_BACK immediately on this same event, hoping to cancel
-        // the natural attempt sooner and more deterministically than just waiting it out - but a
-        // log showed this same event also fires from a recentsComponent window that's ALREADY
-        // open and working (its own subsequent state-change events, not just the initial broken
-        // one), and BACK doesn't distinguish the two: it dismissed sessions that were already
-        // succeeding, including our own, at least as often as it cancelled a genuinely broken one.
-        // Net worse than just waiting. Removed.
-        Log.i(TAG, "onAccessibilityEvent: redirecting through RecentsBounceActivity after settle delay")
+        // all. If onKeyEvent's ACTION_DOWN launch above already fired for this same press, this
+        // is a no-op in effect (self-trigger cooldown suppresses it above), but it stays as the
+        // fallback path for firmware where onKeyEvent above never fires at all.
+        Log.i(TAG, "onAccessibilityEvent: scheduling delayed bounce-activity launch")
         handler.removeCallbacks(delayedLaunch)
         handler.postDelayed(delayedLaunch, NATURAL_ATTEMPT_SETTLE_DELAY_MS)
     }
