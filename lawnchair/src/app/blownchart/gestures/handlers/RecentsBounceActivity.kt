@@ -22,6 +22,7 @@ package app.blownchart.gestures.handlers
 import android.accessibilityservice.AccessibilityService
 import android.app.Activity
 import android.app.ActivityManager
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
@@ -52,6 +53,26 @@ class RecentsBounceActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // On firmware that doesn't honor excludeFromRecents/finishAndRemoveTask, the ghost card
+        // left behind in Recents can outlive the task it depicts - tapping it then resurrects a
+        // brand new instance of this bare, non-interactive, transparent activity via its cached
+        // launch intent, with nothing behind it to show and nothing on it to tap. Real-launches
+        // (RecentsGestureHandler, BlownChartAccessibilityService) always stamp
+        // lastRecentsBounceActivityLaunchedAtMs immediately before starting this activity, so a
+        // long gap since that stamp means this onCreate() wasn't one of those - it's exactly that
+        // resurrection. Bail out to the home screen instead of running the normal
+        // suppress-snapshot-then-trigger-Recents flow, which has nothing left to usefully do here.
+        val sinceLegitimateLaunch = SystemClock.elapsedRealtime() - blownChartApp.lastRecentsBounceActivityLaunchedAtMs
+        if (sinceLegitimateLaunch > STALE_RESURRECTION_THRESHOLD_MS) {
+            Log.i(TAG, "onCreate: stale resurrection (sinceLegitimateLaunch=${sinceLegitimateLaunch}ms), bouncing home")
+            startActivity(
+                Intent(Intent.ACTION_MAIN)
+                    .addCategory(Intent.CATEGORY_HOME)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+            finishAndRemoveTask()
+            return
+        }
         // This activity is on screen for well under TRIGGER_DELAY_MS, but the OS still snapshots
         // it for its own Recents-list card the instant it stops being focused - and since it's
         // fully transparent, that snapshot is whatever was drawn behind it (the app that was open
@@ -122,5 +143,12 @@ class RecentsBounceActivity : Activity() {
         // never touches the physical button at all - so there's nothing left to wait out. Back
         // to a minimal delay just to let this activity finish resuming before firing the action.
         private const val TRIGGER_DELAY_MS = 80L
+
+        // Comfortably larger than TRIGGER_DELAY_MS plus SELF_TRIGGER_COOLDOWN_MS
+        // (BlownChartAccessibilityService) plus ordinary IPC/scheduling slack on a slow device,
+        // but far short of how long a stale Recents card would realistically sit before a user
+        // taps it - a real tap on a resurrected ghost card happens well after Recents is already
+        // fully shown and settled, not within a couple of seconds of the original trigger.
+        private const val STALE_RESURRECTION_THRESHOLD_MS = 3000L
     }
 }

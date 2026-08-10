@@ -85,6 +85,19 @@ class BlownChartApp : Application() {
      * apart from a genuine new button press, no matter which path caused it.
      */
     var lastRecentsSelfTriggerAtMs: Long = 0L
+
+    /**
+     * Timestamp ([android.os.SystemClock.elapsedRealtime]) of the last time
+     * [RecentsGestureHandler]/[BlownChartAccessibilityService] actually asked the system to
+     * launch [RecentsBounceActivity], stamped immediately before the `startActivity()` call that
+     * does so. [RecentsBounceActivity.onCreate] checks this to tell a genuine fresh launch apart
+     * from the system/vendor Recents UI resurrecting a stale card for an already-finished
+     * instance of this activity when the user taps it directly - on firmware where
+     * excludeFromRecents/finishAndRemoveTask aren't reliably honored, that stale card can outlive
+     * the task it depicts, and tapping it otherwise leaves a bare, non-interactive transparent
+     * activity on screen with nothing to show and nothing to tap.
+     */
+    var lastRecentsBounceActivityLaunchedAtMs: Long = 0L
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
     override fun onCreate() {

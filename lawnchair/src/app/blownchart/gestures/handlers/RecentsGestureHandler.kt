@@ -47,6 +47,7 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
         // whether the system Recents screen renders correctly when it isn't invoked with the
         // launcher itself as the resumed foreground task.
         Log.i("BlownChartRecents", "RecentsGestureHandler: launching bounce activity t=${SystemClock.elapsedRealtime()}")
+        app.lastRecentsBounceActivityLaunchedAtMs = SystemClock.elapsedRealtime()
         launcher.startActivity(
             Intent(launcher, RecentsBounceActivity::class.java)
                 .addFlags(

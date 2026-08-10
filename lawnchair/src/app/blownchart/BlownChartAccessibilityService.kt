@@ -231,6 +231,7 @@ class BlownChartAccessibilityService : AccessibilityService() {
             return
         }
         blownChartApp.lastRecentsSelfTriggerAtMs = now
+        blownChartApp.lastRecentsBounceActivityLaunchedAtMs = now
         startActivity(
             Intent(this, RecentsBounceActivity::class.java)
                 .addFlags(
