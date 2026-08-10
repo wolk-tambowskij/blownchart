@@ -61,6 +61,32 @@ class LawnchairApp : Application() {
     internal var accessibilityService: LawnchairAccessibilityService? = null
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
+    /**
+     * The component the OS actually invokes for the system Recents/Overview screen, read from
+     * config_recentsComponentName. Null when unreadable/unset; otherwise set regardless of
+     * whether it happens to be us - see [checkRecentsComponent], which is what actually decides
+     * [isRecentsComponent].
+     */
+    val systemRecentsComponentName: ComponentName? by unsafeLazy {
+        @SuppressLint("DiscouragedApi")
+        val resId = resources.getIdentifier("config_recentsComponentName", "string", "android")
+        if (resId == 0) return@unsafeLazy null
+        ComponentName.unflattenFromString(resources.getString(resId))
+    }
+
+    /**
+     * Timestamp ([android.os.SystemClock.elapsedRealtime]) of the last time this app itself
+     * invoked [performGlobalAction] with GLOBAL_ACTION_RECENTS from
+     * [app.lawnchair.gestures.handlers.RecentsBounceActivity] - regardless of whether that bounce
+     * was launched from the gesture path ([app.lawnchair.gestures.handlers.RecentsGestureHandler])
+     * or the physical-button accessibility watcher ([LawnchairAccessibilityService]). Both of
+     * those launch paths funnel into the same bounce activity, which is what actually fires the
+     * action that makes the real Recents window appear - so this single shared timestamp is what
+     * [LawnchairAccessibilityService] checks to tell a self-caused reappearance of that window
+     * apart from a genuine new button press, no matter which path caused it.
+     */
+    var lastRecentsSelfTriggerAtMs: Long = 0L
+
     override fun onCreate() {
         super.onCreate()
         instance = this

@@ -568,6 +568,11 @@
 
     <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
 
+    <string name="recents_interception_label">Recents interception</string>
+    <string name="recents_button_interception_description">Experimental: on some devices, firmware hardcodes a different app as the Recents screen provider, so the physical button/gesture always opens that app\'s Recents screen instead of Lawnchair\'s. This tries to redirect to Lawnchair\'s own Recents screen right after it opens. Behavior isn\'t guaranteed on every device, and may briefly show the other app\'s Recents screen first.</string>
+    <string name="recents_button_interception_label">Redirect to Lawnchair Recents (experimental)</string>
+    <string name="recents_button_interception_a11y_hint">This won\'t do anything until you turn on the Lawnchair accessibility service: tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"</string>
+
     <!--
 
     Bug reporting
