@@ -45,18 +45,18 @@ class RecentsBounceActivity : Activity() {
         // the gesture path or the button-watcher path is what got us here.
         blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
         val result = blownChartApp.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
-        Log.d(TAG, "triggerRecents: performGlobalAction result=$result t=${SystemClock.elapsedRealtime()}")
+        Log.i(TAG, "triggerRecents: performGlobalAction result=$result t=${SystemClock.elapsedRealtime()}")
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "onResume t=${SystemClock.elapsedRealtime()}")
+        Log.i(TAG, "onResume t=${SystemClock.elapsedRealtime()}")
         handler.postDelayed(triggerRecents, TRIGGER_DELAY_MS)
     }
 
     override fun onPause() {
         super.onPause()
-        Log.d(TAG, "onPause t=${SystemClock.elapsedRealtime()}")
+        Log.i(TAG, "onPause t=${SystemClock.elapsedRealtime()}")
         handler.removeCallbacks(triggerRecents)
         // finish() alone leaves the task around for the recents UI to pick up as the most
         // recently used entry on firmware that doesn't honor excludeFromRecents for a task that

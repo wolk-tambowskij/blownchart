@@ -35,7 +35,7 @@ class BlownChartAccessibilityService : AccessibilityService() {
         // through RecentsBounceActivity - see RecentsGestureHandler for why routing through it
         // matters. Only watches that one package, not everything.
         val recentsComponent = blownChartApp.systemRecentsComponentName
-        Log.d(TAG, "onServiceConnected: recentsComponent=$recentsComponent")
+        Log.i(TAG, "onServiceConnected: recentsComponent=$recentsComponent")
         serviceInfo = AccessibilityServiceInfo().apply {
             eventTypes = if (recentsComponent != null) AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED else 0
             packageNames = recentsComponent?.let { arrayOf(it.packageName) } ?: emptyArray()
@@ -55,7 +55,7 @@ class BlownChartAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        Log.d(TAG, "onAccessibilityEvent: pkg=${event.packageName} cls=${event.className} t=${SystemClock.elapsedRealtime()}")
+        Log.i(TAG, "onAccessibilityEvent: pkg=${event.packageName} cls=${event.className} t=${SystemClock.elapsedRealtime()}")
         if (BlownChartApp.isRecentsEnabled) return
         val recentsComponent = blownChartApp.systemRecentsComponentName ?: return
         // Matched on the full component, not just the package: that package can host other
@@ -64,7 +64,7 @@ class BlownChartAccessibilityService : AccessibilityService() {
         // Recents button/gesture.
         if (event.packageName?.toString() != recentsComponent.packageName) return
         if (event.className?.toString() != recentsComponent.className) return
-        Log.d(TAG, "onAccessibilityEvent: matched recentsComponent")
+        Log.i(TAG, "onAccessibilityEvent: matched recentsComponent")
 
         // RecentsBounceActivity firing GLOBAL_ACTION_RECENTS itself makes this same window
         // reappear - without this cooldown, that self-caused reappearance would immediately fire
@@ -74,16 +74,16 @@ class BlownChartAccessibilityService : AccessibilityService() {
         val now = SystemClock.elapsedRealtime()
         val sinceSelfTrigger = now - blownChartApp.lastRecentsSelfTriggerAtMs
         if (sinceSelfTrigger < SELF_TRIGGER_COOLDOWN_MS) {
-            Log.d(TAG, "onAccessibilityEvent: suppressed by cooldown, sinceSelfTrigger=${sinceSelfTrigger}ms")
+            Log.i(TAG, "onAccessibilityEvent: suppressed by cooldown, sinceSelfTrigger=${sinceSelfTrigger}ms")
             return
         }
 
         if (!PreferenceManager2.getInstance(this).recentsButtonInterception.firstBlocking()) {
-            Log.d(TAG, "onAccessibilityEvent: recentsButtonInterception pref is off")
+            Log.i(TAG, "onAccessibilityEvent: recentsButtonInterception pref is off")
             return
         }
 
-        Log.d(TAG, "onAccessibilityEvent: redirecting through RecentsBounceActivity")
+        Log.i(TAG, "onAccessibilityEvent: redirecting through RecentsBounceActivity")
         blownChartApp.lastRecentsSelfTriggerAtMs = now
         startActivity(
             Intent(this, RecentsBounceActivity::class.java)
