@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 class FolderService(val context: Context) : SafeCloseable {
@@ -37,6 +38,10 @@ class FolderService(val context: Context) : SafeCloseable {
         // as a per-visit snapshot rather than something tracked live.
         var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
         folderDao.getAllFoldersWithItems().collect { foldersWithItems ->
+            if (foldersWithItems.isEmpty()) {
+                emit(emptyList())
+                return@collect
+            }
             val appInfoByComponentKey = cachedAppInfoByComponentKey
                 ?: buildAppInfoMap().also { cachedAppInfoByComponentKey = it }
             emit(
@@ -45,7 +50,7 @@ class FolderService(val context: Context) : SafeCloseable {
                 },
             )
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>) = withContext(Dispatchers.IO) {
         folderDao.insertFolderWithItems(
