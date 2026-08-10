@@ -18,7 +18,9 @@ package app.blownchart.gestures.handlers
 
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import android.provider.Settings
+import android.util.Log
 import app.blownchart.BlownChartLauncher
 import app.blownchart.blownChartApp
 import app.blownchart.views.ComposeBottomSheet
@@ -44,6 +46,7 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
         // performGlobalAction(GLOBAL_ACTION_RECENTS) directly from the launcher, to check
         // whether the system Recents screen renders correctly when it isn't invoked with the
         // launcher itself as the resumed foreground task.
+        Log.d("BlownChartRecents", "RecentsGestureHandler: launching bounce activity t=${SystemClock.elapsedRealtime()}")
         launcher.startActivity(
             Intent(launcher, RecentsBounceActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS),

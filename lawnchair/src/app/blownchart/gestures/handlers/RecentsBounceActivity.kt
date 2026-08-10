@@ -24,6 +24,7 @@ import android.app.Activity
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import app.blownchart.blownChartApp
 
 /**
@@ -43,16 +44,19 @@ class RecentsBounceActivity : Activity() {
         // BlownChartAccessibilityService needs to recognize as self-caused, regardless of whether
         // the gesture path or the button-watcher path is what got us here.
         blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
-        blownChartApp.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
+        val result = blownChartApp.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
+        Log.d(TAG, "triggerRecents: performGlobalAction result=$result t=${SystemClock.elapsedRealtime()}")
     }
 
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "onResume t=${SystemClock.elapsedRealtime()}")
         handler.postDelayed(triggerRecents, TRIGGER_DELAY_MS)
     }
 
     override fun onPause() {
         super.onPause()
+        Log.d(TAG, "onPause t=${SystemClock.elapsedRealtime()}")
         handler.removeCallbacks(triggerRecents)
         // finish() alone leaves the task around for the recents UI to pick up as the most
         // recently used entry on firmware that doesn't honor excludeFromRecents for a task that
@@ -62,6 +66,7 @@ class RecentsBounceActivity : Activity() {
     }
 
     companion object {
+        private const val TAG = "BlownChartRecents"
         private const val TRIGGER_DELAY_MS = 80L
     }
 }
