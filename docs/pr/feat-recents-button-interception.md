@@ -122,8 +122,8 @@ only "make the card harmless if it appears anyway":
    ignore a manifest attribute or a task-manager API call. With both in
    place, any card that still appears is a static placeholder rather than
    a live screenshot of whatever was behind it.
-3. **Stale-resurrection detection.** `RecentsGestureHandler` and
-   `LawnchairAccessibilityService` both stamp a new
+3. **Stale-resurrection detection (fresh-instance case).** `RecentsGestureHandler`
+   and `LawnchairAccessibilityService` both stamp a new
    `LawnchairApp.lastRecentsBounceActivityLaunchedAtMs` timestamp
    immediately before starting `RecentsBounceActivity`. `onCreate()`
    compares the elapsed time against that stamp: a gap under 3 seconds is
@@ -137,6 +137,49 @@ only "make the card harmless if it appears anyway":
    and calls `finishAndRemoveTask()`, so a tap on a stale ghost card lands
    the user back on their home screen instead of a dead, button-only
    screen.
+
+#### Second follow-up: the card still showed live content
+
+Further real-device retesting found items 1-3 above weren't sufficient
+on their own: the ghost card was still visible with live content behind
+it in some passes, and tapping it still landed on a dead screen in
+others. Two things turned out to be wrong with the original approach:
+
+- `setRecentsScreenshotEnabled`/`FLAG_SECURE` are meant to prevent the
+  OS from taking a snapshot at all, but this firmware doesn't reliably
+  honor either - so the underlying assumption ("no snapshot gets taken")
+  didn't hold, and whatever *did* get captured was still live content.
+- The stale-resurrection timestamp check only catches the case where the
+  OS resurrects a **fresh** instance of `RecentsBounceActivity` via a
+  cached launch intent. Real-device testing showed this firmware
+  sometimes instead resumes the **same, still-alive** instance - i.e.
+  `finishAndRemoveTask()` in `onStop()` didn't actually tear down the
+  task, and tapping the leftover card just calls `onResume()` again on
+  the original object. The timestamp check, keyed on a fresh `onCreate()`,
+  never fires in that case.
+
+Fixed by working with what the firmware actually does instead of
+depending on APIs it ignores:
+
+- **`onPause()` swaps this activity's content to a flat placeholder
+  color**, right as the OS snapshots it for the Recents card - instead
+  of only trying to prevent that snapshot from happening. Whatever gets
+  captured is now a deliberate dark card, not a screenshot of whatever
+  was open underneath. `TaskDescription`'s header color is set to match
+  in `onCreate()`, so the header strip and body read as one intentional
+  placeholder rather than two different colors.
+- **A second, independent stale-tap detector in `onResume()`**: a
+  per-instance `hasTriggeredRecents` flag tracks whether this exact
+  Activity object has already fired Recents once. A second `onResume()`
+  call on the same instance means the OS brought it back to the
+  foreground instead of tearing it down - the leftover-card-tap case the
+  timestamp check (still kept, in `onCreate()`) can't see, since no fresh
+  `onCreate()` happens there. Both detectors do the same thing on
+  trigger: redirect to the home screen and `finishAndRemoveTask()`.
+- `onStop()`'s `finishAndRemoveTask()` call is left in place - harmless,
+  and still correct on any firmware that *does* honor it. On the
+  firmware that doesn't, it's the two detectors above (not this call)
+  doing the actual work.
 
 ### Testing
 
@@ -154,12 +197,16 @@ bug described above, with "Recents interception" enabled:
   firmware) behavior for both paths.
 - Rotating the screen and switching between 3-button/gesture nav at
   runtime correctly repositions or removes the overlay.
-- Ghost/duplicate card follow-up: with the blank icon and unconditional
-  `FLAG_SECURE` in place, no live-content duplicate card labeled as this
-  app appears in Recents after repeated button/gesture use. Tapping any
-  placeholder card that does still appear from an already-finished bounce
-  task redirects to the home screen instead of showing a dead,
-  non-interactive screen.
+- Ghost/duplicate card, first follow-up (blank icon + unconditional
+  `FLAG_SECURE` + fresh-instance stale-resurrection check): real-device
+  retesting found this was **not** sufficient on its own - the card was
+  still occasionally visible with live content, and tapping it sometimes
+  still landed on a dead screen. See the second follow-up above
+  (content-swap in `onPause()` + same-instance stale-tap detection in
+  `onResume()`) for the fix that replaced it.
+- Ghost/duplicate card, second follow-up: **not yet confirmed on real
+  hardware** - implemented in response to the first follow-up's failure,
+  pending the next device test.
 
 Not yet independently re-verified against a from-scratch build of this
 specific clean-room branch on hardware (built and tested as part of
