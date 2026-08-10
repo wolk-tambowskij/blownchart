@@ -51,6 +51,10 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
             Intent(launcher, RecentsBounceActivity::class.java)
                 .addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or
+                        // Without this, a launch that lands while a previous bounce activity's
+                        // task hasn't fully torn down yet (same empty taskAffinity) could get
+                        // added to that stale task instead of a fresh one.
+                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK or
                         Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
                         Intent.FLAG_ACTIVITY_NO_ANIMATION,
                 ),

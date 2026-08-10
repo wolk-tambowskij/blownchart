@@ -69,12 +69,19 @@ class RecentsBounceActivity : Activity() {
         // that race looked like Recents falling back to whatever was open before it was invoked.
         // onStop only fires once this activity is fully obscured, i.e. once Recents has actually
         // taken over - finishAndRemoveTask() here (rather than just finish()) additionally drops
-        // the task itself, which is what keeps it out of the Recents list at all.
-        finishAndRemoveTask()
+        // the task itself, which is what keeps it out of the Recents list at all. Guarded since
+        // onPause and onStop can both land close together and finishAndRemoveTask() isn't
+        // idempotent-safe against being asked twice.
+        if (!isFinishing) finishAndRemoveTask()
     }
 
     companion object {
         private const val TAG = "BlownChartRecents"
-        private const val TRIGGER_DELAY_MS = 80L
+        // TEST: was 80ms. Long enough for the real Recents window's own natural (buggy) opening
+        // to fully settle/dismiss before this activity fires its own GLOBAL_ACTION_RECENTS, in
+        // case the two overlapping is what makes the OS treat them as a double-tap and bounce
+        // back to the previously open app instead of opening Recents cleanly. Unconfirmed -
+        // tunable if this value turns out to be wrong.
+        private const val TRIGGER_DELAY_MS = 300L
     }
 }
