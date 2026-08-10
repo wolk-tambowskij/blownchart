@@ -44,8 +44,7 @@ class LauncherSelfHideMigration(private val context: Context) : DataMigration<Pr
         ComponentKey(ComponentName(context, LawnchairLauncher::class.java), Process.myUserHandle()).toString()
     }
 
-    override suspend fun shouldMigrate(currentData: Preferences): Boolean =
-        currentData[appliedForKey] != selfComponentKey
+    override suspend fun shouldMigrate(currentData: Preferences): Boolean = currentData[appliedForKey] != selfComponentKey
 
     override suspend fun migrate(currentData: Preferences): Preferences {
         val hiddenApps = currentData[hiddenAppsKey] ?: emptySet()
