@@ -19,12 +19,20 @@ package app.blownchart
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.provider.Settings
 import android.util.Log
-import android.view.KeyEvent
+import android.view.Gravity
+import android.view.View
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import app.blownchart.gestures.handlers.RecentsBounceActivity
 import app.blownchart.preferences2.PreferenceManager2
 import com.patrykmichalik.opto.core.firstBlocking
@@ -32,71 +40,76 @@ import com.patrykmichalik.opto.core.firstBlocking
 class BlownChartAccessibilityService : AccessibilityService() {
 
     private val handler = Handler(Looper.getMainLooper())
+    private val windowManager by lazy { getSystemService(WindowManager::class.java) }
+
+    private var overlayView: View? = null
+    private var overlayBounds: Rect? = null
 
     override fun onServiceConnected() {
         // TEST: on firmware where BlownChart isn't config_recentsComponentName, watch that
         // component's window so we can catch the physical Recents button/gesture (which the OS
         // routes there directly, bypassing our own gesture handling entirely) and redirect
         // through RecentsBounceActivity - see RecentsGestureHandler for why routing through it
-        // matters. Only watches that one package, not everything.
+        // matters. Also watches TYPE_WINDOWS_CHANGED, unrestricted by package (that event isn't
+        // tied to recentsComponent's package at all) - see updateOverlay() below for why.
         val recentsComponent = blownChartApp.systemRecentsComponentName
         Log.i(TAG, "onServiceConnected: recentsComponent=$recentsComponent")
         serviceInfo = AccessibilityServiceInfo().apply {
-            eventTypes = if (recentsComponent != null) AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED else 0
-            packageNames = recentsComponent?.let { arrayOf(it.packageName) } ?: emptyArray()
+            eventTypes = if (recentsComponent != null) {
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or AccessibilityEvent.TYPE_WINDOWS_CHANGED
+            } else {
+                0
+            }
+            packageNames = null
             notificationTimeout = 0
-            // TEST: also try to consume KEYCODE_APP_SWITCH directly in onKeyEvent below, before
-            // the OS's own (already-buggy) handling of the physical button ever runs - if that
-            // works on this firmware, it sidesteps the window-watching redirect above entirely
-            // for the button case, along with the self-trigger cooldown tuning it needs. Left
-            // enabled unconditionally alongside the window watcher (harmless no-op if this
-            // firmware never actually delivers the key here).
-            if (recentsComponent != null) flags = flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
+            // FLAG_RETRIEVE_INTERACTIVE_WINDOWS: needed for getWindows() below to actually return
+            // the navigation bar's window/content instead of nothing. FLAG_REPORT_VIEW_IDS: needed
+            // for findAccessibilityNodeInfosByViewId() below to have anything to match against -
+            // without it every node's view id comes back empty and that lookup silently always
+            // returns nothing.
+            if (recentsComponent != null) {
+                flags = flags or
+                    AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
+                    AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+            }
         }
         blownChartApp.accessibilityService = this
+        updateOverlay()
     }
 
     override fun onDestroy() {
         blownChartApp.accessibilityService = null
+        removeOverlay()
         super.onDestroy()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Rotation changes the nav bar's orientation/position; TYPE_WINDOWS_CHANGED usually covers
+        // this too, but firmwares are inconsistent about firing it for rotation specifically, so
+        // this is a direct, guaranteed-to-fire backstop.
+        updateOverlay()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onInterrupt() {}
 
-    override fun onKeyEvent(event: KeyEvent): Boolean {
-        if (event.keyCode != KeyEvent.KEYCODE_APP_SWITCH) return super.onKeyEvent(event)
-        // Unconditional and unfiltered by preference/isRecentsEnabled, unlike everywhere else in
-        // this file: this is the only way to find out whether this firmware ever delivers this
-        // key to onKeyEvent at all (for either action), since every other log capture so far
-        // never logged a single line from in here - but this method previously only logged deep
-        // inside the ACTION_UP branch, so a DOWN-only or otherwise-gated delivery would have been
-        // invisible. Answers that before anything below here matters.
-        Log.i(TAG, "onKeyEvent: APP_SWITCH action=${event.action} t=${SystemClock.elapsedRealtime()}")
-
-        if (BlownChartApp.isRecentsEnabled) return super.onKeyEvent(event)
-        if (!PreferenceManager2.getInstance(this).recentsButtonInterception.firstBlocking()) return super.onKeyEvent(event)
-
-        // TEST (attempt 2): previously launched on ACTION_UP, i.e. only after the OS's own window
-        // event already fired and we reacted to it via onAccessibilityEvent below - onKeyEvent
-        // itself was never actually confirmed to be delivered at all (no log line ever showed up
-        // from in here, for either action, before the unconditional log above was added). If it
-        // does fire, launching on ACTION_DOWN instead - the moment the button is physically
-        // pressed, before the OS's own broken attempt has a chance to start on release - is worth
-        // trying: having a foreign foreground activity already in place before that broken attempt
-        // begins may avoid it altogether, rather than racing/settling around it after the fact.
-        // Still consuming both actions so the OS's own handling never runs if this does fire.
-        if (event.action == KeyEvent.ACTION_DOWN) {
-            Log.i(TAG, "onKeyEvent: consuming APP_SWITCH, launching bounce activity directly on DOWN")
-            launchRecentsBounceActivity()
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        when (event?.eventType) {
+            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
+                // Fires for window changes system-wide, not just the nav bar - debounced since a
+                // single button press/screen transition can trigger a burst of these, and each one
+                // would otherwise walk the nav bar's node tree again for no reason.
+                handler.removeCallbacks(debouncedUpdateOverlay)
+                handler.postDelayed(debouncedUpdateOverlay, OVERLAY_UPDATE_DEBOUNCE_MS)
+            }
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> handleRecentsWindowStateChanged(event)
+            else -> return
         }
-        return true
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        Log.i(TAG, "onAccessibilityEvent: pkg=${event.packageName} cls=${event.className} t=${SystemClock.elapsedRealtime()}")
+    private fun handleRecentsWindowStateChanged(event: AccessibilityEvent) {
         if (BlownChartApp.isRecentsEnabled) return
         val recentsComponent = blownChartApp.systemRecentsComponentName ?: return
         // Matched on the full component, not just the package: that package can host other
@@ -107,19 +120,11 @@ class BlownChartAccessibilityService : AccessibilityService() {
         if (event.className?.toString() != recentsComponent.className) return
         Log.i(TAG, "onAccessibilityEvent: matched recentsComponent")
 
-        // RecentsBounceActivity firing GLOBAL_ACTION_RECENTS itself makes this same window
-        // reappear - without this cooldown, that self-caused reappearance would immediately fire
-        // this same event handler again. Stamped from RecentsBounceActivity itself (shared with
-        // the gesture path), not just here, since that's the actual call that causes the window
-        // to reappear regardless of which path launched the bounce activity in the first place.
-        //
-        // 1500ms wasn't long enough: logs from real hardware show the underlying
-        // recentsComponent - already known to be buggy, which is the entire reason this bounce
-        // trick exists - keeps emitting its own WINDOW_STATE_CHANGED roughly every 1.8-2.3s all
-        // on its own, well after that window, with no further user input. Each one got treated
-        // as a fresh press and redirected again, producing an unprompted, self-perpetuating loop.
-        // 5s comfortably clears that gap without being so long it would swallow a genuine second
-        // press.
+        // This is the fallback path for when the overlay below either isn't attached (button not
+        // found, gesture nav, pref off) or missed the touch for some reason - it reacts to the
+        // OS's own (already broken) attempt after the fact, same as before the overlay existed.
+        // When the overlay successfully intercepts the touch, SystemUI never sees it and this
+        // event never fires at all for that press, so the two paths don't race each other.
         val now = SystemClock.elapsedRealtime()
         val sinceSelfTrigger = now - blownChartApp.lastRecentsSelfTriggerAtMs
         if (sinceSelfTrigger < SELF_TRIGGER_COOLDOWN_MS) {
@@ -132,20 +137,150 @@ class BlownChartAccessibilityService : AccessibilityService() {
             return
         }
 
-        // The window event we just matched is the OS's own attempt to open recentsComponent from
-        // the physical button - already known to render incorrectly, which is why we redirect at
-        // all. If onKeyEvent's ACTION_DOWN launch above already fired for this same press, this
-        // is a no-op in effect (self-trigger cooldown suppresses it above), but it stays as the
-        // fallback path for firmware where onKeyEvent above never fires at all.
-        Log.i(TAG, "onAccessibilityEvent: scheduling delayed bounce-activity launch")
+        Log.i(TAG, "onAccessibilityEvent: scheduling delayed bounce-activity launch (overlay fallback)")
         handler.removeCallbacks(delayedLaunch)
         handler.postDelayed(delayedLaunch, NATURAL_ATTEMPT_SETTLE_DELAY_MS)
     }
 
     private val delayedLaunch = Runnable { launchRecentsBounceActivity() }
 
+    // ---- Overlay: intercept the physical Recents button's touch before SystemUI ever sees it ----
+
+    private val debouncedUpdateOverlay = Runnable { updateOverlay() }
+
+    private fun updateOverlay() {
+        if (BlownChartApp.isRecentsEnabled) {
+            removeOverlay()
+            return
+        }
+        if (!PreferenceManager2.getInstance(this).recentsButtonInterception.firstBlocking()) {
+            removeOverlay()
+            return
+        }
+        if (isGestureNavigationEnabled()) {
+            // No on-screen physical Recents button exists in gesture-nav mode - nothing to
+            // overlay, and the fallback watcher above only ever matches a button/gesture-invoked
+            // window anyway.
+            removeOverlay()
+            return
+        }
+        val bounds = findRecentsButtonBounds()
+        if (bounds == null) {
+            // Leaves any existing overlay in place at its last known position rather than tearing
+            // it down - a transient failure to find the button (e.g. nav bar briefly hidden by an
+            // immersive app) shouldn't blind us until the next successful lookup.
+            Log.i(TAG, "updateOverlay: recents button not found")
+            return
+        }
+        if (bounds == overlayBounds) return
+        addOrMoveOverlay(bounds)
+    }
+
+    private fun isGestureNavigationEnabled(): Boolean {
+        // Standard Settings.Secure key, readable by any app without special permission.
+        // 0 = 3-button nav, 1 = 2-button (deprecated pill), 2 = gesture nav.
+        val navMode = Settings.Secure.getInt(contentResolver, "navigation_mode", 0)
+        return navMode == 2
+    }
+
+    private fun findRecentsButtonBounds(): Rect? {
+        val windowList = try {
+            windows
+        } catch (e: SecurityException) {
+            Log.i(TAG, "findRecentsButtonBounds: no permission to read windows: $e")
+            return null
+        }
+        for (window in windowList) {
+            if (window.type != AccessibilityWindowInfo.TYPE_NAVIGATION_BAR) continue
+            val root = window.root ?: continue
+            val node = root.findAccessibilityNodeInfosByViewId(SYSTEMUI_RECENTS_VIEW_ID).firstOrNull()
+                ?: findRecentsButtonByDescription(root)
+            if (node != null) {
+                val bounds = Rect()
+                node.getBoundsInScreen(bounds)
+                if (!bounds.isEmpty) return bounds
+            }
+        }
+        return null
+    }
+
+    private fun findRecentsButtonByDescription(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+        // Fallback for firmware that renamed/dropped the standard AOSP view id: the nav bar's node
+        // tree is tiny (a handful of buttons), so a plain BFS by content description is cheap and
+        // matches whatever locale is active.
+        val queue = ArrayDeque<AccessibilityNodeInfo>()
+        queue.add(root)
+        while (queue.isNotEmpty()) {
+            val node = queue.removeFirst()
+            val description = node.contentDescription?.toString()?.lowercase()
+            if (description != null && (description.contains("recent") || description.contains("overview"))) {
+                return node
+            }
+            for (i in 0 until node.childCount) node.getChild(i)?.let { queue.add(it) }
+        }
+        return null
+    }
+
+    private fun addOrMoveOverlay(bounds: Rect) {
+        val view = overlayView ?: View(this).apply {
+            setOnClickListener {
+                Log.i(TAG, "overlay: clicked, launching bounce activity")
+                launchRecentsBounceActivity()
+            }
+        }.also { overlayView = it }
+
+        val params = WindowManager.LayoutParams(
+            bounds.width(),
+            bounds.height(),
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+            // NOT_FOCUSABLE: don't steal keyboard/back handling. NOT_TOUCH_MODAL: without this, a
+            // touchable window claims ALL pointer events system-wide, not just within its own
+            // bounds - omitting it would have silently broken touch everywhere else on screen
+            // while this overlay is up.
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            PixelFormat.TRANSLUCENT,
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = bounds.left
+            y = bounds.top
+        }
+
+        try {
+            if (view.isAttachedToWindow) {
+                windowManager.updateViewLayout(view, params)
+            } else {
+                windowManager.addView(view, params)
+            }
+            overlayBounds = bounds
+            Log.i(TAG, "overlay: positioned at $bounds")
+        } catch (e: Exception) {
+            Log.i(TAG, "overlay: failed to add/update: $e")
+        }
+    }
+
+    private fun removeOverlay() {
+        val view = overlayView ?: return
+        try {
+            if (view.isAttachedToWindow) windowManager.removeView(view)
+        } catch (e: Exception) {
+            Log.i(TAG, "overlay: failed to remove: $e")
+        }
+        overlayView = null
+        overlayBounds = null
+    }
+
     private fun launchRecentsBounceActivity() {
-        blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
+        // RecentsBounceActivity firing GLOBAL_ACTION_RECENTS itself makes recentsComponent's
+        // window reappear - without this cooldown, that self-caused reappearance would trigger the
+        // fallback watcher above again, or (for rapid repeated overlay taps) spawn overlapping
+        // bounce activities.
+        val now = SystemClock.elapsedRealtime()
+        val sinceSelfTrigger = now - blownChartApp.lastRecentsSelfTriggerAtMs
+        if (sinceSelfTrigger < SELF_TRIGGER_COOLDOWN_MS) {
+            Log.i(TAG, "launchRecentsBounceActivity: suppressed by cooldown, sinceSelfTrigger=${sinceSelfTrigger}ms")
+            return
+        }
+        blownChartApp.lastRecentsSelfTriggerAtMs = now
         startActivity(
             Intent(this, RecentsBounceActivity::class.java)
                 .addFlags(
@@ -160,10 +295,14 @@ class BlownChartAccessibilityService : AccessibilityService() {
     companion object {
         private const val TAG = "BlownChartRecents"
         private const val SELF_TRIGGER_COOLDOWN_MS = 5000L
+        private const val OVERLAY_UPDATE_DEBOUNCE_MS = 150L
+        private const val SYSTEMUI_RECENTS_VIEW_ID = "com.android.systemui:id/recent_apps"
 
         // TEST: the natural (broken) attempt this event represents has, in every log capture so
         // far, fully unwound (window flash, then fallback to whatever was open before) within a
-        // few hundred ms on its own. 500ms is a guess at a safe margin past that, unconfirmed.
+        // few hundred ms on its own. 500ms is a guess at a safe margin past that, unconfirmed. Only
+        // matters for the fallback path now - the overlay path has no competing natural attempt to
+        // wait out, since SystemUI never sees the touch that would have started one.
         private const val NATURAL_ATTEMPT_SETTLE_DELAY_MS = 500L
     }
 }
