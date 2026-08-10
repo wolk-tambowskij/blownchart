@@ -67,10 +67,10 @@ class LawnchairApp : Application() {
      * whether it happens to be us - see [checkRecentsComponent], which is what actually decides
      * [isRecentsComponent].
      */
-    val systemRecentsComponentName: ComponentName? by unsafeLazy {
+    val systemRecentsComponentName: ComponentName? by lazy(LazyThreadSafetyMode.NONE) {
         @SuppressLint("DiscouragedApi")
         val resId = resources.getIdentifier("config_recentsComponentName", "string", "android")
-        if (resId == 0) return@unsafeLazy null
+        if (resId == 0) return@lazy null
         ComponentName.unflattenFromString(resources.getString(resId))
     }
 
