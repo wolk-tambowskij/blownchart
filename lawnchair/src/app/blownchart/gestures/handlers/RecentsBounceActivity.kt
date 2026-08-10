@@ -58,10 +58,18 @@ class RecentsBounceActivity : Activity() {
         super.onPause()
         Log.i(TAG, "onPause t=${SystemClock.elapsedRealtime()}")
         handler.removeCallbacks(triggerRecents)
-        // finish() alone leaves the task around for the recents UI to pick up as the most
-        // recently used entry on firmware that doesn't honor excludeFromRecents for a task that
-        // was only ever briefly foregrounded; finishAndRemoveTask() drops the task itself instead
-        // of just the activity, which is what actually keeps it out of that list.
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.i(TAG, "onStop t=${SystemClock.elapsedRealtime()}")
+        // Finishing here rather than in onPause: onPause fires as soon as focus is merely lost,
+        // which can race the real Recents window's own appear transition while it's still only
+        // partially drawn over this activity. On this firmware's already-flaky Recents renderer,
+        // that race looked like Recents falling back to whatever was open before it was invoked.
+        // onStop only fires once this activity is fully obscured, i.e. once Recents has actually
+        // taken over - finishAndRemoveTask() here (rather than just finish()) additionally drops
+        // the task itself, which is what keeps it out of the Recents list at all.
         finishAndRemoveTask()
     }
 

@@ -21,6 +21,7 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.os.SystemClock
 import android.util.Log
+import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import app.blownchart.gestures.handlers.RecentsBounceActivity
 import app.blownchart.preferences2.PreferenceManager2
@@ -40,6 +41,13 @@ class BlownChartAccessibilityService : AccessibilityService() {
             eventTypes = if (recentsComponent != null) AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED else 0
             packageNames = recentsComponent?.let { arrayOf(it.packageName) } ?: emptyArray()
             notificationTimeout = 0
+            // TEST: also try to consume KEYCODE_APP_SWITCH directly in onKeyEvent below, before
+            // the OS's own (already-buggy) handling of the physical button ever runs - if that
+            // works on this firmware, it sidesteps the window-watching redirect above entirely
+            // for the button case, along with the self-trigger cooldown tuning it needs. Left
+            // enabled unconditionally alongside the window watcher (harmless no-op if this
+            // firmware never actually delivers the key here).
+            if (recentsComponent != null) flags = flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
         }
         blownChartApp.accessibilityService = this
     }
@@ -52,6 +60,21 @@ class BlownChartAccessibilityService : AccessibilityService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onInterrupt() {}
+
+    override fun onKeyEvent(event: KeyEvent): Boolean {
+        if (event.keyCode != KeyEvent.KEYCODE_APP_SWITCH) return super.onKeyEvent(event)
+        if (BlownChartApp.isRecentsEnabled) return super.onKeyEvent(event)
+        if (!PreferenceManager2.getInstance(this).recentsButtonInterception.firstBlocking()) return super.onKeyEvent(event)
+
+        // Consume both DOWN and UP so the OS's own (buggy) handling of this key never runs at
+        // all, rather than reacting after the fact to a window it already half-opened - launch
+        // directly on UP, same as a normal button release.
+        if (event.action == KeyEvent.ACTION_UP) {
+            Log.i(TAG, "onKeyEvent: consuming APP_SWITCH, launching bounce activity directly")
+            launchRecentsBounceActivity()
+        }
+        return true
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
@@ -92,7 +115,11 @@ class BlownChartAccessibilityService : AccessibilityService() {
         }
 
         Log.i(TAG, "onAccessibilityEvent: redirecting through RecentsBounceActivity")
-        blownChartApp.lastRecentsSelfTriggerAtMs = now
+        launchRecentsBounceActivity()
+    }
+
+    private fun launchRecentsBounceActivity() {
+        blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
         startActivity(
             Intent(this, RecentsBounceActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS),
