@@ -531,6 +531,11 @@
     <string name="about_change_11">Prompt to disable battery optimization for the launcher on first launch</string>
     <string name="about_change_12">Tested under real-world load — 40 folders and 1766 installed apps: list building, selecting apps, and saving are all instant</string>
     <string name="about_change_13">Faster first launch and app drawer loading with a large number of installed apps, building in part on a thread-scheduling fix and a batched icon-loading optimization borrowed from Lawnchair 16\'s development branch</string>
+    <string name="about_change_14">Experimental: reliably opens the real Recents/Overview screen from the physical Recents button or a double-tap gesture, on firmware where invoking it directly renders it broken (flashes and disappears)</string>
+    <string name="about_change_15">\"Lock home screen\" now also blocks the Uninstall shortcut from any surface and new widget placement/resizing, closing a bypass the drawer lock alone didn\'t cover</string>
+    <string name="about_change_16">The launcher\'s own app drawer entry is hidden by default</string>
+    <string name="about_change_17">Backup and restore now reliably cover the full home screen layout, widgets, and wallpaper lock state in a single pass, without crashing or needing to run twice</string>
+    <string name="about_change_18">Confirmation dialog before deleting a folder, warning if it contains nested folders</string>
     <string name="about_privacy_note">All settings, folder data, and the optional settings PIN are stored locally on this device. This fork does not add analytics or telemetry beyond what upstream Lawnchair already includes; see Lawnchair\'s own privacy policy below for the inherited baseline.</string>
 
     <string name="about_recommendations_heading">Recommendations for reliability</string>
