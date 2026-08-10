@@ -108,11 +108,6 @@ fun PreferencesDashboard(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        if (!context.isDefaultLauncher()) {
-            PreferencesSetDefaultLauncherWarning()
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
         // Unlike the default-launcher warning, this screen doesn't finish() itself when the user
         // taps through to system settings and back - so a plain function call here would only
         // ever be evaluated once and never notice the permission was granted. Re-check on every
@@ -120,6 +115,11 @@ fun PreferencesDashboard(
         val ignoringBatteryOptimizations = remember(lifecycleState()) { context.isIgnoringBatteryOptimizations() }
         if (!ignoringBatteryOptimizations) {
             PreferencesBatteryOptimizationWarning()
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        if (!context.isDefaultLauncher()) {
+            PreferencesSetDefaultLauncherWarning()
             Spacer(modifier = Modifier.height(8.dp))
         }
 
