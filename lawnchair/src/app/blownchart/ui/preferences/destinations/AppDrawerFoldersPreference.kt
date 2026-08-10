@@ -261,6 +261,33 @@ fun AppDrawerFoldersPreference(
     val manualOrderAdapter = preferenceManager2().folderManualOrder.getAdapter()
     val manualOrder by manualOrderAdapter.state
 
+    // Deleting a folder also deletes any folders nested inside it (see FolderDao#deleteFolder) -
+    // destructive enough to confirm first, rather than acting the instant the delete icon is
+    // tapped.
+    val confirmDeleteFolder: (FolderInfo) -> Unit = { folderInfo ->
+        bottomSheetHandler.show {
+            ModalBottomSheetContent(
+                modifier = Modifier.padding(top = 16.dp),
+                title = { Text(text = stringResource(R.string.delete_folder_confirm_title, folderInfo.title.toString())) },
+                text = { Text(text = stringResource(R.string.delete_folder_confirm_message)) },
+                buttons = {
+                    OutlinedButton(onClick = { bottomSheetHandler.hide() }) {
+                        Text(text = stringResource(id = android.R.string.cancel))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            onDeleteFolder(folderInfo)
+                            bottomSheetHandler.hide()
+                        },
+                    ) {
+                        Text(text = stringResource(id = R.string.action_delete))
+                    }
+                },
+            )
+        }
+    }
+
     // folderEntries already arrives ordered (rank in manual mode, alphabetical otherwise) - see
     // FolderService.getAllFoldersFlatFlow().
     val topLevelEntries = remember(folderEntries) { folderEntries.filter { it.parentFolderId == null } }
@@ -373,7 +400,7 @@ fun AppDrawerFoldersPreference(
                                     )
                                 }
                             },
-                            onItemDelete = onDeleteFolder,
+                            onItemDelete = confirmDeleteFolder,
                             onItemNest = onNestFolder,
                             dragHandle = {
                                 ReorderableDragHandle(
@@ -422,7 +449,7 @@ fun AppDrawerFoldersPreference(
                                             )
                                         }
                                     },
-                                    onItemDelete = onDeleteFolder,
+                                    onItemDelete = confirmDeleteFolder,
                                     onItemNest = onNestFolder,
                                 )
                             }
@@ -452,7 +479,7 @@ fun AppDrawerFoldersPreference(
                                     )
                                 }
                             },
-                            onItemDelete = onDeleteFolder,
+                            onItemDelete = confirmDeleteFolder,
                             onItemNest = onNestFolder,
                         )
                         children.forEach { child ->
@@ -476,7 +503,7 @@ fun AppDrawerFoldersPreference(
                                         )
                                     }
                                 },
-                                onItemDelete = onDeleteFolder,
+                                onItemDelete = confirmDeleteFolder,
                                 onItemNest = onNestFolder,
                             )
                         }
