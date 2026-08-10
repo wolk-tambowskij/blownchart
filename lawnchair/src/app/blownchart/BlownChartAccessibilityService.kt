@@ -19,6 +19,8 @@ package app.blownchart
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.view.KeyEvent
@@ -28,6 +30,8 @@ import app.blownchart.preferences2.PreferenceManager2
 import com.patrykmichalik.opto.core.firstBlocking
 
 class BlownChartAccessibilityService : AccessibilityService() {
+
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onServiceConnected() {
         // TEST: on firmware where BlownChart isn't config_recentsComponentName, watch that
@@ -114,9 +118,23 @@ class BlownChartAccessibilityService : AccessibilityService() {
             return
         }
 
-        Log.i(TAG, "onAccessibilityEvent: redirecting through RecentsBounceActivity")
-        launchRecentsBounceActivity()
+        // The window event we just matched is the OS's own attempt to open recentsComponent from
+        // the physical button - already known to render incorrectly, which is why we redirect at
+        // all. Logs show that attempt is still unwinding internally (a SnapshotStartingWindow
+        // artifact, then focus landing back on whatever was open before the button was pressed)
+        // for a few hundred ms after it starts. Launching RecentsBounceActivity and firing our
+        // own GLOBAL_ACTION_RECENTS while that's still in flight overlapped the two attempts and
+        // the transition aborted back to the previous app - it never happens on the gesture path,
+        // which never has a competing natural attempt to begin with. Giving the natural attempt
+        // a head start to fully unwind before we intervene is untested but directly targets that.
+        // Re-arms on every matching event instead of stacking multiple pending launches, in case
+        // the natural attempt's own unwinding fires further matching events before it settles.
+        Log.i(TAG, "onAccessibilityEvent: redirecting through RecentsBounceActivity after settle delay")
+        handler.removeCallbacks(delayedLaunch)
+        handler.postDelayed(delayedLaunch, NATURAL_ATTEMPT_SETTLE_DELAY_MS)
     }
+
+    private val delayedLaunch = Runnable { launchRecentsBounceActivity() }
 
     private fun launchRecentsBounceActivity() {
         blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
@@ -134,5 +152,10 @@ class BlownChartAccessibilityService : AccessibilityService() {
     companion object {
         private const val TAG = "BlownChartRecents"
         private const val SELF_TRIGGER_COOLDOWN_MS = 5000L
+
+        // TEST: the natural (broken) attempt this event represents has, in every log capture so
+        // far, fully unwound (window flash, then fallback to whatever was open before) within a
+        // few hundred ms on its own. 500ms is a guess at a safe margin past that, unconfirmed.
+        private const val NATURAL_ATTEMPT_SETTLE_DELAY_MS = 500L
     }
 }
