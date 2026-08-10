@@ -106,6 +106,19 @@ class LawnchairBackup(
         restoredDbFile.parentFile?.listFiles()
             ?.filter { it.name.startsWith(RESTORED_DB_FILE_NAME) }
             ?.forEach { it.delete() }
+        // Same reasoning, for the "preferences" Room db (icon overrides, wallpaper metadata, and
+        // anything else layered on top of it) - it's WAL-mode, so a raw copy of just the main db
+        // file leaves this process's pre-restore -wal/-shm sidecars sitting next to the newly-
+        // restored file. On the next open, SQLite replays that stale WAL on top of it, silently
+        // reverting whatever restore just wrote. Deleting the sidecars (not the main file - that's
+        // about to be overwritten by the zip entry itself) forces a clean read of only what
+        // restore actually wrote.
+        if (contents.hasFlag(INCLUDE_LAYOUT_AND_SETTINGS)) {
+            val prefsDb = prefsDbFile(context)
+            prefsDb.parentFile?.listFiles()
+                ?.filter { it.name.startsWith(prefsDb.name) && it.name != prefsDb.name }
+                ?.forEach { it.delete() }
+        }
         readZip(handlers)
 
         // Mirrors LauncherBackupAgent#onRestoreFinished(): mark the restore pending and let
@@ -118,6 +131,19 @@ class LawnchairBackup(
         // grid-bound), until the same backup was restored a second time and that reinit had
         // already happened as an ordinary side effect of the launcher running in between.
         RestoreDbTask.setPending(context)
+
+        if (contents.hasFlag(INCLUDE_LAYOUT_AND_SETTINGS)) {
+            // Explicit safety net for grid size specifically, on top of the raw prefs-file replay
+            // above: that replay is only as correct as the *backup's* copy of the classic prefs
+            // XML file, and SharedPreferencesImpl's own apply() is asynchronous, so a backup made
+            // immediately after changing grid size in Settings can race a not-yet-flushed write
+            // and capture the previous value. info.gridState is captured into the backup's own
+            // protobuf at create() time via a separate, synchronous path, so writing it here -
+            // directly onto the live prefs instance, after the raw-file replay so it always wins -
+            // guarantees the grid size actually matches what create() saw, regardless of whether
+            // the raw prefs file happened to be fully flushed to disk at that moment.
+            DeviceGridState(info.gridState).writeToPrefs(context, true)
+        }
     }
 
     /**
