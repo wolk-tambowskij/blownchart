@@ -13,9 +13,11 @@ Recents "not working" at all.
 
 No existing upstream issue was found describing this specific
 firmware-hardcoded-provider symptom; this was found and fixed against
-real hardware exhibiting it. Filing as a fix since it's a genuine bug
-in how `RecentsGestureHandler` invokes Recents (see Reasoning), not a
-new capability.
+real hardware exhibiting it. Filed as a feature, not a fix: Recents
+never worked via the button/gesture on this class of firmware in
+Lawnchair (or any launcher invoking it the same way) to begin with, so
+making it work is new capability, not the restoration of behavior that
+regressed from some prior working state.
 
 ### Reasoning
 
@@ -116,4 +118,4 @@ anything.
 
 ### Type of change
 
-:white_check_mark: **Bug fix** (A non-breaking change that fixes an issue)
+:white_check_mark: **New feature** (A non-breaking change that adds functionality)
