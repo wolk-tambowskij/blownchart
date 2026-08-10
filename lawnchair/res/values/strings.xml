@@ -155,6 +155,8 @@
     <string name="folder_export_error">Failed to export folders</string>
     <string name="folder_import_success">Imported %1$d folder(s), %2$d app(s) (%3$d skipped)</string>
     <string name="folder_import_error">Failed to import folders: invalid file</string>
+    <string name="delete_folder_confirm_title">Delete \"%1$s\"?</string>
+    <string name="delete_folder_confirm_message">Any folders nested inside it will be deleted too. Apps stay in your app drawer.</string>
 
     <!-- A11y description -->
     <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, BlownChart requires accessibility access.\n\nBlownChart doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. BlownChart discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, BlownChart uses the performGlobalAction Accessibility service.</string>
