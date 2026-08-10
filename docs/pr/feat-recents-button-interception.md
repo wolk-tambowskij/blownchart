@@ -81,6 +81,63 @@ since it depends entirely on this firmware quirk existing at all -
 harmless but pointless overhead on firmware where Recents already
 works correctly.
 
+#### Follow-up: ghost/duplicate card in Recents
+
+Once the above was working, real-device testing surfaced a second,
+distinct problem caused by the same firmware quirk: `RecentsBounceActivity`
+itself, despite being transparent and only on screen for well under a
+tenth of a second, could be left behind as its own separate, independently
+swipeable card in the Recents list - alongside, not instead of, the real
+Recents screen. That ghost card showed a live snapshot of whatever was
+drawn behind the bounce activity (i.e. the app that was open before the
+button/gesture fired) but labeled with this app's own launcher icon,
+reading as a confusing duplicate. Worse, since the bounce activity's task
+was already torn down (`finishAndRemoveTask()` in `onStop()`), tapping
+that stale card resurrected a fresh instance of the bare, non-interactive
+transparent activity via its cached launch intent - a dead, frozen screen
+with nothing to show and nothing to tap except the OS navigation buttons.
+
+Testing established that on this class of vendor firmware, neither of
+the two standard tools for keeping an activity out of Recents are
+reliably honored: `excludeFromRecents` (manifest attribute, already
+declared on `RecentsBounceActivity` from the start) and
+`setRecentsScreenshotEnabled(false)` (API 33+, an `ActivityTaskManager`-level
+call). Per confirmed platform behavior, a Recents card also cannot be
+force-removed at all on Android 11+ once the OS has created one,
+regardless of vendor/firmware - so the fix could not be "prevent the card,"
+only "make the card harmless if it appears anyway":
+
+1. **Blank task icon.** `setTaskDescription(ActivityManager.TaskDescription(" "))`
+   only blanks the task's label - the icon still defaults to this app's own
+   launcher icon unless a `Bitmap` is passed explicitly. A 1x1 transparent
+   bitmap is passed instead, so any ghost card that does appear no longer
+   reads as "this app."
+2. **Unconditional `FLAG_SECURE`.** `setRecentsScreenshotEnabled(false)` is
+   applied where available (API 33+) but is not trusted alone, since it's
+   an `ActivityTaskManager`-level API this firmware has already shown it
+   can ignore. `FLAG_SECURE` is added on the window unconditionally,
+   alongside it, as a second, lower-level line of defense: it's enforced
+   by the display compositor (SurfaceFlinger) itself, which even a custom
+   vendor Recents renderer generally can't route around the way it can
+   ignore a manifest attribute or a task-manager API call. With both in
+   place, any card that still appears is a static placeholder rather than
+   a live screenshot of whatever was behind it.
+3. **Stale-resurrection detection.** `RecentsGestureHandler` and
+   `LawnchairAccessibilityService`/`BlownChartAccessibilityService` both
+   stamp a new `lastRecentsBounceActivityLaunchedAtMs` timestamp
+   immediately before starting `RecentsBounceActivity`. `onCreate()`
+   compares the elapsed time against that stamp: a gap under 3 seconds is
+   a genuine fresh launch and proceeds normally; a larger gap means this
+   `onCreate()` call was not caused by either legitimate launch path, i.e.
+   it's the OS resurrecting a stale card's cached intent from a direct tap.
+   In that case, instead of running the normal
+   suppress-snapshot-then-trigger-Recents flow (which has nothing useful
+   left to do - the original task this card depicted is long gone), it
+   redirects straight to the home screen (`ACTION_MAIN`/`CATEGORY_HOME`)
+   and calls `finishAndRemoveTask()`, so a tap on a stale ghost card lands
+   the user back on their home screen instead of a dead, button-only
+   screen.
+
 ### Testing
 
 Verified on real hardware exhibiting the firmware-hardcoded-provider
@@ -97,6 +154,12 @@ bug described above, with "Recents interception" enabled:
   firmware) behavior for both paths.
 - Rotating the screen and switching between 3-button/gesture nav at
   runtime correctly repositions or removes the overlay.
+- Ghost/duplicate card follow-up: with the blank icon and unconditional
+  `FLAG_SECURE` in place, no live-content duplicate card labeled as this
+  app appears in Recents after repeated button/gesture use. Tapping any
+  placeholder card that does still appear from an already-finished bounce
+  task redirects to the home screen instead of showing a dead,
+  non-interactive screen.
 
 Not yet independently re-verified against a from-scratch build of this
 specific clean-room branch on hardware (built and tested as part of
@@ -114,7 +177,12 @@ watches `TYPE_WINDOWS_CHANGED` instead of no events - only takes effect
 when the new setting is on. `accessibility_service_config.xml` gains
 `android:canRetrieveWindowContent="true"`, required for
 `getWindows()`/`findAccessibilityNodeInfosByViewId()` to return
-anything.
+anything. The ghost-card follow-up adds no new preferences or
+components: `setRecentsScreenshotEnabled` is only called on API 33+
+(no-op below that), `FLAG_SECURE` and the blank `TaskDescription` are
+applied to the existing bounce activity's own window/task only, and
+`lastRecentsBounceActivityLaunchedAtMs` is an in-memory `Application`
+field with no persistence.
 
 ### Type of change
 
