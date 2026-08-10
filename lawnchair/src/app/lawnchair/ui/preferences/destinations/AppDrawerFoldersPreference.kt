@@ -185,6 +185,52 @@ fun AppDrawerFoldersPreference(
                     },
                 )
             }
+            // Deleting a folder can't be undone - confirm first rather than acting the instant
+            // the delete icon is tapped.
+            val performDeleteFolder: (FolderInfo) -> Unit = { folderToDelete ->
+                val currentOrder =
+                    FolderOrderUtils.stringToIntList(folderOrderAdapter.state.value)
+                val newOrderAfterDelete =
+                    currentOrder.filter { it != folderToDelete.id }
+                folderOrderAdapter.onChange(
+                    FolderOrderUtils.intListToString(
+                        newOrderAfterDelete,
+                    ),
+                )
+                onDeleteFolder(folderToDelete)
+            }
+            val confirmDeleteFolder: (FolderInfo) -> Unit = { folderToDelete ->
+                bottomSheetHandler.show {
+                    ModalBottomSheetContent(
+                        modifier = Modifier.padding(top = 16.dp),
+                        title = {
+                            Text(
+                                text = stringResource(
+                                    R.string.delete_folder_confirm_title,
+                                    folderToDelete.title.toString(),
+                                ),
+                            )
+                        },
+                        text = {
+                            Text(text = stringResource(R.string.delete_folder_confirm_message))
+                        },
+                        buttons = {
+                            OutlinedButton(onClick = { bottomSheetHandler.hide() }) {
+                                Text(text = stringResource(id = android.R.string.cancel))
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    performDeleteFolder(folderToDelete)
+                                    bottomSheetHandler.hide()
+                                },
+                            ) {
+                                Text(text = stringResource(id = R.string.action_delete))
+                            }
+                        },
+                    )
+                }
+            }
             ReorderablePreferenceGroup(
                 label = null,
                 items = sortedDisplayList,
@@ -218,18 +264,7 @@ fun AppDrawerFoldersPreference(
                             )
                         }
                     },
-                    onItemDelete = { folderToDelete ->
-                        val currentOrder =
-                            FolderOrderUtils.stringToIntList(folderOrderAdapter.state.value)
-                        val newOrderAfterDelete =
-                            currentOrder.filter { it != folderToDelete.id }
-                        folderOrderAdapter.onChange(
-                            FolderOrderUtils.intListToString(
-                                newOrderAfterDelete,
-                            ),
-                        )
-                        onDeleteFolder(folderToDelete)
-                    },
+                    onItemDelete = confirmDeleteFolder,
                     dragIndicator = {
                         ReorderableDragHandle(
                             interactionSource = interactionSource,

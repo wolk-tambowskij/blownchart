@@ -136,6 +136,9 @@
     <string name="delete_label">Delete</string>
     <string name="folder_list_note">Swipe left to edit, swipe right to delete, or tap to update items</string>
 
+    <string name="delete_folder_confirm_title">Delete \"%1$s\"?</string>
+    <string name="delete_folder_confirm_message">This will not delete the apps inside it - they\'ll stay in your app drawer.</string>
+
     <string name="apps_in_folder_label">Hide folder apps</string>
     <string name="apps_in_folder_description">Apps assigned to folders are excluded from app lists</string>
 
