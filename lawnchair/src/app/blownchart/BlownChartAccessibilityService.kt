@@ -125,18 +125,16 @@ class BlownChartAccessibilityService : AccessibilityService() {
         // for a few hundred ms after it starts. Launching RecentsBounceActivity and firing our
         // own GLOBAL_ACTION_RECENTS while that's still in flight overlapped the two attempts and
         // the transition aborted back to the previous app - it never happens on the gesture path,
-        // which never has a competing natural attempt to begin with.
+        // which never has a competing natural attempt to begin with. Waiting for it to settle
+        // before we intervene fixed this (confirmed on real hardware).
         //
-        // We can't force-stop recentsComponent's whole app the way a real task manager would -
-        // that needs a system/signature permission no ordinary app can hold - but sending BACK is
-        // available through this same Accessibility API, and pressing back while Recents is
-        // transitioning in is a normal, deliberate way to cancel it. Doing that immediately,
-        // rather than just waiting out the natural attempt's own unwind, should make the
-        // cancellation land sooner and more deterministically. Kept the settle delay too, as a
-        // safety margin in case BACK's own effect isn't instant either - both parts untested.
-        Log.i(TAG, "onAccessibilityEvent: sending BACK to cancel the natural attempt")
-        performGlobalAction(GLOBAL_ACTION_BACK)
-
+        // Tried also sending GLOBAL_ACTION_BACK immediately on this same event, hoping to cancel
+        // the natural attempt sooner and more deterministically than just waiting it out - but a
+        // log showed this same event also fires from a recentsComponent window that's ALREADY
+        // open and working (its own subsequent state-change events, not just the initial broken
+        // one), and BACK doesn't distinguish the two: it dismissed sessions that were already
+        // succeeding, including our own, at least as often as it cancelled a genuinely broken one.
+        // Net worse than just waiting. Removed.
         Log.i(TAG, "onAccessibilityEvent: redirecting through RecentsBounceActivity after settle delay")
         handler.removeCallbacks(delayedLaunch)
         handler.postDelayed(delayedLaunch, NATURAL_ATTEMPT_SETTLE_DELAY_MS)
