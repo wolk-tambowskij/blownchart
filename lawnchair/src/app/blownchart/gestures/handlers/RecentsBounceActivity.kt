@@ -31,6 +31,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.view.WindowManager
+import android.widget.FrameLayout
 import app.blownchart.blownChartApp
 
 /**
@@ -44,6 +45,11 @@ import app.blownchart.blownChartApp
 class RecentsBounceActivity : Activity() {
 
     private val handler = Handler(Looper.getMainLooper())
+
+    // Survives onPause/onResume as long as this exact Activity instance stays alive, which is
+    // exactly the case a leftover-card tap needs to be told apart from a fresh launch: see
+    // onResume() below.
+    private var hasTriggeredRecents = false
 
     // A fully transparent 1x1 bitmap, not null: passing a null icon to TaskDescription leaves the
     // task icon unset rather than blank, and Android then falls back to the app's own launcher
@@ -62,15 +68,12 @@ class RecentsBounceActivity : Activity() {
         // long gap since that stamp means this onCreate() wasn't one of those - it's exactly that
         // resurrection. Bail out to the home screen instead of running the normal
         // suppress-snapshot-then-trigger-Recents flow, which has nothing left to usefully do here.
+        // This is one of two independent stale-tap detectors - see onResume() for the other, which
+        // catches the case where the OS resumes this *same* instance instead of a fresh one.
         val sinceLegitimateLaunch = SystemClock.elapsedRealtime() - blownChartApp.lastRecentsBounceActivityLaunchedAtMs
         if (sinceLegitimateLaunch > STALE_RESURRECTION_THRESHOLD_MS) {
             Log.i(TAG, "onCreate: stale resurrection (sinceLegitimateLaunch=${sinceLegitimateLaunch}ms), bouncing home")
-            startActivity(
-                Intent(Intent.ACTION_MAIN)
-                    .addCategory(Intent.CATEGORY_HOME)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            )
-            finishAndRemoveTask()
+            bounceHome()
             return
         }
         // This activity is on screen for well under TRIGGER_DELAY_MS, but the OS still snapshots
@@ -85,14 +88,18 @@ class RecentsBounceActivity : Activity() {
         // second, lower-level line of defense: it's enforced by the display compositor itself
         // (SurfaceFlinger), which even a custom vendor Recents renderer generally can't route
         // around the way it can ignore an ActivityTaskManager-level API or manifest attribute.
+        // Neither is trusted alone, though - see onPause() for the actual content swap, which is
+        // what stops a live-content card from appearing regardless of whether either API took.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             setRecentsScreenshotEnabled(false)
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        // Blank label AND icon: TaskDescription(" ") alone only blanks the label - the task's icon
-        // still defaults to this app's own launcher icon, which is exactly what made the ghost
-        // card in Recents look like a duplicate labeled as this app instead of a blank placeholder.
-        setTaskDescription(ActivityManager.TaskDescription(" ", blankTaskIcon))
+        // Blank label, icon, AND a dark placeholder header color (matching onPause()'s content
+        // swap): TaskDescription(" ") alone only blanks the label - the task's icon still defaults
+        // to this app's own launcher icon, and the header strip above the card content defaults to
+        // whatever's behind this activity too, both of which made the ghost card in Recents look
+        // like a live duplicate labeled as this app instead of a deliberate placeholder.
+        setTaskDescription(ActivityManager.TaskDescription(" ", blankTaskIcon, PLACEHOLDER_CARD_COLOR))
     }
 
     private val triggerRecents = Runnable {
@@ -107,14 +114,42 @@ class RecentsBounceActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        Log.i(TAG, "onResume t=${SystemClock.elapsedRealtime()}")
-        handler.postDelayed(triggerRecents, TRIGGER_DELAY_MS)
+        Log.i(TAG, "onResume t=${SystemClock.elapsedRealtime()} hasTriggeredRecents=$hasTriggeredRecents")
+        if (!hasTriggeredRecents) {
+            hasTriggeredRecents = true
+            handler.postDelayed(triggerRecents, TRIGGER_DELAY_MS)
+            return
+        }
+        // A second onResume on this exact instance means the OS brought this same Activity object
+        // back to the foreground instead of tearing it down after onStop()'s finishAndRemoveTask()
+        // - i.e. this firmware didn't actually remove the task, and the user just tapped its
+        // leftover card. The other stale-tap detector (onCreate(), above) only catches the case
+        // where a *fresh* instance gets resurrected via a cached launch intent; this one catches
+        // the OS reusing the still-alive original instead, which real-device testing on this
+        // firmware showed also happens. Nothing left to usefully do here either way - bounce home.
+        Log.i(TAG, "onResume: second resume on same instance, treating as a stale-card tap, bouncing home")
+        bounceHome()
+    }
+
+    private fun bounceHome() {
+        startActivity(
+            Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_HOME)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+        finishAndRemoveTask()
     }
 
     override fun onPause() {
         super.onPause()
         Log.i(TAG, "onPause t=${SystemClock.elapsedRealtime()}")
         handler.removeCallbacks(triggerRecents)
+        // The real Recents window is about to take over, and this is the moment the OS snapshots
+        // this activity for its own Recents-list card - swapping its content to a plain placeholder
+        // right here, rather than relying only on setRecentsScreenshotEnabled/FLAG_SECURE (set in
+        // onCreate() but not reliably honored by this firmware), means whatever does get snapshotted
+        // is a deliberate flat card instead of a live screenshot of whatever was open underneath.
+        setContentView(FrameLayout(this).apply { setBackgroundColor(PLACEHOLDER_CARD_COLOR) })
     }
 
     override fun onStop() {
@@ -126,9 +161,11 @@ class RecentsBounceActivity : Activity() {
         // that race looked like Recents falling back to whatever was open before it was invoked.
         // onStop only fires once this activity is fully obscured, i.e. once Recents has actually
         // taken over - finishAndRemoveTask() here (rather than just finish()) additionally drops
-        // the task itself, which is what keeps it out of the Recents list at all. Guarded since
-        // onPause and onStop can both land close together and finishAndRemoveTask() isn't
-        // idempotent-safe against being asked twice.
+        // the task itself, which is what keeps it out of the Recents list at all on firmware that
+        // does honor it. On the firmware that doesn't (see onResume() above), this call is a no-op
+        // in practice, not harmful - the leftover card is what the onResume()/onCreate() detectors
+        // handle. Guarded since onPause and onStop can both land close together and
+        // finishAndRemoveTask() isn't idempotent-safe against being asked twice.
         if (!isFinishing) finishAndRemoveTask()
     }
 
@@ -150,5 +187,11 @@ class RecentsBounceActivity : Activity() {
         // taps it - a real tap on a resurrected ghost card happens well after Recents is already
         // fully shown and settled, not within a couple of seconds of the original trigger.
         private const val STALE_RESURRECTION_THRESHOLD_MS = 3000L
+
+        // Dark neutral placeholder shown both as the Recents card's header color (TaskDescription,
+        // set in onCreate()) and as its body content (onPause()'s content swap), so a leftover card
+        // reads as a deliberate flat placeholder rather than a glitch, on firmware where it can't be
+        // removed at all.
+        private const val PLACEHOLDER_CARD_COLOR = 0xFF222222.toInt()
     }
 }
