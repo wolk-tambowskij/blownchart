@@ -40,7 +40,7 @@ import com.patrykmichalik.opto.core.firstBlocking
 class BlownChartAccessibilityService : AccessibilityService() {
 
     private val handler = Handler(Looper.getMainLooper())
-    private val windowManager by lazy { getSystemService(WindowManager::class.java) }
+    private val windowManager by lazy { getSystemService(WindowManager::class.java)!! }
 
     private var overlayView: View? = null
     private var overlayBounds: Rect? = null
@@ -104,7 +104,9 @@ class BlownChartAccessibilityService : AccessibilityService() {
                 handler.removeCallbacks(debouncedUpdateOverlay)
                 handler.postDelayed(debouncedUpdateOverlay, OVERLAY_UPDATE_DEBOUNCE_MS)
             }
+
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> handleRecentsWindowStateChanged(event)
+
             else -> return
         }
     }
@@ -191,7 +193,12 @@ class BlownChartAccessibilityService : AccessibilityService() {
             return null
         }
         for (window in windowList) {
-            if (window.type != AccessibilityWindowInfo.TYPE_NAVIGATION_BAR) continue
+            // AccessibilityWindowInfo has no dedicated navigation-bar type - the public API only
+            // distinguishes as far as TYPE_SYSTEM, which the nav bar shares with other system
+            // windows (status bar, etc). Searching all of them for the recents view id/description
+            // is cheap (each of these trees is tiny) and doesn't depend on a type that doesn't
+            // exist.
+            if (window.type != AccessibilityWindowInfo.TYPE_SYSTEM) continue
             val root = window.root ?: continue
             val node = root.findAccessibilityNodeInfosByViewId(SYSTEMUI_RECENTS_VIEW_ID).firstOrNull()
                 ?: findRecentsButtonByDescription(root)
