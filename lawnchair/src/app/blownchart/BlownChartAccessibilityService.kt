@@ -71,6 +71,14 @@ class BlownChartAccessibilityService : AccessibilityService() {
         // this same event handler again. Stamped from RecentsBounceActivity itself (shared with
         // the gesture path), not just here, since that's the actual call that causes the window
         // to reappear regardless of which path launched the bounce activity in the first place.
+        //
+        // 1500ms wasn't long enough: logs from real hardware show the underlying
+        // recentsComponent - already known to be buggy, which is the entire reason this bounce
+        // trick exists - keeps emitting its own WINDOW_STATE_CHANGED roughly every 1.8-2.3s all
+        // on its own, well after that window, with no further user input. Each one got treated
+        // as a fresh press and redirected again, producing an unprompted, self-perpetuating loop.
+        // 5s comfortably clears that gap without being so long it would swallow a genuine second
+        // press.
         val now = SystemClock.elapsedRealtime()
         val sinceSelfTrigger = now - blownChartApp.lastRecentsSelfTriggerAtMs
         if (sinceSelfTrigger < SELF_TRIGGER_COOLDOWN_MS) {
@@ -93,6 +101,6 @@ class BlownChartAccessibilityService : AccessibilityService() {
 
     companion object {
         private const val TAG = "BlownChartRecents"
-        private const val SELF_TRIGGER_COOLDOWN_MS = 1500L
+        private const val SELF_TRIGGER_COOLDOWN_MS = 5000L
     }
 }
