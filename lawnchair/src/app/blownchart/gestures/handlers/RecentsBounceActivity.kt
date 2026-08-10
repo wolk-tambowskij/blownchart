@@ -20,8 +20,8 @@
 package app.blownchart.gestures.handlers
 
 import android.accessibilityservice.AccessibilityService
-import android.app.ActivityManager
 import android.app.Activity
+import android.app.ActivityManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
