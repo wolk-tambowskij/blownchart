@@ -125,10 +125,18 @@ class BlownChartAccessibilityService : AccessibilityService() {
         // for a few hundred ms after it starts. Launching RecentsBounceActivity and firing our
         // own GLOBAL_ACTION_RECENTS while that's still in flight overlapped the two attempts and
         // the transition aborted back to the previous app - it never happens on the gesture path,
-        // which never has a competing natural attempt to begin with. Giving the natural attempt
-        // a head start to fully unwind before we intervene is untested but directly targets that.
-        // Re-arms on every matching event instead of stacking multiple pending launches, in case
-        // the natural attempt's own unwinding fires further matching events before it settles.
+        // which never has a competing natural attempt to begin with.
+        //
+        // We can't force-stop recentsComponent's whole app the way a real task manager would -
+        // that needs a system/signature permission no ordinary app can hold - but sending BACK is
+        // available through this same Accessibility API, and pressing back while Recents is
+        // transitioning in is a normal, deliberate way to cancel it. Doing that immediately,
+        // rather than just waiting out the natural attempt's own unwind, should make the
+        // cancellation land sooner and more deterministically. Kept the settle delay too, as a
+        // safety margin in case BACK's own effect isn't instant either - both parts untested.
+        Log.i(TAG, "onAccessibilityEvent: sending BACK to cancel the natural attempt")
+        performGlobalAction(GLOBAL_ACTION_BACK)
+
         Log.i(TAG, "onAccessibilityEvent: redirecting through RecentsBounceActivity after settle delay")
         handler.removeCallbacks(delayedLaunch)
         handler.postDelayed(delayedLaunch, NATURAL_ATTEMPT_SETTLE_DELAY_MS)
