@@ -77,6 +77,7 @@ class RecentsBounceActivity : Activity() {
 
     companion object {
         private const val TAG = "BlownChartRecents"
+
         // TEST: was 80ms. Long enough for the real Recents window's own natural (buggy) opening
         // to fully settle/dismiss before this activity fires its own GLOBAL_ACTION_RECENTS, in
         // case the two overlapping is what makes the OS treat them as a double-tap and bounce
