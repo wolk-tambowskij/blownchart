@@ -80,6 +80,15 @@
             android:theme="@style/Theme.Transparent" />
 
         <activity
+            android:name="app.blownchart.gestures.handlers.RecentsBounceActivity"
+            android:autoRemoveFromRecents="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Transparent" />
+
+        <activity
             android:name="app.blownchart.smartspace.SmartspacePreferencesShortcut"
             android:theme="@style/Theme.Transparent" />
 

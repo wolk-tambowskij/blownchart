@@ -649,6 +649,11 @@ class PreferenceManager2 private constructor(private val context: Context) :
         },
     )
 
+    val recentsButtonInterception = preference(
+        key = booleanPreferencesKey("recents_button_interception"),
+        defaultValue = false,
+    )
+
     val smartspaceMode = preference(
         key = stringPreferencesKey("smartspace_mode"),
         defaultValue = SmartspaceMode.fromString(context.getString(R.string.config_default_smartspace_mode)),
