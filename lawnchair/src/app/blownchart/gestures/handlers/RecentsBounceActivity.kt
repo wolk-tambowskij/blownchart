@@ -20,11 +20,15 @@
 package app.blownchart.gestures.handlers
 
 import android.accessibilityservice.AccessibilityService
+import android.app.ActivityManager
 import android.app.Activity
+import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import android.view.WindowManager
 import app.blownchart.blownChartApp
 
 /**
@@ -38,6 +42,28 @@ import app.blownchart.blownChartApp
 class RecentsBounceActivity : Activity() {
 
     private val handler = Handler(Looper.getMainLooper())
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // This activity is on screen for well under TRIGGER_DELAY_MS, but the OS still snapshots
+        // it for its own Recents-list card the instant it stops being focused - and since it's
+        // fully transparent, that snapshot is whatever was drawn behind it (the app that was open
+        // before the button/gesture fired), which reads as a confusing duplicate of that app's
+        // own card. Suppressing the snapshot replaces this card with a blank placeholder instead.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setRecentsScreenshotEnabled(false)
+        } else {
+            // No snapshot-specific API before API 33 - FLAG_SECURE blocks screen capture
+            // altogether while this window is focused, which has the same net effect here since
+            // nothing is ever meant to be visible on screen long enough to capture anyway.
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+        // Blank label so that if this card is ever visible for a frame despite the above (e.g. on
+        // a firmware that ignores both suppression mechanisms), it doesn't show this activity's
+        // own name and compound the "is this a duplicate?" confusion.
+        setTaskDescription(ActivityManager.TaskDescription(" "))
+    }
+
     private val triggerRecents = Runnable {
         // Stamped right here, not by whichever caller launched this activity: this is the actual
         // call that makes the real Recents window reappear, so this is what
