@@ -31,8 +31,12 @@ jobs:
           DRY_RUN: ${{ github.event.inputs.dry_run }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          # Normalize: split on commas and newlines, trim whitespace, drop blank lines.
-          echo "$BRANCHES_INPUT" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | grep -v '^$' > branches.txt
+          # Normalize: split on commas, tabs, spaces, AND newlines (not just commas/newlines -
+          # GitHub's workflow_dispatch string input doesn't reliably preserve line breaks
+          # depending on how it's submitted, so a paste that looked newline-separated in the UI
+          # can arrive here as one space-separated blob; splitting on whitespace too handles both).
+          # Trims whitespace, drops blank lines.
+          echo "$BRANCHES_INPUT" | tr ',\t ' '\n\n\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | grep -v '^$' > branches.txt
 
           if [ ! -s branches.txt ]; then
             echo "::error::No branch names parsed from input - nothing to do."
