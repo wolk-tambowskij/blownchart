@@ -33,20 +33,28 @@ foundation to add them.
 
 App drawer folders:
 
-- One level of folder-in-folder nesting, with a small badge marking a
-  folder that contains another; nested folders are always sorted before
-  apps.
+- One level of folder-in-folder nesting, with its own manual ordering
+  (nested folders always sort before apps) and a small badge marking a
+  folder that contains another. Nest a folder from Settings (app drawer
+  folders), or drag one icon onto another inside an open folder (home
+  screen folders) to merge them into a new nested folder.
 - Optional manual drag-and-drop ordering of folders and their contents
   (alphabetical stays the default).
 - Search bar when picking apps for a folder.
 - Export and import your whole folder layout as a JSON file.
 - A thin outline on folder previews, independent of theme/opacity.
 - Folder previews render using the exact configured icon shape (instead
-  of being approximated to a handful of hardcoded shapes) and no longer
-  overflow their bounds for unusual app-count/shape combinations.
-- The "App drawer folders" screen and folder editing stay instant even
-  with a large number of installed apps and folders (tested with 40
-  folders / 1766 apps).
+  of being approximated to a handful of hardcoded shapes), no longer
+  overflow their bounds for unusual app-count/shape combinations, and
+  update immediately when you change the icon shape setting instead of
+  the old shape lingering on folder icons until the app restarts.
+- Faster "App drawer folders" screen and folder editing with large
+  numbers of installed apps and folders — tested at 40 folders / 1766
+  apps to catch and fix the slowdowns that only show up at that scale.
+- App drawer search results show which folder an app is in, including
+  the full path for an app inside a nested subfolder.
+- A confirmation dialog before deleting a folder, warning if it contains
+  a nested folder (the apps inside are not deleted either way).
 
 Privacy and locking:
 
@@ -57,19 +65,31 @@ Privacy and locking:
   previously be bypassed via the Uninstall shortcut or widget
   placement/resize.
 - A PIN/fingerprint lock gates the launcher's own settings and any exit
-  into system Settings (it does not apply to shortcuts or widgets that
-  belong to other apps).
+  into system Settings. It does not apply to shortcuts or widgets that
+  belong to other apps, or to opening settings through system UI
+  elements such as a quick-settings tile.
+- The launcher's own app-drawer entry is hidden by default.
+
+Backup and restore:
+
+- Backup/restore reliability fixes: a first restore no longer silently
+  drops grid-bound home-screen items, doesn't need to be run twice, and
+  no longer crashes on certain devices.
+- Optional: back up the lock screen's wallpaper independently of the
+  home screen one, with a live preview on the backup and restore
+  screens.
 
 Other:
 
-- App drawer search results show which folder an app is in, including
-  the full path for an app inside a nested subfolder.
+- Experimental: reliably opens the real Recents/Overview screen from
+  the physical Recents button or a double-tap gesture, on firmware
+  where invoking it directly renders it broken (flashes and
+  disappears).
 - Faster first launch and app drawer loading on devices with many
   installed apps, thanks in part to a thread-scheduling fix and a
   batched icon-loading optimization borrowed from Lawnchair 16's
   development branch (see
-  [`docs/pr/fix-loader-startup-and-list-performance.md`](docs/pr/fix-loader-startup-and-list-performance.md)).
-- The launcher's own app-drawer entry is hidden by default.
+  [`docs/pr/fix-loader-model-thread-priority.md`](docs/pr/fix-loader-model-thread-priority.md)).
 - A persistent prompt to exempt the launcher from battery optimization,
   since it's easy to dismiss once and forget.
 - Rebranded identity (name, icon, `applicationId`) so it can be installed
@@ -182,20 +202,31 @@ BlownChart появился из-за того, что на простое же�
 
 Папки в меню приложений:
 
-- Один уровень вложенности папок друг в друга; папка, содержащая другую
-  папку, помечается небольшим значком, вложенные папки всегда идут перед
-  приложениями.
+- Один уровень вложенности папок друг в друга, с собственной ручной
+  сортировкой (вложенные папки всегда идут перед приложениями) и
+  небольшим значком, отмечающим папку с вложенной папкой внутри.
+  Создать через настройки (папки в меню приложений) или перетаскиванием
+  одного значка на другой внутри открытой папки (папки на домашнем
+  экране).
 - Опциональная ручная сортировка папок и их содержимого перетаскиванием
   (по умолчанию — алфавитная).
 - Строка поиска при выборе приложений для папки.
 - Экспорт и импорт всей раскладки папок в JSON-файл.
 - Тонкая обводка у превью папок, не зависящая от темы/прозрачности.
 - Превью папок рисуются по точной настроенной форме иконок (а не по
-  нескольким жёстко закодированным приближениям) и больше не выходят за
-  границы при необычных сочетаниях формы и количества приложений.
-- Экран «Папки в app drawer» и редактирование папок остаются мгновенными
-  даже при большом количестве установленных приложений и папок
-  (проверено на 40 папках и 1766 приложениях).
+  нескольким жёстко закодированным приближениям), больше не выходят за
+  границы при необычных сочетаниях формы и количества приложений, и
+  сразу обновляются при смене формы иконок вместо того, чтобы старая
+  форма оставалась на значках папок до перезапуска приложения.
+- Более быстрые экран «Папки в app drawer» и редактирование папок при
+  большом количестве установленных приложений и папок — проверено на 40
+  папках и 1766 приложениях, чтобы найти и исправить замедления, которые
+  проявляются только при таком масштабе.
+- Результаты поиска в меню приложений показывают, в какой папке лежит
+  приложение, включая полный путь для приложения во вложенной подпапке.
+- Диалог подтверждения перед удалением папки, с предупреждением, если
+  внутри есть вложенная папка (приложения внутри в любом случае не
+  удаляются).
 
 Приватность и блокировка:
 
@@ -207,19 +238,31 @@ BlownChart появился из-за того, что на простое же�
   блокировок раньше можно было обойти через пункт «Удалить» или
   размещение/изменение размера виджета.
 - PIN-код/отпечаток блокирует настройки самого лончера и любой выход в
-  системные настройки (не распространяется на ярлыки и виджеты сторонних
-  приложений).
+  системные настройки. Не распространяется на ярлыки и виджеты сторонних
+  приложений, а также на открытие настроек через элементы системного
+  интерфейса, например плитку быстрых настроек.
+- Собственная запись лончера в меню приложений скрыта по умолчанию.
+
+Резервное копирование и восстановление:
+
+- Исправления надёжности восстановления: первое восстановление больше
+  не теряет незаметно привязанные к сетке элементы домашнего экрана, не
+  требует повторного запуска и не приводит к сбою на некоторых
+  устройствах.
+- Опционально: резервное копирование обоев экрана блокировки отдельно
+  от обоев рабочего стола, с предпросмотром на экранах создания и
+  восстановления резервной копии.
 
 Прочее:
 
-- Результаты поиска в меню приложений показывают, в какой папке лежит
-  приложение, включая полный путь для приложения во вложенной подпапке.
+- Экспериментально: надёжно открывает настоящий экран Recents/Overview
+  по физической кнопке «Недавние» или жесту двойного нажатия — на
+  прошивках, где прямой вызов ломается (мелькает и сразу пропадает).
 - Более быстрый первый запуск и построение списка приложений на
   устройствах с большим количеством установленных приложений — отчасти
   благодаря фиксу планирования потоков и оптимизации пакетной загрузки
   иконок, заимствованных из ветки разработки Lawnchair 16 (см.
-  [`docs/pr/fix-loader-startup-and-list-performance.md`](docs/pr/fix-loader-startup-and-list-performance.md)).
-- Собственная запись лончера в меню приложений скрыта по умолчанию.
+  [`docs/pr/fix-loader-model-thread-priority.md`](docs/pr/fix-loader-model-thread-priority.md)).
 - Постоянное (а не одноразовое) напоминание исключить лончер из
   оптимизации батареи — одноразовое слишком легко закрыть и забыть.
 - Собственный брендинг (название, иконка, `applicationId`), чтобы можно
