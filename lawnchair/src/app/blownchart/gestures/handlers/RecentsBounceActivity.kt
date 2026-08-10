@@ -22,6 +22,7 @@ package app.blownchart.gestures.handlers
 import android.accessibilityservice.AccessibilityService
 import android.app.Activity
 import android.app.ActivityManager
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -43,25 +44,34 @@ class RecentsBounceActivity : Activity() {
 
     private val handler = Handler(Looper.getMainLooper())
 
+    // A fully transparent 1x1 bitmap, not null: passing a null icon to TaskDescription leaves the
+    // task icon unset rather than blank, and Android then falls back to the app's own launcher
+    // icon for it - which is exactly what made the ghost card in Recents look like a duplicate
+    // labeled as this app.
+    private val blankTaskIcon: Bitmap by lazy { Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // This activity is on screen for well under TRIGGER_DELAY_MS, but the OS still snapshots
         // it for its own Recents-list card the instant it stops being focused - and since it's
         // fully transparent, that snapshot is whatever was drawn behind it (the app that was open
         // before the button/gesture fired), which reads as a confusing duplicate of that app's
-        // own card. Suppressing the snapshot replaces this card with a blank placeholder instead.
+        // own card. On a well-behaved firmware, setRecentsScreenshotEnabled(false) alone would
+        // replace this card with a blank placeholder - but on the class of vendor Recents
+        // implementation this whole feature targets, it's already established that neither
+        // excludeFromRecents (manifest) nor the standard snapshot-suppression API are reliably
+        // respected. FLAG_SECURE is applied unconditionally alongside it, not instead of it, as a
+        // second, lower-level line of defense: it's enforced by the display compositor itself
+        // (SurfaceFlinger), which even a custom vendor Recents renderer generally can't route
+        // around the way it can ignore an ActivityTaskManager-level API or manifest attribute.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             setRecentsScreenshotEnabled(false)
-        } else {
-            // No snapshot-specific API before API 33 - FLAG_SECURE blocks screen capture
-            // altogether while this window is focused, which has the same net effect here since
-            // nothing is ever meant to be visible on screen long enough to capture anyway.
-            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
-        // Blank label so that if this card is ever visible for a frame despite the above (e.g. on
-        // a firmware that ignores both suppression mechanisms), it doesn't show this activity's
-        // own name and compound the "is this a duplicate?" confusion.
-        setTaskDescription(ActivityManager.TaskDescription(" "))
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        // Blank label AND icon: TaskDescription(" ") alone only blanks the label - the task's icon
+        // still defaults to this app's own launcher icon, which is exactly what made the ghost
+        // card in Recents look like a duplicate labeled as this app instead of a blank placeholder.
+        setTaskDescription(ActivityManager.TaskDescription(" ", blankTaskIcon))
     }
 
     private val triggerRecents = Runnable {
