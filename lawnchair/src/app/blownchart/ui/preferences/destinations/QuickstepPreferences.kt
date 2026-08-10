@@ -1,8 +1,15 @@
 package app.blownchart.ui.preferences.destinations
 
+import android.content.Intent
+import android.provider.Settings
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.TipsAndUpdates
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -24,6 +31,7 @@ import app.blownchart.ui.preferences.components.controls.WarningPreference
 import app.blownchart.ui.preferences.components.layout.ExpandAndShrink
 import app.blownchart.ui.preferences.components.layout.PreferenceGroup
 import app.blownchart.ui.preferences.components.layout.PreferenceLayout
+import app.blownchart.ui.preferences.components.layout.PreferenceTemplate
 import app.blownchart.ui.util.preview.PreviewBlownChart
 import app.blownchart.util.isOnePlusStock
 import app.blownchart.util.lifecycleState
@@ -94,7 +102,7 @@ fun QuickstepPreferences(
                     context.blownChartApp.isAccessibilityServiceBound()
                 }
                 ExpandAndShrink(visible = recentsButtonInterception.state.value && !accessibilityServiceBound) {
-                    WarningPreference(text = stringResource(id = R.string.recents_button_interception_a11y_hint))
+                    RecentsButtonInterceptionA11yBanner()
                 }
             }
         }
@@ -165,6 +173,41 @@ private fun QuickSwitchIgnoredWarning(
     ) {
         WarningPreference(
             text = stringResource(id = R.string.quickswitch_ignored_warning),
+        )
+    }
+}
+
+@PreviewBlownChart
+@Composable
+private fun RecentsButtonInterceptionA11yBanner(
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    Surface(
+        modifier = modifier.padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        PreferenceTemplate(
+            modifier = Modifier.clickable {
+                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .let { context.startActivity(it) }
+            },
+            title = {},
+            description = {
+                Text(
+                    text = stringResource(id = R.string.recents_button_interception_a11y_hint),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            startWidget = {
+                Icon(
+                    imageVector = Icons.Rounded.TipsAndUpdates,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentDescription = null,
+                )
+            },
         )
     }
 }
