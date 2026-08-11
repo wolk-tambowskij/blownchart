@@ -276,6 +276,22 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
 
     private boolean willAcceptItem(ItemInfo item) {
         final int itemType = item.itemType;
+        if (itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER && !mFolder.isInAppDrawer()) {
+            // Nesting on the home screen is limited to exactly one level, matching the app
+            // drawer's equivalent constraint (see FolderDao#getNestableFoldersFlow): the target
+            // can't itself already be nested inside a folder, and the folder being dragged in
+            // can't already have a subfolder of its own - either would push some item two levels
+            // deep, which nothing in the model (or its preview/animation code) is built to
+            // represent. Scoped to !isInAppDrawer() since the app drawer's own nesting is
+            // validated separately, before the drag ever starts.
+            boolean targetAlreadyNested = mInfo.container != LauncherSettings.Favorites.CONTAINER_DESKTOP
+                    && mInfo.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT;
+            boolean draggedFolderHasSubfolder = item instanceof FolderInfo draggedFolder
+                    && draggedFolder.getContents().stream().anyMatch(i -> i instanceof FolderInfo);
+            if (targetAlreadyNested || draggedFolderHasSubfolder) {
+                return false;
+            }
+        }
         return (Folder.willAcceptItemType(itemType) && item != mInfo && !mFolder.isOpen());
     }
 

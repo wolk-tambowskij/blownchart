@@ -29,10 +29,12 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.FloatProperty;
 import android.util.Log;
@@ -141,13 +143,30 @@ public class PreviewItemManager {
     }
 
     Drawable prepareCreateAnimation(final View destView) {
-        Drawable animateDrawable = destView instanceof AppPairIcon
-                ? ((AppPairIcon) destView).getIconDrawableArea().getDrawable()
-                : ((BubbleTextView) destView).getIcon();
+        Drawable animateDrawable;
+        if (destView instanceof AppPairIcon) {
+            animateDrawable = ((AppPairIcon) destView).getIconDrawableArea().getDrawable();
+        } else if (destView instanceof BubbleTextView) {
+            animateDrawable = ((BubbleTextView) destView).getIcon();
+        } else {
+            // A FolderIcon being wrapped into a new folder (dragging one folder onto another,
+            // closed one) has no single icon Drawable of its own - snapshot its current
+            // on-screen appearance instead, so the wrapping animation has something to shrink
+            // into the new folder's preview.
+            animateDrawable = new BitmapDrawable(mContext.getResources(), snapshotView(destView));
+        }
         computePreviewDrawingParams(animateDrawable.getIntrinsicWidth(),
                 destView.getMeasuredWidth());
         mReferenceDrawable = animateDrawable;
         return animateDrawable;
+    }
+
+    private static Bitmap snapshotView(View view) {
+        int width = Math.max(view.getWidth(), 1);
+        int height = Math.max(view.getHeight(), 1);
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        view.draw(new Canvas(bitmap));
+        return bitmap;
     }
 
     public void recomputePreviewDrawingParams() {

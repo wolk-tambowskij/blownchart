@@ -263,7 +263,31 @@ public class BgDataModel {
         switch (item.itemType) {
             case LauncherSettings.Favorites.ITEM_TYPE_FOLDER:
                 collections.put(item.id, (FolderInfo) item);
-                workspaceItems.add(item);
+                // A folder is usually a top-level container with its own home-screen grid slot,
+                // but - like an app pair below - can also be nested one level inside another
+                // folder (home screen only; the app drawer's own nesting is a separate,
+                // Room-backed mechanism that never reaches this class). Route by container the
+                // same way regular apps do below, instead of always adding to workspaceItems:
+                // unconditionally treating every folder as top-level here is what made a nested
+                // folder un-nest itself back onto the home screen on the next cold model reload,
+                // even though the live drag-drop merge (which mutates the in-memory FolderInfo
+                // directly, bypassing this method's newItem=true call entirely) looked correct
+                // right up until the app restarted.
+                if (item.container == LauncherSettings.Favorites.CONTAINER_DESKTOP ||
+                        item.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
+                    workspaceItems.add(item);
+                } else {
+                    if (newItem) {
+                        if (!collections.containsKey(item.container)) {
+                            // Adding an item to a nonexistent collection.
+                            String msg = "attempted to add item: " + item + " to a nonexistent app"
+                                    + " collection";
+                            Log.e(TAG, msg);
+                        }
+                    } else {
+                        findOrMakeFolder(item.container).add(item);
+                    }
+                }
                 break;
             case LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR:
                 collections.put(item.id, (AppPairInfo) item);
