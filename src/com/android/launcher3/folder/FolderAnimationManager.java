@@ -53,7 +53,6 @@ import com.androidinternal.graphics.ColorUtils;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import app.blownchart.theme.color.ColorOption;
 import app.blownchart.theme.color.tokens.ColorTokens;
@@ -362,19 +361,21 @@ public class FolderAnimationManager {
     /**
      * Returns the list of "preview items" on {@param page}.
      *
-     * A nested subfolder (one level of folder-in-folder, app drawer only) is excluded here, same
-     * as in {@link FolderIcon#getPreviewItemsOnPage}, so it never participates in the open/close
-     * preview-icon animation - it has no static preview slot on the collapsed icon to animate
-     * to/from, and its view is a FolderIcon rather than a BubbleTextView/AppPairIcon. The grid is
-     * sized off the filtered count (not the raw content size) so rank math lines up with the
-     * filtered list actually being laid out.
+     * A nested subfolder (one level of folder-in-folder, app drawer only) used to be excluded
+     * here, on the theory that it has no static preview slot on the collapsed icon to animate
+     * to/from - true before {@link FolderIcon#getPreviewItemsOnPage} started flattening a
+     * subfolder's own contents into that preview, but not after: filtering it out here left a
+     * folder containing *only* subfolder(s) with an empty preview list, and {@link #getAnimator}
+     * indexes into it unconditionally (`itemsInPreview.get(0)`) - crashing on open instead of
+     * just animating the subfolder's own icon like {@link #getBubbleTextView} already supports.
+     * The animated open/close preview isn't a pixel-perfect match to the flattened closed-icon
+     * one in this case (it animates the subfolder's own glyph, not icons pulled from inside it),
+     * but it's correct and doesn't crash.
      */
     private List<View> getPreviewIconsOnPage(int page) {
-        List<View> nonFolderViews = mFolder.getIconsInReadingOrder().stream()
-                .filter(v -> !(v instanceof FolderIcon))
-                .collect(Collectors.toList());
-        return mPreviewVerifier.setContentSize(nonFolderViews.size())
-                .previewItemsForPage(page, nonFolderViews);
+        List<View> iconsInReadingOrder = mFolder.getIconsInReadingOrder();
+        return mPreviewVerifier.setContentSize(iconsInReadingOrder.size())
+                .previewItemsForPage(page, iconsInReadingOrder);
     }
 
     /**
