@@ -28,6 +28,7 @@ import app.blownchart.ui.preferences.components.RecentsQuickAction
 import app.blownchart.ui.preferences.components.RestrictedSettingsBanner
 import app.blownchart.ui.preferences.components.controls.SliderPreference
 import app.blownchart.ui.preferences.components.controls.SwitchPreference
+import app.blownchart.ui.preferences.components.controls.WarningPreference
 import app.blownchart.ui.preferences.components.layout.ExpandAndShrink
 import app.blownchart.ui.preferences.components.layout.PreferenceGroup
 import app.blownchart.ui.preferences.components.layout.PreferenceLayout
@@ -87,6 +88,12 @@ fun QuickstepPreferences(
         modifier = modifier,
     ) {
         RestrictedSettingsBanner()
+        // The interception feature and the rest of this screen are mutually exclusive by design:
+        // interception exists to work around a broken vendor Recents renderer on devices where
+        // BlownChart *isn't* the active provider, while every other Quickstep setting below
+        // (translucent background, quick actions, corner radius, taskbar) only has any visible
+        // effect when BlownChart itself *is* the one actually rendering Recents. Whichever side
+        // doesn't apply gets an explanatory warning instead of silently doing nothing.
         if (!BlownChartApp.isRecentsEnabled) {
             PreferenceGroup(
                 heading = stringResource(id = R.string.recents_interception_label),
@@ -132,6 +139,9 @@ fun QuickstepPreferences(
                     RecentsButtonInterceptionDeviceAdminBanner()
                 }
             }
+            QuickstepGeneralSettingsIgnoredWarning()
+        } else {
+            RecentsInterceptionNotApplicableWarning()
         }
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             SwitchPreference(
@@ -185,6 +195,38 @@ fun QuickstepPreferences(
                 )
             }
         }
+    }
+}
+
+@PreviewBlownChart
+@Composable
+private fun QuickstepGeneralSettingsIgnoredWarning(
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.errorContainer,
+    ) {
+        WarningPreference(
+            text = stringResource(id = R.string.quickstep_general_settings_ignored_warning),
+        )
+    }
+}
+
+@PreviewBlownChart
+@Composable
+private fun RecentsInterceptionNotApplicableWarning(
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.errorContainer,
+    ) {
+        WarningPreference(
+            text = stringResource(id = R.string.recents_interception_not_applicable_warning),
+        )
     }
 }
 
