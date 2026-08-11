@@ -4,8 +4,7 @@
 
 # BlownChart
 
-A simple, fast Android home screen launcher with categorized folders in the
-app drawer and a real screen-lock mode — a fork of
+A simple, fast Android home screen launcher with categorized folders and a real screen-lock mode — a fork of
 [Lawnchair](https://github.com/LawnchairLauncher/lawnchair).
 
 **This is a fork of Lawnchair. Original project:
