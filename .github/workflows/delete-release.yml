@@ -1,0 +1,44 @@
+name: Delete release
+
+# Manual cleanup: deletes a GitHub Release and its underlying git tag together, so a bad release
+# can be fully retracted (not just hidden) before republishing under the same tag name. Defaults
+# to a dry run - you have to consciously flip dry_run off.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name of the release to delete (e.g. v0.99)'
+        type: string
+        required: true
+      dry_run:
+        description: 'Dry run: show what would be deleted without deleting anything'
+        type: boolean
+        required: true
+        default: true
+
+jobs:
+  delete-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Delete release and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event.inputs.tag_name }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            if gh release view "$TAG_NAME" > /dev/null 2>&1; then
+              echo "[dry-run] would delete release and tag: $TAG_NAME"
+              gh release view "$TAG_NAME"
+            else
+              echo "[dry-run] no release found for tag: $TAG_NAME"
+            fi
+          else
+            gh release delete "$TAG_NAME" --yes --cleanup-tag
+            echo "deleted release and tag: $TAG_NAME"
+          fi
