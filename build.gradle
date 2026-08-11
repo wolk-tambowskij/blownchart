@@ -180,7 +180,15 @@ android {
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach {
             def channel = variant.productFlavors.last().name
-            outputFileName = "BlownChart.${variant.versionName}.$channel.${variant.buildType.name}.apk"
+            // The github/release combo is what release.yml publishes to GitHub Releases, where a
+            // short, predictable name matters for end users downloading it by hand. Every other
+            // combo (debug builds across channels, nightly's own release build) keeps the
+            // channel/build-type-qualified name - CI's send-notifications job merges same-named
+            // debug artifacts from parallel matrix jobs into one directory, so those still need
+            // to stay distinguishable from each other.
+            outputFileName = (channel == "github" && variant.buildType.name == "release")
+                    ? "BlownChart_v${variant.versionName}.apk"
+                    : "BlownChart.${variant.versionName}.$channel.${variant.buildType.name}.apk"
         }
     }
 
