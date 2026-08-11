@@ -283,17 +283,26 @@ class BlownChartAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * The package of the most recently foregrounded app other than this launcher itself and
-     * SystemUI, per [UsageEvents] - or null if none was found in the lookback window, or usage
-     * access isn't granted. Uses the raw event stream (not [UsageStatsManager]'s daily-bucketed
-     * aggregate query) since that's what actually preserves correct chronological ordering for
-     * "what was the very last app" rather than coarse per-interval totals.
+     * The package of the most recently foregrounded app other than this launcher itself, SystemUI,
+     * and the system Recents provider, per [UsageEvents] - or null if none was found in the
+     * lookback window, or usage access isn't granted. Uses the raw event stream (not
+     * [UsageStatsManager]'s daily-bucketed aggregate query) since that's what actually preserves
+     * correct chronological ordering for "what was the very last app" rather than coarse
+     * per-interval totals.
      */
     private fun findLastForegroundPackage(): String? {
         if (!hasUsageStatsAccess()) {
             Log.i(TAG, "findLastForegroundPackage: usage access not granted")
             return null
         }
+        // The real system Recents screen (opened moments ago by this very mechanism) is itself a
+        // genuine Activity resume, so it shows up in the event stream just like any other app -
+        // without excluding it, a second button press right after visiting Recents and returning
+        // home would try to "resume" Recents itself instead of the actual last real app, which is
+        // meaningless and reproduces the original flash-and-dismiss bug this whole thing works
+        // around. Read fresh each call rather than cached, since which package provides Recents
+        // is fixed per-device but this is cheap and avoids any init-order assumptions.
+        val recentsProviderPackage = blownChartApp.systemRecentsComponentName?.packageName
         val usageStatsManager = getSystemService(UsageStatsManager::class.java) ?: return null
         val end = System.currentTimeMillis()
         val begin = end - LAST_APP_LOOKBACK_MS
@@ -310,7 +319,12 @@ class BlownChartAccessibilityService : AccessibilityService() {
             ) {
                 continue
             }
-            if (event.packageName == packageName || event.packageName == SYSTEMUI_PACKAGE) continue
+            if (event.packageName == packageName ||
+                event.packageName == SYSTEMUI_PACKAGE ||
+                event.packageName == recentsProviderPackage
+            ) {
+                continue
+            }
             if (event.timeStamp >= lastTimestamp) {
                 lastTimestamp = event.timeStamp
                 lastPackage = event.packageName
@@ -356,8 +370,12 @@ class BlownChartAccessibilityService : AccessibilityService() {
         private const val LAST_APP_LOOKBACK_MS = 60 * 60 * 1000L
 
         // Long enough for FLAG_ACTIVITY_REORDER_TO_FRONT to actually bring the target task's
-        // window to the front (including a cold start if its process was no longer alive) before
-        // firing Recents from it; short enough to keep the whole bounce feeling instantaneous.
-        private const val RESUME_SETTLE_DELAY_MS = 50L
+        // window to the front before firing Recents from it; short enough to keep the resumed
+        // app's brief flash on screen (visible while the focus change settles) as unobtrusive as
+        // possible. Confirmed working stably on real hardware at 50ms; trimmed further since that
+        // flash was still noticeable - if this turns out too tight on a slower device (e.g. a cold
+        // start of the target app's process), the visible symptom would be reverting to
+        // performGlobalAction's original flash-and-dismiss behavior, not a crash.
+        private const val RESUME_SETTLE_DELAY_MS = 30L
     }
 }
