@@ -110,6 +110,46 @@ from `505dbc40e6` and re-verified. Worth a standing habit: always grep a new
 clean-room branch for `app\.blownchart\|BlownChart` before marking it ready
 for review, not just at the end of a whole sweep.
 
+## 2026-08-11 drift re-check closing the last gap (#2, #3, #4, #7, #8, #9)
+
+These six had last been checked in the 2026-08-01 nuance sweep - the
+2026-08-10 full drift sweep covered #1, #5, #6, #10, #11-13 plus three
+newly-tracked branches, but not these six. Diffed every `15-dev` commit
+since `355ca22ca4` (the Aug 1 sweep's own final commit) against each
+branch's actual files:
+
+- **#2** (`fix/folder-shape-geometry`) - the only hits touch
+  `PreviewItemManager.java` for the unrelated nested-folder crash fix
+  (`adc95c2128`) and the mechanical rename refactor - no real drift.
+- **#3** (`feat/search-folder-label`) - `FolderService.kt` hits
+  (`5c7c5ae30e`, `4cf6583dd1`) are a backup-restore stale-cache fix and a
+  cold-start perf fix, both already tracked under #10 and #1
+  respectively - neither touches the search-label lookup this branch
+  actually adds. No real drift.
+- **#4** (`feat/folder-outline`) - the only hits touch `FolderIcon.java`
+  for nested-folder wrap/merge/un-nest/preview work (#10's territory),
+  not outline drawing. No real drift.
+- **#7** (`feat/folder-picker-search`) - real new territory existed
+  (`a266d121ec`, the hidden-apps-screen search bar, same day as this
+  check) but turned out **already ported**: `origin/feat/folder-picker-search`
+  already has the matching `searchQuery` code in its own
+  `HiddenAppsPreferences.kt`, confirmed by direct fetch-and-check. No
+  action needed.
+- **#8** (`fix/home-lock-uninstall-widget-bypass`) - the search-settings
+  lock-bypass fix (`b026ea8fe9`) correctly belongs to #9 instead (it
+  gates on `lockAppDrawer`, which #9 introduces, not `lockHomeScreen`,
+  which is #8's actual scope) - no drift for #8 specifically.
+- **#9** (`feat/split-drawer-home-lock`) - already confirmed in sync:
+  the same search-settings lock-bypass fix was ported to
+  `origin/feat/split-drawer-home-lock` earlier the same day (commit
+  `b3c9d6ebdd`, CI green) and its PR doc updated.
+
+All six confirmed current. Combined with the 2026-08-10 sweep (#1, #5,
+#6, #10, #11-13), the fresh #16/#17/#18 (created already-current), and
+#14's active same-day rewrite, every tracked branch now has a
+verified-current status as of 2026-08-11 - closing Task 3 item #36/#76
+for good, not just the issue-tracker half of it (see the next section).
+
 ## 2026-08-11 issue tracker check completed (closing the last gaps from Task 3 item #19)
 
 The only three rows in the table below that had never had an upstream
