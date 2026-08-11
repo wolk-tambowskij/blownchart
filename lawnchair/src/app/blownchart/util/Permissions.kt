@@ -77,7 +77,11 @@ fun Context.requestDeviceAdmin() {
             DevicePolicyManager.EXTRA_ADD_EXPLANATION,
             getString(R.string.recents_button_interception_device_admin_hint),
         )
-        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    // Deliberately no FLAG_ACTIVITY_NEW_TASK, matching the same call in ServiceWarningDialog's
+    // "open settings" button (SleepGestureHandler.kt) - the device admin activation screen
+    // verifies its calling activity and finishes itself immediately if that chain is broken by
+    // being launched as a separate task, which looks like a flash-and-return with a dead entry
+    // left behind in Recents.
 
     if (intent.resolveActivity(packageManager) != null) {
         startActivity(intent)

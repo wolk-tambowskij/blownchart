@@ -48,13 +48,15 @@ class BlownChartAccessibilityService : AccessibilityService() {
     private var overlayView: View? = null
     private var overlayBounds: Rect? = null
 
-    // The app most recently resumed by bounceToRecents(), and whether its Recents card has been
-    // observed dismissed (swiped away or "clear all") since - see checkTrackedAppStillInRecents().
-    private var trackedLastAppPackage: String? = null
-    private var trackedLastAppLabel: String? = null
-    private var sawTrackedAppInRecents = false
-    private var dismissedPackage: String? = null
-    private var dismissedAtMs = 0L
+    // The candidate apps as of the last bounceToRecents() call (most recent first), and whether
+    // each one's Recents card has since been observed dismissed (swiped away, or "clear all"
+    // taking several/all of them at once) - see checkTrackedAppStillInRecents(). Tracking more
+    // than just the single most-recent one is what lets "clear all" correctly fall through past
+    // *all* of them instead of resurrecting whichever one happened to be second.
+    private val trackedCandidates = LinkedHashMap<String, TrackedCandidate>()
+    private val dismissedAtMs = mutableMapOf<String, Long>()
+
+    private data class TrackedCandidate(val label: String, var sawInRecents: Boolean)
 
     override fun onServiceConnected() {
         // Watches TYPE_WINDOWS_CHANGED, unrestricted by package (nav bar layout changes aren't
@@ -272,7 +274,8 @@ class BlownChartAccessibilityService : AccessibilityService() {
             Log.i(TAG, "bounceToRecents: suppressed by cooldown, sinceSelfTrigger=${sinceSelfTrigger}ms")
             return
         }
-        val lastAppPackage = findLastForegroundPackage()
+        val candidates = findRecentForegroundPackages(TRACKED_CANDIDATE_LIMIT)
+        val lastAppPackage = candidates.firstOrNull()
         val launchIntent = lastAppPackage?.let { packageManager.getLaunchIntentForPackage(it) }
         if (launchIntent == null) {
             Log.i(TAG, "bounceToRecents: no eligible last app (lastAppPackage=$lastAppPackage), triggering Recents directly")
@@ -280,13 +283,7 @@ class BlownChartAccessibilityService : AccessibilityService() {
             return
         }
         Log.i(TAG, "bounceToRecents: resuming $lastAppPackage before triggering Recents")
-        trackedLastAppPackage = lastAppPackage
-        trackedLastAppLabel = try {
-            packageManager.getApplicationLabel(packageManager.getApplicationInfo(lastAppPackage, 0)).toString()
-        } catch (e: Exception) {
-            null
-        }
-        sawTrackedAppInRecents = false
+        trackCandidates(candidates)
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
         try {
             // Zero-length custom animation: this app is only ever meant to be resumed for a
@@ -310,32 +307,45 @@ class BlownChartAccessibilityService : AccessibilityService() {
 
     private val debouncedCheckTrackedAppStillInRecents = Runnable { checkTrackedAppStillInRecents() }
 
+    private fun trackCandidates(candidates: List<String>) {
+        trackedCandidates.clear()
+        for (pkg in candidates) {
+            val label = try {
+                packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
+            } catch (e: Exception) {
+                continue
+            }
+            trackedCandidates[pkg] = TrackedCandidate(label = label, sawInRecents = false)
+        }
+    }
+
     /**
      * [UsageEvents] has no concept of a task being removed from Recents - swiping a card away or
      * hitting "clear all" doesn't generate any new event, so without this, the very next
-     * bounceToRecents() call would still find the same stale ACTIVITY_RESUMED entry and resume
-     * (i.e. relaunch) an app the user just explicitly dismissed. Instead, while the resumed app's
-     * card was last known visible in the live Recents window and a content change now shows it's
-     * gone, treat it as dismissed and have findLastForegroundPackage() skip it in favor of
+     * bounceToRecents() call would still find the same stale ACTIVITY_RESUMED entries and resume
+     * (i.e. relaunch) an app the user just explicitly dismissed. Instead, for each candidate app
+     * that was last known visible in the live Recents window, once a content change shows it's
+     * gone, treat it as dismissed and have findRecentForegroundPackages() skip it in favor of
      * whichever app was used before it - exactly the "track the next one" behavior a real Recents
-     * screen would give you.
+     * screen would give you. Checking every tracked candidate (not just the single most-recent
+     * one) rather than only the resumed app is what makes "clear all" correctly fall through past
+     * *all* of them - a single-app check would just resurrect whichever one happened to be second.
      *
-     * A false-positive dismissal (e.g. mistaking the card vanishing because the user tapped it to
+     * A false-positive dismissal (e.g. mistaking a card vanishing because the user tapped it to
      * actually reopen the app) is harmless: that reopen is itself a fresh, newer ACTIVITY_RESUMED
-     * event, which findLastForegroundPackage()'s timestamp check naturally treats as superseding
-     * the dismissal.
+     * event, which findRecentForegroundPackages()'s timestamp check naturally treats as
+     * superseding the dismissal.
      */
     private fun checkTrackedAppStillInRecents() {
-        val label = trackedLastAppLabel ?: return
-        val pkg = trackedLastAppPackage ?: return
-        if (pkg == dismissedPackage) return
-        val stillPresent = isLabelVisibleInRecents(label)
-        if (sawTrackedAppInRecents && !stillPresent) {
-            Log.i(TAG, "checkTrackedAppStillInRecents: $pkg no longer present in Recents, marking dismissed")
-            dismissedPackage = pkg
-            dismissedAtMs = System.currentTimeMillis()
+        for ((pkg, candidate) in trackedCandidates) {
+            if (dismissedAtMs.containsKey(pkg)) continue
+            val stillPresent = isLabelVisibleInRecents(candidate.label)
+            if (candidate.sawInRecents && !stillPresent) {
+                Log.i(TAG, "checkTrackedAppStillInRecents: $pkg no longer present in Recents, marking dismissed")
+                dismissedAtMs[pkg] = System.currentTimeMillis()
+            }
+            candidate.sawInRecents = candidate.sawInRecents || stillPresent
         }
-        sawTrackedAppInRecents = sawTrackedAppInRecents || stillPresent
     }
 
     private fun isLabelVisibleInRecents(label: String): Boolean {
@@ -371,17 +381,17 @@ class BlownChartAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * The package of the most recently foregrounded app other than this launcher itself, SystemUI,
-     * and the system Recents provider, per [UsageEvents] - or null if none was found in the
-     * lookback window, or usage access isn't granted. Uses the raw event stream (not
-     * [UsageStatsManager]'s daily-bucketed aggregate query) since that's what actually preserves
-     * correct chronological ordering for "what was the very last app" rather than coarse
+     * The packages of the most recently foregrounded apps other than this launcher itself,
+     * SystemUI, and the system Recents provider, per [UsageEvents], most recent first - or empty
+     * if none was found in the lookback window, or usage access isn't granted. Uses the raw event
+     * stream (not [UsageStatsManager]'s daily-bucketed aggregate query) since that's what actually
+     * preserves correct chronological ordering for "what was used last" rather than coarse
      * per-interval totals.
      */
-    private fun findLastForegroundPackage(): String? {
+    private fun findRecentForegroundPackages(limit: Int): List<String> {
         if (!hasUsageStatsAccess()) {
-            Log.i(TAG, "findLastForegroundPackage: usage access not granted")
-            return null
+            Log.i(TAG, "findRecentForegroundPackages: usage access not granted")
+            return emptyList()
         }
         // The real system Recents screen (opened moments ago by this very mechanism) is itself a
         // genuine Activity resume, so it shows up in the event stream just like any other app -
@@ -391,13 +401,12 @@ class BlownChartAccessibilityService : AccessibilityService() {
         // around. Read fresh each call rather than cached, since which package provides Recents
         // is fixed per-device but this is cheap and avoids any init-order assumptions.
         val recentsProviderPackage = blownChartApp.systemRecentsComponentName?.packageName
-        val usageStatsManager = getSystemService(UsageStatsManager::class.java) ?: return null
+        val usageStatsManager = getSystemService(UsageStatsManager::class.java) ?: return emptyList()
         val end = System.currentTimeMillis()
         val begin = end - LAST_APP_LOOKBACK_MS
         val events = usageStatsManager.queryEvents(begin, end)
         val event = UsageEvents.Event()
-        var lastPackage: String? = null
-        var lastTimestamp = 0L
+        val latestTimestampByPackage = LinkedHashMap<String, Long>()
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
             // MOVE_TO_FOREGROUND covers API 26-28 (this app's minSdk); ACTIVITY_RESUMED is the
@@ -407,24 +416,26 @@ class BlownChartAccessibilityService : AccessibilityService() {
             ) {
                 continue
             }
-            if (event.packageName == packageName ||
-                event.packageName == SYSTEMUI_PACKAGE ||
-                event.packageName == recentsProviderPackage
-            ) {
+            val pkg = event.packageName
+            if (pkg == packageName || pkg == SYSTEMUI_PACKAGE || pkg == recentsProviderPackage) {
                 continue
             }
-            // Skip an app confirmed dismissed from Recents since its last resume - falls through
-            // to whichever app was used before it. A genuinely newer resume (timestamp after the
-            // dismissal) means the user relaunched it themselves since, so it's eligible again.
-            if (event.packageName == dismissedPackage && event.timeStamp <= dismissedAtMs) {
+            // Skip an app confirmed dismissed from Recents since its last resume. A genuinely
+            // newer resume (timestamp after the dismissal) means the user relaunched it
+            // themselves since, so it's eligible again.
+            val dismissedAt = dismissedAtMs[pkg]
+            if (dismissedAt != null && event.timeStamp <= dismissedAt) {
                 continue
             }
-            if (event.timeStamp >= lastTimestamp) {
-                lastTimestamp = event.timeStamp
-                lastPackage = event.packageName
+            val previous = latestTimestampByPackage[pkg]
+            if (previous == null || event.timeStamp >= previous) {
+                latestTimestampByPackage[pkg] = event.timeStamp
             }
         }
-        return lastPackage
+        return latestTimestampByPackage.entries
+            .sortedByDescending { it.value }
+            .take(limit)
+            .map { it.key }
     }
 
     companion object {
@@ -445,6 +456,13 @@ class BlownChartAccessibilityService : AccessibilityService() {
         // Debounces checkTrackedAppStillInRecents() against bursts of content-changed events
         // fired while a card's dismiss/removal animation plays out.
         private const val RECENTS_CONTENT_CHECK_DEBOUNCE_MS = 200L
+
+        // How many of the most-recent candidate apps to track presence for, so that "clear all"
+        // (which can drop several/all cards in one go) is recognized as clearing all of them,
+        // not just the one that was actually resumed. Generous on purpose, same reasoning as
+        // LAST_APP_LOOKBACK_MS below - a couple of extra getApplicationLabel() lookups per button
+        // press is cheap, undercounting real Recents card counts is not.
+        private const val TRACKED_CANDIDATE_LIMIT = 10
 
         // How far back to look for the last-used app. Generous on purpose: the cost of a wider
         // window is scanning a few more events, not correctness - the loop below always ends up
