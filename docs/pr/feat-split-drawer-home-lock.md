@@ -25,6 +25,17 @@ rather review them together, this branch already includes both commits.
   home screen/hotseat/folder icons are always `WorkspaceItemInfo`. Both
   `CUSTOMIZE` and `UNINSTALL` now go through this instead of checking
   `lockHomeScreen` directly.
+- **Real-device follow-up**: `lockAppDrawer` didn't cover a search-only
+  escape hatch - typing into app drawer search shows a gear icon
+  (`SearchResultSearchSettings`, drawer-search-only, confirmed via
+  `SearchSettingsSectionBuilder`'s sole wiring into
+  `LawnchairLocalSearchAlgorithm`) that jumps straight into the
+  drawer's own search settings, letting the lock be bypassed by
+  reconfiguring search behavior instead of tampering with apps
+  directly. Now hidden (`bind()`, called on every search-result bind)
+  whenever `lockAppDrawer` is on, matching how every other locked-out
+  action here doesn't offer the escape hatch at all rather than
+  showing it disabled.
 
 ### Testing
 
@@ -32,7 +43,10 @@ Verified: enabling only `Lock app drawer` blocks rename/hide/uninstall
 from the drawer's long-press menu but leaves the home screen, hotseat,
 and folders fully editable. Enabling only `Lock home screen` does the
 reverse. Enabling both blocks everywhere, matching the old single-flag
-behavior. Disabling both restores full editability everywhere.
+behavior. Disabling both restores full editability everywhere. With
+`Lock app drawer` on, confirmed the search-settings gear icon no
+longer appears when typing into app drawer search; with it off, the
+icon appears and still opens search settings as before.
 
 ### Compatibility
 
