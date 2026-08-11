@@ -186,7 +186,7 @@ fun PreferencesDashboard(
                 isSelected = currentRoute is Gestures,
             )
 
-            if (BlownChartApp.isRecentsEnabled || BuildConfig.DEBUG) {
+            if (BlownChartApp.isQuickstepCompatible) {
                 PreferenceCategory(
                     label = stringResource(id = R.string.quickstep_label),
                     description = stringResource(id = R.string.quickstep_description),

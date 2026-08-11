@@ -255,6 +255,19 @@ class BlownChartApp : Application() {
         @JvmStatic
         val isRecentsEnabled: Boolean get() = instance.recentsEnabled
 
+        /**
+         * Whether this OS version is within Quickstep's supported SDK range at all - independent
+         * of whether this launcher happens to already be the system's registered Recents
+         * provider (that's [isRecentsEnabled]). Gates whether Quickstep settings are reachable at
+         * all: on a device where a broken vendor firmware has hijacked
+         * `config_recentsComponentName`, [isRecentsEnabled] is false precisely because this
+         * launcher *isn't* the active provider - gating the whole settings screen on it would
+         * make the workaround for that exact situation (recents button/gesture interception)
+         * unreachable on the real hardware it exists for.
+         */
+        @JvmStatic
+        val isQuickstepCompatible: Boolean get() = instance.compatible
+
         @JvmStatic
         val isAtleastT: Boolean get() = instance.isAtleastT
 
