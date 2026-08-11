@@ -18,15 +18,25 @@ package app.blownchart.ui.preferences.destinations
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -59,6 +69,10 @@ fun HiddenAppsPreferences(
             stringResource(id = R.string.hidden_apps_label_with_count, hiddenApps.size)
         }
     val apps by appsState(comparator = hiddenAppsComparator(hiddenApps))
+    var searchQuery by remember { mutableStateOf("") }
+    val displayedApps = remember(apps, searchQuery) {
+        apps.filter { it.label.contains(searchQuery, ignoreCase = true) }
+    }
     val state = rememberLazyListState()
     PreferenceScaffold(
         label = pageTitle,
@@ -89,8 +103,30 @@ fun HiddenAppsPreferences(
                         if (isHidden) newSet.add(key) else newSet.remove(key)
                         adapter.onChange(newSet)
                     }
+                    item {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            placeholder = { Text(stringResource(R.string.all_apps_search_bar_hint)) },
+                            leadingIcon = { Icon(Icons.Rounded.Search, null) },
+                            trailingIcon = if (searchQuery.isNotEmpty()) {
+                                {
+                                    IconButton(onClick = { searchQuery = "" }) {
+                                        Icon(Icons.Rounded.Clear, null)
+                                    }
+                                }
+                            } else {
+                                null
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(32.dp),
+                        )
+                    }
                     preferenceGroupItems(
-                        items = apps,
+                        items = displayedApps,
                         isFirstChild = true,
                         dividerStartIndent = 40.dp,
                     ) { _, app ->
