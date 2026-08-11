@@ -104,6 +104,7 @@ class BlownChartAccessibilityService : AccessibilityService() {
                 handler.removeCallbacks(debouncedUpdateOverlay)
                 handler.postDelayed(debouncedUpdateOverlay, OVERLAY_UPDATE_DEBOUNCE_MS)
             }
+
             AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
                 if (event.packageName?.toString() != blownChartApp.systemRecentsComponentName?.packageName) return
                 handler.removeCallbacks(debouncedCheckTrackedAppStillInRecents)
