@@ -883,7 +883,18 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
      * Determines whether we should animate the folder opening.
      */
     boolean shouldAnimateOpen(List<ItemInfo> items) {
-        if (items == null || items.size() <= 1) {
+        // A raw size() of 1 undercounts a folder whose only content is a subfolder holding
+        // several apps of its own - count what's actually inside instead, the same way the
+        // drawer's own visibility check and the closed-icon preview already do (see
+        // FolderIcon#getPreviewItemsOnPage). Without this, a folder that's shown specifically so
+        // it can be tapped open to reveal that subfolder silently did nothing on tap instead -
+        // this early return firing before mContent.bindItems() / mIsOpen is ever set.
+        int flattenedCount = items == null ? 0 : items.stream()
+                .mapToInt(item -> item instanceof FolderInfo folderItem
+                        ? folderItem.getContents().size()
+                        : 1)
+                .sum();
+        if (flattenedCount <= 1) {
             Log.d(TAG, "Couldn't animate folder open because items is: " + items);
             return false;
         }
