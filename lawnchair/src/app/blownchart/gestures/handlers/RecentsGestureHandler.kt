@@ -40,12 +40,12 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
             }
             return
         }
-        // Routes through the accessibility service's focus-grabbing overlay instead of calling
-        // performGlobalAction(GLOBAL_ACTION_RECENTS) directly from the launcher: on firmware where
-        // config_recentsComponentName points to a broken vendor Recents renderer, invoking it
-        // directly from the launcher's own focused window makes the OS misinterpret it as a
-        // dismiss rather than an open. See BlownChartAccessibilityService.bounceToRecents for the
-        // full explanation.
+        // Routes through bounceToRecents() (which resumes the real last-used app first) instead of
+        // calling performGlobalAction(GLOBAL_ACTION_RECENTS) directly from the launcher: on
+        // firmware where config_recentsComponentName points to a broken vendor Recents renderer,
+        // invoking it directly from the launcher's own focused window makes the OS misinterpret it
+        // as a dismiss rather than an open. See BlownChartAccessibilityService.bounceToRecents for
+        // the full explanation.
         app.bounceToRecents()
     }
 }
