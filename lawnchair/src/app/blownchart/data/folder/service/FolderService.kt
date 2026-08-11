@@ -67,11 +67,9 @@ class FolderService(val context: Context) : SafeCloseable {
         // Cache the componentKey -> AppInfo lookup for the lifetime of this collection instead
         // of rebuilding it (a full LauncherApps.getActivityList() enumeration of every installed
         // app) on every single emission: editing a folder's items writes to the same tables this
-        // flow observes, so without the cache, every checkbox toggle re-scanned all apps. The
-        // cache resets whenever a fresh collection starts (e.g. the screen is reopened after the
-        // StateFlow's WhileSubscribed window drops the subscription), matching how the rest of
-        // the app already treats the installed-app list as a per-visit snapshot rather than
-        // something tracked live.
+        // flow observes, so without the cache, every checkbox toggle re-scanned all apps. Also
+        // rebuilt mid-collection, below, if it turns out to be missing something a folder
+        // actually references.
         var cachedAppInfoByComponentKey: Map<String, AppInfo>? = null
         // Read once per collection (same lifetime as the cache above) rather than reactively -
         // flipping the order-mode toggle takes effect the next time this screen opens, not live.
@@ -84,8 +82,6 @@ class FolderService(val context: Context) : SafeCloseable {
                 emit(emptyList())
                 return@collect
             }
-            val appInfoByComponentKey = cachedAppInfoByComponentKey
-                ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
             // Sort the entities (which carry .rank) before mapping to the domain FolderInfo
             // (which doesn't), so the emitted list order is already correct either way.
             val orderedFoldersWithItems = if (manualOrder) {
@@ -93,9 +89,28 @@ class FolderService(val context: Context) : SafeCloseable {
             } else {
                 foldersWithItems.sortedBy { it.folder.title.lowercase(Locale.getDefault()) }
             }
+            val subfoldersByTopFolderId = orderedFoldersWithItems.associate {
+                it.folder.id to folderDao.getSubfoldersWithItems(it.folder.id)
+            }
+            var appInfoByComponentKey = cachedAppInfoByComponentKey
+                ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
+            // If an app referenced by a folder item isn't in the cached snapshot yet - e.g.
+            // LauncherApps hadn't finished enumerating installed apps this early after a cold
+            // start following a backup restore - that app (and, if it was the folder's only
+            // content, the whole folder) silently drops out here and stays dropped for the rest
+            // of this collection's lifetime, since the cache above is otherwise built once and
+            // reused for as long as something keeps observing folders (which can be indefinitely
+            // - see the WhileSubscribed(5000) callers). Rebuild once, immediately, instead of
+            // waiting on some unrelated future write to these tables to trigger a fresh
+            // collection that would happen to rebuild it correctly.
+            val allReferencedComponentKeys = (orderedFoldersWithItems.asSequence() + subfoldersByTopFolderId.values.asSequence().flatten())
+                .flatMap { it.items.asSequence() }
+                .mapNotNull { it.componentKey }
+            if (allReferencedComponentKeys.any { it !in appInfoByComponentKey }) {
+                appInfoByComponentKey = buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
+            }
             val mapped = orderedFoldersWithItems.mapNotNull { topFolder ->
-                val subfolders = folderDao.getSubfoldersWithItems(topFolder.folder.id)
-                mapToFolderInfo(topFolder, true, appInfoByComponentKey, manualOrder, subfolders)
+                mapToFolderInfo(topFolder, true, appInfoByComponentKey, manualOrder, subfoldersByTopFolderId[topFolder.folder.id].orEmpty())
             }
             emit(mapped)
         }
@@ -115,8 +130,15 @@ class FolderService(val context: Context) : SafeCloseable {
                 emit(emptyList())
                 return@collect
             }
-            val appInfoByComponentKey = cachedAppInfoByComponentKey
+            var appInfoByComponentKey = cachedAppInfoByComponentKey
                 ?: buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
+            // Same self-healing rebuild as getFoldersFlow() - see its comment for why.
+            val hasUnresolvedItem = foldersWithItems.any { withItems ->
+                withItems.items.any { it.componentKey != null && it.componentKey !in appInfoByComponentKey }
+            }
+            if (hasUnresolvedItem) {
+                appInfoByComponentKey = buildAppInfoByComponentKey().also { cachedAppInfoByComponentKey = it }
+            }
             // Sort the entities (which carry .rank) before mapping, same as getFoldersFlow(), so
             // the flat management list's order matches the manual-order toggle too.
             val orderedFoldersWithItems = if (manualOrder) {
