@@ -5,11 +5,14 @@ import android.util.AttributeSet
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.view.ViewCompat
+import androidx.core.view.isVisible
+import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.search.adapter.SearchTargetCompat
 import app.lawnchair.ui.preferences.PreferenceActivity
 import app.lawnchair.ui.preferences.destinations.SearchRoute
 import app.lawnchair.ui.preferences.navigation.Search
 import com.android.launcher3.R
+import com.patrykmichalik.opto.core.firstBlocking
 
 class SearchResultSearchSettings(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
@@ -32,6 +35,10 @@ class SearchResultSearchSettings(context: Context, attrs: AttributeSet?) :
         target: SearchTargetCompat,
         shortcuts: List<SearchTargetCompat>,
     ) {
-        // no-op
+        // Locking the app drawer is meant to keep its contents/behavior from being tampered
+        // with - jumping straight from a search result into the drawer's own search settings
+        // is exactly that kind of tampering, so hide the entry point outright while locked
+        // rather than leaving it clickable.
+        iconButton.isVisible = !PreferenceManager2.getInstance(context).lockAppDrawer.firstBlocking()
     }
 }
