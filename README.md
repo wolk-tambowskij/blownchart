@@ -19,6 +19,15 @@ AOSP-derived code and the GPLv3 Lawnchair/BlownChart code.
 [![Build debug APK](https://github.com/wolk-tambowskij/blownchart/actions/workflows/ci.yml/badge.svg?branch=15-dev)](https://github.com/wolk-tambowskij/blownchart/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/wolk-tambowskij/blownchart?include_prereleases&label=version)](https://github.com/wolk-tambowskij/blownchart/releases)
 
+### Screenshots / Скриншоты
+
+| | |
+|---|---|
+| ![App drawer folders](docs/assets/screenshots/drawer-folders.png) | ![Nested folder in the app drawer](docs/assets/screenshots/drawer-nested-folder.png) |
+| App drawer folders — a nested folder (badge in the corner) opens right where it's tapped.<br>Папки в меню приложений — вложенная папка (значок в углу) открывается прямо там, где её нажали. | A nested folder ("VPN") shown open inside its parent ("Сеть").<br>Вложенная папка («VPN») открыта внутри родительской («Сеть»). |
+| ![Nested folder on the home screen](docs/assets/screenshots/home-nested-folder.png) | ![Search shows an app's folder, including nested path](docs/assets/screenshots/search-folder-path.png) |
+| The same nesting works for a folder placed on the home screen.<br>То же самое вложение работает и для папки на домашнем экране. | Search results show which folder an app is in — including the full path for a nested subfolder.<br>Результаты поиска показывают, в какой папке находится приложение — включая полный путь для вложенной подпапки. |
+
 ---
 
 ## English
