@@ -19,10 +19,10 @@ package app.blownchart
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.ActivityOptions
+import android.app.AppOpsManager
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.graphics.Rect
@@ -284,14 +284,14 @@ class BlownChartAccessibilityService : AccessibilityService() {
 
     /**
      * The package of the most recently foregrounded app other than this launcher itself and
-     * SystemUI, per [UsageEvents] - or null if none was found in the lookback window, or
-     * PACKAGE_USAGE_STATS isn't granted. Uses the raw event stream (not [UsageStatsManager]'s
-     * daily-bucketed aggregate query) since that's what actually preserves correct chronological
-     * ordering for "what was the very last app" rather than coarse per-interval totals.
+     * SystemUI, per [UsageEvents] - or null if none was found in the lookback window, or usage
+     * access isn't granted. Uses the raw event stream (not [UsageStatsManager]'s daily-bucketed
+     * aggregate query) since that's what actually preserves correct chronological ordering for
+     * "what was the very last app" rather than coarse per-interval totals.
      */
     private fun findLastForegroundPackage(): String? {
-        if (checkCallingOrSelfPermission(android.Manifest.permission.PACKAGE_USAGE_STATS) != PackageManager.PERMISSION_GRANTED) {
-            Log.i(TAG, "findLastForegroundPackage: PACKAGE_USAGE_STATS not granted")
+        if (!hasUsageStatsAccess()) {
+            Log.i(TAG, "findLastForegroundPackage: usage access not granted")
             return null
         }
         val usageStatsManager = getSystemService(UsageStatsManager::class.java) ?: return null
@@ -317,6 +317,21 @@ class BlownChartAccessibilityService : AccessibilityService() {
             }
         }
         return lastPackage
+    }
+
+    /**
+     * Whether this app currently has usage-access ("Usage access" in Settings) granted. Despite
+     * PACKAGE_USAGE_STATS being declared as a normal manifest permission, third-party apps are
+     * actually gated on it through [AppOpsManager], not the regular permission-grant system -
+     * [checkCallingOrSelfPermission] for this specific permission reliably returns DENIED
+     * regardless of whether the user has actually enabled it, since its declared protection
+     * level was never meant to be satisfied by a normal grant dialog in the first place.
+     */
+    private fun hasUsageStatsAccess(): Boolean {
+        val appOps = getSystemService(AppOpsManager::class.java) ?: return false
+        @Suppress("DEPRECATION")
+        val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
+        return mode == AppOpsManager.MODE_ALLOWED
     }
 
     companion object {
