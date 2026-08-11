@@ -1,5 +1,11 @@
 ### Description
 
+Related #6576 (that report is a cross-version LC15→LC16 restore
+requiring a second run; this fix targets the same "needs a second
+restore" symptom on a same-version restore - plausibly the same root
+cause resurfacing across the version boundary too, but not confirmed
+without reproducing there, so cited as related rather than closing it).
+
 Fixes a chain of restore-reliability bugs found through real-device
 backup/restore testing, all in `LawnchairBackup.restore()`: grid-bound
 home-screen items (folders/icons/widgets) silently didn't come back on
