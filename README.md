@@ -57,7 +57,7 @@ Folders (app drawer and home screen):
   target springs open to merge into its existing contents.
 - Choice between manual folder ordering and alphabetical sorting
   (default).
-- Search bar when choosing apps for a folder.
+- Search bar when choosing apps for a folder or for the hidden-apps list.
 - Export and import your folder layout as a JSON file with all
   parameters.
 - Thin outline added to folders on the home screen and in the drawer.
@@ -232,7 +232,8 @@ BlownChart появился из-за того, что на простое же�
   отпустить — чтобы объединить с её содержимым.
 - Выбор между ручной сортировкой папок и сортировкой по алфавиту (по
   умолчанию).
-- Строка поиска при выборе приложений для папки.
+- Строка поиска при выборе приложений для папки или в списке скрытых
+  приложений.
 - Экспорт/импорт структуры папок в формате JSON со всеми параметрами.
 - Добавлена тонкая рамка для папок на рабочем столе и в меню
   приложений. Иконки больше не выходят за края превью папки — для

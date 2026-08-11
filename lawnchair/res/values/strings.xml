@@ -521,7 +521,7 @@
     <string name="about_change_1">One level of folder-in-folder nesting, with its own manual ordering (nested folders always sort before apps) and a small badge marking a folder that contains another. In the app drawer, nest a folder from Settings; on the home screen, drag one folder onto another and release quickly to wrap both into a new nested folder, or hold until the target springs open to merge into its existing contents</string>
     <string name="about_change_2">Faster \"App drawer folders\" screen and folder editing with large numbers of installed apps</string>
     <string name="about_change_3">Choice between manual folder ordering and alphabetical sorting (default)</string>
-    <string name="about_change_4">Search bar when choosing apps for a folder</string>
+    <string name="about_change_4">Search bar when choosing apps for a folder or for the hidden-apps list</string>
     <string name="about_change_5">Export and import your folder layout as a JSON file with all parameters</string>
     <string name="about_change_6">Thin outline added to folders on the home screen and in the drawer</string>
     <string name="about_change_7">Fixed folder previews overflowing their bounds, for any number of apps and any icon shape</string>
