@@ -38,7 +38,9 @@ class IconShapeManager(private val context: Context) : SafeCloseable {
     private fun getSystemShape(): IconShape {
         if (!Utilities.ATLEAST_O) throw RuntimeException("not supported on < oreo")
 
-        val iconMask = AdaptiveIconDrawable(null, null).iconMask
+        // AdaptiveIconDrawable's mask is defined relative to its own bounds - without setting
+        // them first, the mask (and every comparison against it below) is degenerate.
+        val iconMask = AdaptiveIconDrawable(null, null).apply { setBounds(0, 0, 100, 100) }.iconMask
         val systemShape = findNearestShape(iconMask)
         return object : IconShape(systemShape) {
 
@@ -59,7 +61,8 @@ class IconShapeManager(private val context: Context) : SafeCloseable {
     }
 
     private fun findNearestShape(comparePath: Path): IconShape {
-        val size = 200
+        // Must match the 100x100 box getSystemShape() defines comparePath (the system mask) in.
+        val size = 100
         val clip = Region(0, 0, size, size)
         val iconR = Region().apply {
             setPath(comparePath, clip)

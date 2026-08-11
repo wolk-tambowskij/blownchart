@@ -745,7 +745,11 @@ class PreferenceManager2 private constructor(private val context: Context) :
             .distinctUntilChanged()
             .onEach { shape ->
                 initializeIconShape(shape)
-                L3IconShape.INSTANCE.get(context)
+                // .get() alone would only return the already-cached instance from the first
+                // launch - pickBestShape() must be called explicitly to re-detect the folder's
+                // own background shape against the mask CustomAdaptiveIconDrawable was just given
+                // above, otherwise folder icons keep their old shape until the process restarts.
+                L3IconShape.INSTANCE.get(context).pickBestShape(context)
                 LauncherAppState.getInstance(context).reloadIcons()
             }
             .launchIn(scope)

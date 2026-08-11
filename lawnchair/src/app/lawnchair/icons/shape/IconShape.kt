@@ -493,6 +493,15 @@ open class IconShape(
             return Path().also { addToPath(it, 0f, 0f, 100f, 100f) }
         }
 
+        // All four corners above are Corner.fullArc placeholders (this shape doesn't use the
+        // corner-based path builder at all, only addToPath() below), which makes the base
+        // class's isCircle check misfire and made addShape() render a plain circle here
+        // instead of this shape's actual path. Bypass that check entirely.
+        override fun addShape(path: Path, x: Float, y: Float, radius: Float) {
+            val size = radius * 2
+            addToPath(path, x, y, x + size, y + size, radius)
+        }
+
         override fun addToPath(
             path: Path,
             left: Float,
@@ -542,6 +551,15 @@ open class IconShape(
             return Path().also { addToPath(it, 0f, 0f, 100f, 100f) }
         }
 
+        // All four corners above are Corner.fullArc placeholders (this shape doesn't use the
+        // corner-based path builder at all, only addToPath() below), which makes the base
+        // class's isCircle check misfire and made addShape() render a plain circle here
+        // instead of this shape's actual path. Bypass that check entirely.
+        override fun addShape(path: Path, x: Float, y: Float, radius: Float) {
+            val size = radius * 2
+            addToPath(path, x, y, x + size, y + size, radius)
+        }
+
         override fun addToPath(
             path: Path,
             left: Float,
@@ -589,6 +607,15 @@ open class IconShape(
 
         override fun getMaskPath(): Path {
             return Path().also { addToPath(it, 0f, 0f, 100f, 100f) }
+        }
+
+        // All four corners above are Corner.fullArc placeholders (this shape doesn't use the
+        // corner-based path builder at all, only addToPath() below), which makes the base
+        // class's isCircle check misfire and made addShape() render a plain circle here
+        // instead of this shape's actual path. Bypass that check entirely.
+        override fun addShape(path: Path, x: Float, y: Float, radius: Float) {
+            val size = radius * 2
+            addToPath(path, x, y, x + size, y + size, radius)
         }
 
         override fun addToPath(
