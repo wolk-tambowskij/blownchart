@@ -92,6 +92,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An icon that can appear on in the workspace representing an {@link Folder}.
@@ -725,11 +726,16 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
      */
     public List<ItemInfo> getPreviewItemsOnPage(int page) {
         // A nested subfolder (one level of folder-in-folder, app drawer only) has no static
-        // preview drawable of its own yet, so it's excluded here rather than crashing in
-        // PreviewItemManager#setDrawable - the parent's closed-icon preview simply shows the
-        // plain apps/app-pairs it contains and omits the subfolder glyph.
+        // preview drawable of its own - PreviewItemManager#setDrawable would crash on the bare
+        // FolderInfo. Rather than omit it from the preview, pull its own direct app contents in
+        // instead, so the parent's closed-icon preview shows real icons "from inside" the
+        // subfolder. Safe to flatten just one level: app-drawer folders only ever nest
+        // AppInfo-only subfolders, never a subfolder containing another subfolder. The small
+        // corner badge (see dispatchDraw) is the separate visual cue that a subfolder is present.
         List<ItemInfo> contents = mInfo.getContents().stream()
-                .filter(item -> !(item instanceof FolderInfo))
+                .flatMap(item -> item instanceof FolderInfo
+                        ? ((FolderInfo) item).getContents().stream()
+                        : Stream.of(item))
                 .collect(Collectors.toList());
         return mPreviewVerifier.setContentSize(contents.size()).previewItemsForPage(page, contents);
     }
