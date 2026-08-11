@@ -18,8 +18,11 @@ package app.blownchart
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.content.Context
+import android.app.ActivityOptions
+import android.app.usage.UsageEvents
+import android.app.usage.UsageStatsManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.graphics.Rect
@@ -44,11 +47,6 @@ class BlownChartAccessibilityService : AccessibilityService() {
 
     private var overlayView: View? = null
     private var overlayBounds: Rect? = null
-
-    // The focus-grabbing window used by bounceToRecents() - separate from overlayView above
-    // (the persistent touch-interception overlay over the physical button), since this one is
-    // transient, focusable, and has a completely different job.
-    private var bounceOverlayView: RecentsBounceOverlayView? = null
 
     override fun onServiceConnected() {
         // Watches TYPE_WINDOWS_CHANGED, unrestricted by package (nav bar layout changes aren't
@@ -227,101 +225,98 @@ class BlownChartAccessibilityService : AccessibilityService() {
         overlayBounds = null
     }
 
-    // ---- Bounce-to-Recents: briefly grab real window focus, then trigger Recents ----
+    // ---- Bounce-to-Recents: resume the real last-used app, then trigger Recents from there ----
 
     /**
      * On firmware where calling performGlobalAction(GLOBAL_ACTION_RECENTS) directly from the
      * launcher's own focused window gets misinterpreted by the OS as a dismiss rather than an
-     * open, this briefly steals window focus away from the launcher via an invisible, focusable
-     * TYPE_ACCESSIBILITY_OVERLAY window, then fires the action once that focus actually lands.
+     * open, this briefly resumes whichever real app the user had open before the launcher, then
+     * fires the action from there instead.
      *
-     * Unlike the previous approach (a real transparent Activity/Task standing in as "some other
-     * app"), an accessibility overlay window is not a Task at all - there is nothing for the OS to
-     * snapshot or leave behind in Recents, so the entire class of ghost/duplicate-card bug that
-     * approach required workarounds for is structurally impossible here: no Task means no card.
+     * An invisible, focusable TYPE_ACCESSIBILITY_OVERLAY window (tried first) turned out not to
+     * be enough on real hardware - WindowManagerService's focus bookkeeping for that window type
+     * apparently isn't equivalent to a real app actually being resumed. Resuming a genuine,
+     * already-existing task via FLAG_ACTIVITY_REORDER_TO_FRONT sidesteps that entirely: there is
+     * nothing fake about it from the OS's perspective, and since it's an *existing* task being
+     * reordered rather than a new one being created, it doesn't add anything new to Recents either
+     * - no new Task means no new card, the same guarantee the overlay attempt was going for.
+     *
+     * Falls back to calling performGlobalAction directly (the original, occasionally-misbehaving
+     * behavior) when there's no eligible last app to resume - freshly booted device, all recent
+     * history purged, or PACKAGE_USAGE_STATS not granted. That's a strict regression only in that
+     * one narrow edge case, not a step backward from where this feature started.
      */
     fun bounceToRecents() {
-        // Guards against rapid repeated triggers (overlay tap, gesture, or both landing close
-        // together) spawning overlapping overlay windows.
+        // Guards against rapid repeated triggers (overlay tap and gesture landing close together)
+        // spawning overlapping attempts.
         val now = SystemClock.elapsedRealtime()
         val sinceSelfTrigger = now - blownChartApp.lastRecentsSelfTriggerAtMs
-        if (sinceSelfTrigger < SELF_TRIGGER_COOLDOWN_MS || bounceOverlayView != null) {
-            Log.i(
-                TAG,
-                "bounceToRecents: suppressed (sinceSelfTrigger=${sinceSelfTrigger}ms, alreadyShowing=${bounceOverlayView != null})",
-            )
+        if (sinceSelfTrigger < SELF_TRIGGER_COOLDOWN_MS) {
+            Log.i(TAG, "bounceToRecents: suppressed by cooldown, sinceSelfTrigger=${sinceSelfTrigger}ms")
             return
         }
-        Log.i(TAG, "bounceToRecents: adding focus-grabbing overlay t=${SystemClock.elapsedRealtime()}")
-        val view = RecentsBounceOverlayView(this).apply {
-            isFocusableInTouchMode = true
-            onWindowFocusGained = {
-                Log.i(TAG, "bounceToRecents: overlay window focused, triggering Recents t=${SystemClock.elapsedRealtime()}")
-                blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
-                val result = performGlobalAction(GLOBAL_ACTION_RECENTS)
-                Log.i(TAG, "bounceToRecents: performGlobalAction result=$result")
-            }
-            onWindowFocusLost = {
-                // The real Recents window taking over is itself a focus change away from this
-                // overlay - once that's happened there's nothing left for this window to do.
-                Log.i(TAG, "bounceToRecents: overlay window lost focus, removing t=${SystemClock.elapsedRealtime()}")
-                removeBounceOverlay()
-            }
-        }
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            // Deliberately NOT FLAG_NOT_FOCUSABLE, unlike the button-touch overlay above - taking
-            // real window focus away from the launcher is the entire point (see class doc above).
-            // FLAG_NOT_TOUCHABLE/FLAG_NOT_TOUCH_MODAL: this window has no visual content and needs
-            // no touch input of its own, only focus - touches must pass straight through to
-            // whatever's underneath for the whole (very brief) time it exists.
-            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-            PixelFormat.TRANSLUCENT,
-        )
-        bounceOverlayView = view
-        try {
-            windowManager.addView(view, params)
-            view.requestFocus()
-        } catch (e: Exception) {
-            Log.i(TAG, "bounceToRecents: failed to add overlay: $e")
-            bounceOverlayView = null
+        val lastAppPackage = findLastForegroundPackage()
+        val launchIntent = lastAppPackage?.let { packageManager.getLaunchIntentForPackage(it) }
+        if (launchIntent == null) {
+            Log.i(TAG, "bounceToRecents: no eligible last app (lastAppPackage=$lastAppPackage), triggering Recents directly")
+            triggerRecents()
             return
         }
-        // Backstop: if focus never actually lands (e.g. this firmware refuses to focus a
-        // TYPE_ACCESSIBILITY_OVERLAY window at all), don't leave the invisible window behind
-        // forever - remove it and give up quietly rather than trigger Recents on a stale signal.
-        handler.postDelayed(
-            {
-                if (bounceOverlayView === view) {
-                    Log.i(TAG, "bounceToRecents: backstop timeout, focus never landed, removing overlay")
-                    removeBounceOverlay()
-                }
-            },
-            BOUNCE_OVERLAY_FOCUS_TIMEOUT_MS,
-        )
-    }
-
-    private fun removeBounceOverlay() {
-        val view = bounceOverlayView ?: return
-        bounceOverlayView = null
+        Log.i(TAG, "bounceToRecents: resuming $lastAppPackage before triggering Recents")
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
         try {
-            if (view.isAttachedToWindow) windowManager.removeView(view)
+            // Zero-length custom animation: this app is only ever meant to be resumed for a
+            // moment on its way to Recents, not actually shown to the user.
+            startActivity(launchIntent, ActivityOptions.makeCustomAnimation(this, 0, 0).toBundle())
         } catch (e: Exception) {
-            Log.i(TAG, "removeBounceOverlay: failed to remove: $e")
+            Log.i(TAG, "bounceToRecents: failed to resume $lastAppPackage: $e")
+            triggerRecents()
+            return
         }
+        handler.postDelayed({ triggerRecents() }, RESUME_SETTLE_DELAY_MS)
     }
 
-    /** Plain View whose only job is to report window-focus transitions to [bounceToRecents]. */
-    private class RecentsBounceOverlayView(context: Context) : View(context) {
-        var onWindowFocusGained: (() -> Unit)? = null
-        var onWindowFocusLost: (() -> Unit)? = null
+    private fun triggerRecents() {
+        blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
+        val result = performGlobalAction(GLOBAL_ACTION_RECENTS)
+        Log.i(TAG, "triggerRecents: performGlobalAction result=$result")
+    }
 
-        override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
-            super.onWindowFocusChanged(hasWindowFocus)
-            if (hasWindowFocus) onWindowFocusGained?.invoke() else onWindowFocusLost?.invoke()
+    /**
+     * The package of the most recently foregrounded app other than this launcher itself and
+     * SystemUI, per [UsageEvents] - or null if none was found in the lookback window, or
+     * PACKAGE_USAGE_STATS isn't granted. Uses the raw event stream (not [UsageStatsManager]'s
+     * daily-bucketed aggregate query) since that's what actually preserves correct chronological
+     * ordering for "what was the very last app" rather than coarse per-interval totals.
+     */
+    private fun findLastForegroundPackage(): String? {
+        if (checkCallingOrSelfPermission(android.Manifest.permission.PACKAGE_USAGE_STATS) != PackageManager.PERMISSION_GRANTED) {
+            Log.i(TAG, "findLastForegroundPackage: PACKAGE_USAGE_STATS not granted")
+            return null
         }
+        val usageStatsManager = getSystemService(UsageStatsManager::class.java) ?: return null
+        val end = System.currentTimeMillis()
+        val begin = end - LAST_APP_LOOKBACK_MS
+        val events = usageStatsManager.queryEvents(begin, end)
+        val event = UsageEvents.Event()
+        var lastPackage: String? = null
+        var lastTimestamp = 0L
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            // MOVE_TO_FOREGROUND covers API 26-28 (this app's minSdk); ACTIVITY_RESUMED is the
+            // more precise successor added in API 29, checked in addition to it, not instead.
+            if (event.eventType != UsageEvents.Event.ACTIVITY_RESUMED &&
+                event.eventType != UsageEvents.Event.MOVE_TO_FOREGROUND
+            ) {
+                continue
+            }
+            if (event.packageName == packageName || event.packageName == SYSTEMUI_PACKAGE) continue
+            if (event.timeStamp >= lastTimestamp) {
+                lastTimestamp = event.timeStamp
+                lastPackage = event.packageName
+            }
+        }
+        return lastPackage
     }
 
     companion object {
@@ -329,18 +324,24 @@ class BlownChartAccessibilityService : AccessibilityService() {
 
         // Was 5000ms, tuned for a now-removed fallback that had to survive the buggy
         // recentsComponent re-firing its own window-state-changed event every 1.8-2.3s on its
-        // own. The overlay path has no such echo to survive - bounceToRecents() is only ever
-        // called from a real touch on the button overlay or the gesture handler now, so this only
-        // needs to de-dupe a single physical tap (e.g. a bouncy touchscreen firing two click
-        // events back to back), not block a genuine second press for multiple seconds. A 5s
-        // lockout after every trigger was a likely cause of the button "not always working on the
-        // first try."
+        // own. bounceToRecents() is only ever called from a real touch on the button overlay or
+        // the gesture handler now, so this only needs to de-dupe a single physical tap (e.g. a
+        // bouncy touchscreen firing two click events back to back), not block a genuine second
+        // press for multiple seconds. A 5s lockout after every trigger was a likely cause of the
+        // button "not always working on the first try."
         private const val SELF_TRIGGER_COOLDOWN_MS = 800L
         private const val OVERLAY_UPDATE_DEBOUNCE_MS = 150L
         private const val SYSTEMUI_RECENTS_VIEW_ID = "com.android.systemui:id/recent_apps"
+        private const val SYSTEMUI_PACKAGE = "com.android.systemui"
 
-        // Comfortably longer than a real focus grant should ever take, but short enough that a
-        // failed attempt doesn't leave an invisible window sitting around for long.
-        private const val BOUNCE_OVERLAY_FOCUS_TIMEOUT_MS = 1000L
+        // How far back to look for the last-used app. Generous on purpose: the cost of a wider
+        // window is scanning a few more events, not correctness - the loop below always ends up
+        // with the chronologically last eligible one regardless of window size.
+        private const val LAST_APP_LOOKBACK_MS = 60 * 60 * 1000L
+
+        // Long enough for FLAG_ACTIVITY_REORDER_TO_FRONT to actually bring the target task's
+        // window to the front (including a cold start if its process was no longer alive) before
+        // firing Recents from it; short enough to keep the whole bounce feeling instantaneous.
+        private const val RESUME_SETTLE_DELAY_MS = 50L
     }
 }
