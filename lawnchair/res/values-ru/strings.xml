@@ -122,7 +122,7 @@
     <string name="folders_description">Кол-во строк и столбцов</string>
     <string name="gestures_label">Жесты</string>
     <string name="gestures_description">Касания и Свайп-жесты</string>
-    <string name="quickstep_label">Экран недавних приложений</string>
+    <string name="quickstep_label">Экран недавних приложений (экспериментально)</string>
     <string name="quickstep_description">Кнопка \"Очистить всё\", радиус углов</string>
     <string name="about_label">О программе</string>
     <string name="app_info_drop_target_label">О приложении</string>
@@ -500,7 +500,7 @@
     <string name="folder_preview_bg_color_label">Цвет фона иконки</string>
     <string name="max_folder_columns">Макс. кол-во столбцов в папке</string>
     <string name="max_folder_rows">Макс. кол-во строк в папке</string>
-    <string name="quickswitch_ignored_warning">Эти настройки будут проигнорированы, так как BlownChart не установлен в качестве провайдера Экрана недавних приложений</string>
+    <string name="restricted_settings_hint">Если BlownChart установлен из скачанного APK, а не из магазина приложений, Android может блокировать доступ к чувствительным настройкам вроде Специальных возможностей, пока вы не разрешите это: нажмите здесь, затем в разделе \"О приложении\" откройте меню ⋮ и выберите \"Разрешить ограниченные настройки\".</string>
     <string name="recents_interception_label">Перехват недавних приложений</string>
     <string name="recents_button_interception_description">Экспериментально: на некоторых устройствах прошивка жёстко задаёт другое приложение в качестве провайдера Экрана недавних приложений, поэтому физическая кнопка/жест всегда открывает Экран недавних этого приложения вместо BlownChart. Эта опция пытается перенаправить на собственный Экран недавних BlownChart сразу после его открытия. Работа на всех устройствах не гарантируется, возможен кратковременный показ экрана другого приложения перед перенаправлением.</string>
     <string name="recents_button_interception_label">Перенаправлять на Экран недавних BlownChart (экспериментально)</string>

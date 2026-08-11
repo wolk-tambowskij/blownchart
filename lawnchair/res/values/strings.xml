@@ -206,7 +206,7 @@
     <string name="gestures_label">Gestures</string>
     <string name="gestures_description">Taps and swipes</string>
 
-    <string name="quickstep_label">Recents screen</string>
+    <string name="quickstep_label">Recents screen (experimental)</string>
     <string name="quickstep_description">Clear All button, corner radius</string>
 
     <string name="about_label">About</string>
@@ -848,7 +848,7 @@
     <string name="max_folder_rows">Maximum folder rows</string>
 
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as BlownChart isn\'t set as the Recents screen provider</string>
+    <string name="restricted_settings_hint">If BlownChart was installed from a downloaded APK rather than an app store, Android may block access to sensitive settings like Accessibility until you allow it: tap here, then in App info open the ⋮ menu and choose \"Allow restricted settings.\"</string>
 
     <string name="recents_interception_label">Recents interception</string>
     <string name="recents_button_interception_description">Experimental: on some devices, firmware hardcodes a different app as the Recents screen provider, so the physical button/gesture always opens that app\'s Recents screen instead of BlownChart\'s. This tries to redirect to BlownChart\'s own Recents screen right after it opens. Behavior isn\'t guaranteed on every device, and may briefly show the other app\'s Recents screen first.</string>

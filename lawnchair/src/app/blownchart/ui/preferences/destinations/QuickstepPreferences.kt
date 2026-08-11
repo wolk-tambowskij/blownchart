@@ -25,9 +25,9 @@ import app.blownchart.preferences.preferenceManager
 import app.blownchart.preferences2.preferenceManager2
 import app.blownchart.ui.preferences.components.QuickActionsPreferences
 import app.blownchart.ui.preferences.components.RecentsQuickAction
+import app.blownchart.ui.preferences.components.RestrictedSettingsBanner
 import app.blownchart.ui.preferences.components.controls.SliderPreference
 import app.blownchart.ui.preferences.components.controls.SwitchPreference
-import app.blownchart.ui.preferences.components.controls.WarningPreference
 import app.blownchart.ui.preferences.components.layout.ExpandAndShrink
 import app.blownchart.ui.preferences.components.layout.PreferenceGroup
 import app.blownchart.ui.preferences.components.layout.PreferenceLayout
@@ -86,8 +86,8 @@ fun QuickstepPreferences(
         label = stringResource(id = R.string.quickstep_label),
         modifier = modifier,
     ) {
+        RestrictedSettingsBanner()
         if (!BlownChartApp.isRecentsEnabled) {
-            QuickSwitchIgnoredWarning()
             PreferenceGroup(
                 heading = stringResource(id = R.string.recents_interception_label),
                 description = stringResource(id = R.string.recents_button_interception_description),
@@ -185,22 +185,6 @@ fun QuickstepPreferences(
                 )
             }
         }
-    }
-}
-
-@PreviewBlownChart
-@Composable
-private fun QuickSwitchIgnoredWarning(
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.padding(horizontal = 16.dp),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.errorContainer,
-    ) {
-        WarningPreference(
-            text = stringResource(id = R.string.quickswitch_ignored_warning),
-        )
     }
 }
 

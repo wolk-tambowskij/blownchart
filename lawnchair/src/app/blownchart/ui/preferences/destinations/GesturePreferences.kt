@@ -7,6 +7,7 @@ import app.blownchart.preferences.getAdapter
 import app.blownchart.preferences2.preferenceManager2
 import app.blownchart.ui.preferences.LocalIsExpandedScreen
 import app.blownchart.ui.preferences.components.GestureHandlerPreference
+import app.blownchart.ui.preferences.components.RestrictedSettingsBanner
 import app.blownchart.ui.preferences.components.layout.PreferenceGroup
 import app.blownchart.ui.preferences.components.layout.PreferenceLayout
 import com.android.launcher3.R
@@ -21,6 +22,7 @@ fun GesturePreferences(
         backArrowVisible = !LocalIsExpandedScreen.current,
         modifier = modifier,
     ) {
+        RestrictedSettingsBanner()
         PreferenceGroup {
             GestureHandlerPreference(
                 adapter = prefs.doubleTapGestureHandler.getAdapter(),
