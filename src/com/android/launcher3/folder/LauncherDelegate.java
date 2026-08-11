@@ -20,6 +20,7 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import android.content.Context;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewParent;
 
 import androidx.annotation.Nullable;
 
@@ -78,6 +79,10 @@ public class LauncherDelegate {
     }
 
     boolean replaceFolderWithFinalItem(Folder folder) {
+        Folder parentFolder = findParentFolder(folder.mFolderIcon);
+        if (parentFolder != null) {
+            return replaceNestedFolderWithFinalItem(folder, parentFolder);
+        }
         // Add the last remaining child to the workspace in place of the folder
         Runnable onCompleteRunnable = new Runnable() {
             @Override
@@ -136,6 +141,62 @@ public class LauncherDelegate {
         return true;
     }
 
+    /**
+     * Finds the {@link Folder} that owns {@param folderIconView} as one of its own content
+     * items - i.e. whose {@link FolderPagedView} contains it - or null if it isn't currently
+     * shown inside another folder (a top-level, workspace/hotseat folder icon's ancestor chain
+     * never passes through a {@link FolderPagedView}, only {@link CellLayout}s that belong
+     * directly to the workspace or hotseat).
+     */
+    @Nullable
+    private static Folder findParentFolder(View folderIconView) {
+        for (ViewParent p = folderIconView.getParent(); p != null; p = p.getParent()) {
+            if (p instanceof FolderPagedView) {
+                return ((FolderPagedView) p).getFolder();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Nested-folder counterpart of {@link #replaceFolderWithFinalItem}. A nested folder isn't
+     * backed by a CellLayout position of its own - it's just an entry, at some rank, in its
+     * parent folder's contents - so collapsing it down to its last item means editing that list
+     * instead of the workspace grid. Reuses {@link FolderInfo#add}/{@link FolderInfo#remove},
+     * the same listener-driven path {@link Folder#onAdd}/{@link Folder#onRemove} already use for
+     * every other nested-folder content change, so the parent's database rows and (if currently
+     * open) its bound view both stay in sync automatically instead of needing to be duplicated
+     * here.
+     */
+    private boolean replaceNestedFolderWithFinalItem(Folder folder, Folder parentFolder) {
+        Runnable onCompleteRunnable = () -> {
+            FolderInfo info = folder.mInfo;
+            FolderInfo parentInfo = parentFolder.mInfo;
+            int rank = parentInfo.getContents().indexOf(info);
+
+            ItemInfo finalItem = folder.getItemCount() == 1 ? info.getContents().remove(0) : null;
+
+            if (finalItem != null) {
+                // Add the replacement before removing the folder, so the parent's own item
+                // count never dips to its post-collapse value early - if it did, and the
+                // parent itself is down to only this folder plus one other item, its own
+                // Folder#onRemove collapse check could fire between these two calls, before
+                // the replacement item meant to keep it above that threshold is in place.
+                parentInfo.add(finalItem, Math.max(rank, 0), true);
+            }
+            parentInfo.remove(info, true);
+            folder.mFolderIcon.removeListeners();
+            mLauncher.getModelWriter().deleteCollectionAndContentsFromDatabase(info);
+        };
+
+        View finalChild = folder.mContent.getLastItem();
+        if (finalChild != null) {
+            folder.mFolderIcon.performDestroyAnimation(onCompleteRunnable);
+        } else {
+            onCompleteRunnable.run();
+        }
+        return true;
+    }
 
     boolean interceptOutsideTouch(MotionEvent ev, BaseDragLayer dl, Folder folder) {
         if (mLauncher.getAccessibilityDelegate().isInAccessibleDrag()) {

@@ -512,8 +512,13 @@ public class FolderAnimationManager {
      * only serves to store the title text.
      */
     private BubbleTextView getBubbleTextView(View v) {
-        return v instanceof AppPairIcon
-                ? ((AppPairIcon) v).getTitleTextView()
-                : (BubbleTextView) v;
+        if (v instanceof AppPairIcon) {
+            return ((AppPairIcon) v).getTitleTextView();
+        } else if (v instanceof FolderIcon) {
+            // A nested subfolder (one level of folder-in-folder, app drawer only): its own name
+            // label doubles as its title text, same role AppPairIcon's title view plays above.
+            return ((FolderIcon) v).getFolderName();
+        }
+        return (BubbleTextView) v;
     }
 }

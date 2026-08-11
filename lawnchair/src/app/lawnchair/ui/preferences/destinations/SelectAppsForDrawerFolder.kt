@@ -38,6 +38,8 @@ import app.lawnchair.ui.preferences.components.reorderable.PositionalReorderer
 import app.lawnchair.util.App
 import app.lawnchair.util.appsState
 import com.android.launcher3.R
+import com.android.launcher3.model.data.FolderInfo
+import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.util.ComponentKey
 
 @Composable
@@ -80,8 +82,11 @@ fun SelectAppsForDrawerFolder(
         )
     }
 
+    // getContents() stops at one level - a nested subfolder appears there as a single FolderInfo
+    // item, not flattened, so its own apps need an explicit recursive walk or they never count
+    // as "already assigned" here.
     LaunchedEffect(folders) {
-        allFolderPackages = folders.flatMap { it.getContents() }
+        allFolderPackages = folders.flatMap { it.collectItemsRecursively() }
             .mapNotNull { it.targetPackage }
             .toSet()
     }
@@ -198,4 +203,13 @@ private fun updateViewModel(
     }
 
     viewModel.updateFolderItems(folderId, title, newSelection)
+}
+
+/**
+ * This folder's own contents plus, recursively, everything inside a nested subfolder - unlike
+ * [FolderInfo.getContents], which stops at one level (a nested subfolder appears there as a
+ * single [FolderInfo] item, not flattened).
+ */
+private fun FolderInfo.collectItemsRecursively(): List<ItemInfo> = getContents().flatMap { item ->
+    if (item is FolderInfo) item.collectItemsRecursively() else listOf(item)
 }

@@ -122,6 +122,14 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
     }
 
     /**
+     * Returns the {@link Folder} whose content this page view renders - i.e. the folder that
+     * owns this content view, not any nested subfolder shown as an icon within it.
+     */
+    public Folder getFolder() {
+        return mFolder;
+    }
+
+    /**
      * Sets up the grid size such that {@param count} items can fit in the grid.
      */
     private void setupContentDimensions(int count) {

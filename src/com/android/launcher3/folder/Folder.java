@@ -62,6 +62,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewDebug;
+import android.view.ViewParent;
 import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.animation.AnimationUtils;
@@ -98,6 +99,7 @@ import com.android.launcher3.logger.LauncherAtom.FromState;
 import com.android.launcher3.logger.LauncherAtom.ToState;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
+import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.FolderInfo.FolderListener;
 import com.android.launcher3.model.data.ItemInfo;
@@ -265,6 +267,17 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     private boolean mItemAddedBackToSelfViaIcon = false;
     private boolean mIsEditingName = false;
 
+    // The nested subfolder icon (if any) the drag is currently hovering over within this
+    // folder's own grid - set/cleared in onDragOver/onDragExit so a drop lands inside that
+    // subfolder (like dragging onto a folder icon on the home screen) instead of being reordered
+    // as a new sibling next to it.
+    private FolderIcon mDragOverFolderIcon = null;
+
+    // The plain sibling item (if any) the drag is currently hovering over within this folder's
+    // own grid, where dropping now would wrap both into a brand-new nested folder - set/cleared
+    // in onDragOver/onDragExit alongside mDragOverFolderIcon, mutually exclusive with it.
+    private View mDragOverMergeTarget = null;
+
     @ViewDebug.ExportedProperty(category = "launcher")
     private boolean mDestroyed;
 
@@ -361,6 +374,15 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     public boolean onLongClick(View v) {
         // Return if global dragging is not enabled
         if (!getIsLauncherDraggingEnabled()) return true;
+        if (v.getTag() instanceof FolderInfo && isInAppDrawer()) {
+            // A nested subfolder inside an app-drawer folder isn't a real model item and has no
+            // home-screen slot to be dropped into - dragging it out here crashes. Its position is
+            // managed from the folder list instead. A nested subfolder inside a home-screen
+            // folder is a real model item like any other, so it's fine to drag out normally -
+            // isInAppDrawer() (checked against this Folder, the container being dragged out of)
+            // is what distinguishes the two.
+            return true;
+        }
         return startDrag(v, new DragOptions());
     }
 
@@ -844,7 +866,18 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
      * Determines whether we should animate the folder opening.
      */
     boolean shouldAnimateOpen(List<ItemInfo> items) {
-        if (items == null || items.size() <= 1) {
+        // A raw size() of 1 undercounts a folder whose only content is a subfolder holding
+        // several apps of its own - count what's actually inside instead, the same way the
+        // drawer's own visibility check and the closed-icon preview already do (see
+        // FolderIcon#getPreviewItemsOnPage). Without this, a folder that's shown specifically so
+        // it can be tapped open to reveal that subfolder silently did nothing on tap instead -
+        // this early return firing before mContent.bindItems() / mIsOpen is ever set.
+        int flattenedCount = items == null ? 0 : items.stream()
+                .mapToInt(item -> item instanceof FolderInfo folderItem
+                        ? folderItem.getContents().size()
+                        : 1)
+                .sum();
+        if (flattenedCount <= 1) {
             Log.d(TAG, "Couldn't animate folder open because items is: " + items);
             return false;
         }
@@ -1032,6 +1065,131 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
                 (int) recycle[0] - getPaddingLeft(), (int) recycle[1] - getPaddingTop());
     }
 
+    /**
+     * Returns the nested-folder icon currently occupying {@param rank} in this folder's own
+     * content, if any, and if it's willing to accept {@param dragInfo} - i.e. the drag would
+     * land inside that subfolder rather than being reordered next to it. Null while dragging the
+     * subfolder icon itself onto its own rank, over a plain app/empty cell, or - since this
+     * method only ever runs for icons shown inside an already-open folder, so any FolderIcon it
+     * finds here is by definition already one level nested - while dragging another folder,
+     * which nesting is capped at one level deep and would otherwise happily create a second.
+     */
+    @Nullable
+    private FolderIcon getFolderIconAtRank(int rank, ItemInfo dragInfo) {
+        if (dragInfo instanceof FolderInfo) {
+            return null;
+        }
+        ArrayList<View> views = getIconsInReadingOrder();
+        if (rank < 0 || rank >= views.size()) {
+            return null;
+        }
+        View v = views.get(rank);
+        if (!(v instanceof FolderIcon) || v == mCurrentDragView) {
+            return null;
+        }
+        FolderIcon folderIcon = (FolderIcon) v;
+        return folderIcon.acceptDrop(dragInfo) ? folderIcon : null;
+    }
+
+    /**
+     * True if this folder is itself shown as a nested-subfolder icon inside another, already-open
+     * folder - i.e. one level of nesting deep already, same signal
+     * {@link com.android.launcher3.folder.LauncherDelegate#findParentFolder} uses.
+     */
+    private boolean isNested() {
+        for (ViewParent p = mFolderIcon.getParent(); p != null; p = p.getParent()) {
+            if (p instanceof FolderPagedView) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the plain sibling item (app/shortcut, not a subfolder) currently occupying
+     * {@param rank} in this folder's own content, if dropping {@param dragInfo} onto it right now
+     * would wrap the two of them in a brand-new nested folder - the in-folder equivalent of
+     * dragging one home-screen icon onto another. Null while this folder is itself already
+     * nested (that would make a second level), while either item can't go in a folder at all, or
+     * while hovering the drag's own origin rank, an empty cell, or an existing subfolder icon
+     * (handled by {@link #getFolderIconAtRank} instead).
+     */
+    @Nullable
+    private View getMergeTargetAtRank(int rank, ItemInfo dragInfo) {
+        if (isNested() || dragInfo instanceof FolderInfo
+                || !Folder.willAcceptItemType(dragInfo.itemType)) {
+            return null;
+        }
+        ArrayList<View> views = getIconsInReadingOrder();
+        if (rank < 0 || rank >= views.size()) {
+            return null;
+        }
+        View v = views.get(rank);
+        if (v == mCurrentDragView || v instanceof FolderIcon) {
+            return null;
+        }
+        Object tag = v.getTag();
+        if (!(tag instanceof ItemInfo) || tag == dragInfo
+                || !Folder.willAcceptItemType(((ItemInfo) tag).itemType)) {
+            return null;
+        }
+        return v;
+    }
+
+    /**
+     * Creates a brand-new nested folder inside this one, merging the dragged item in with the
+     * existing sibling item ({@param targetView}) it was dropped onto - the in-folder equivalent
+     * of dragging one home-screen icon onto another to create a top-level folder. Mirrors
+     * {@link com.android.launcher3.Launcher#addFolder}, adapted to a folder's own rank-based
+     * content instead of the workspace's CellLayout grid. Only handles drag sources this folder
+     * can already see directly (the workspace, or another already-open folder) - unlike
+     * {@link FolderIcon#onDrop}, it doesn't special-case the all-apps list or cross-window
+     * drags, since neither can reach an already-open folder's own content grid this way.
+     */
+    private void createNestedFolder(DragObject d, View targetView) {
+        // This method does no fly-into-place animation of its own for the dragged item (unlike
+        // FolderIcon#onDrop's dragLayer.animateView call), so there's nothing for
+        // DragController#endDrag to wait on. Leaving this at its default of true means
+        // endDrag() skips both removing the floating drag-shadow view and calling every drag
+        // listener's onDragEnd() - the drag shadow is stuck on screen and touch handling stays
+        // wedged in "drag in progress" until something else forces a re-layout (e.g. switching
+        // screens), exactly the freeze this fixes.
+        d.deferDragViewCleanupPostAnimation = false;
+
+        ItemInfo targetInfo = (ItemInfo) targetView.getTag();
+        ItemInfo draggedInfo = d.dragInfo;
+        int rank = getIconsInReadingOrder().indexOf(targetView);
+
+        ModelWriter writer = mLauncherDelegate.getModelWriter();
+        FolderInfo newFolderInfo = new FolderInfo();
+        writer.addOrMoveItemInDatabase(newFolderInfo, mInfo.id, 0, 0, 0);
+        newFolderInfo.add(targetInfo, false);
+        writer.addOrMoveItemInDatabase(targetInfo, newFolderInfo.id, 0, targetInfo.cellX,
+                targetInfo.cellY);
+        newFolderInfo.add(draggedInfo, false);
+        writer.addOrMoveItemInDatabase(draggedInfo, newFolderInfo.id, 0, draggedInfo.cellX,
+                draggedInfo.cellY);
+
+        // Add before removing (same reasoning as
+        // LauncherDelegate#replaceNestedFolderWithFinalItem): keeps this folder's own item count
+        // from dipping to its post-merge value early, which could otherwise wrongly trigger its
+        // own collapse-to-last-item check partway through.
+        mInfo.add(newFolderInfo, rank, true);
+        mInfo.remove(targetInfo, false);
+        if (!mIsExternalDrag && d.dragSource == this) {
+            mInfo.remove(draggedInfo, false);
+        }
+
+        // Same drag-completion state cleanup Folder#onDrop's normal path does at its end -
+        // without it the launcher is left stuck in whatever spring-loaded/edit state it entered
+        // for this drag, since this method's caller returns before ever reaching that code.
+        mIsDragInProgress = false;
+        Launcher launcher = mLauncherDelegate.getLauncher();
+        if (launcher != null && !launcher.isInState(EDIT_MODE)) {
+            launcher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
+        }
+    }
+
     @Override
     public void onDragOver(DragObject d) {
         if (mScrollPauseAlarm.alarmPending()) {
@@ -1039,6 +1197,33 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         }
         final float[] r = new float[2];
         mTargetRank = getTargetRank(d, r);
+
+        FolderIcon hoveredFolderIcon = getFolderIconAtRank(mTargetRank, d.dragInfo);
+        if (hoveredFolderIcon != mDragOverFolderIcon) {
+            if (mDragOverFolderIcon != null) {
+                mDragOverFolderIcon.onDragExit();
+            }
+            mDragOverFolderIcon = hoveredFolderIcon;
+            if (mDragOverFolderIcon != null) {
+                mDragOverFolderIcon.onDragEnter(d.dragInfo);
+            }
+        }
+        if (mDragOverFolderIcon != null) {
+            // Hovering an existing nested-folder icon: let it handle the hover (accept
+            // highlight, spring-loaded auto-open) the same way a folder icon on the home
+            // screen does, instead of reordering this folder's own contents around it.
+            mReorderAlarm.cancelAlarm();
+            mDragOverMergeTarget = null;
+            return;
+        }
+
+        mDragOverMergeTarget = getMergeTargetAtRank(mTargetRank, d.dragInfo);
+        if (mDragOverMergeTarget != null) {
+            // Hovering a plain sibling item: dropping now would wrap it and the dragged item
+            // in a new subfolder, so don't reorder this folder's contents around it either.
+            mReorderAlarm.cancelAlarm();
+            return;
+        }
 
         if (mTargetRank != mPrevTargetRank) {
             mReorderAlarm.cancelAlarm();
@@ -1128,6 +1313,12 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             mOnExitAlarm.setAlarm(ON_EXIT_CLOSE_DELAY);
         }
         mReorderAlarm.cancelAlarm();
+
+        if (mDragOverFolderIcon != null) {
+            mDragOverFolderIcon.onDragExit();
+            mDragOverFolderIcon = null;
+        }
+        mDragOverMergeTarget = null;
 
         mOnScrollHintAlarm.cancelAlarm();
         mScrollPauseAlarm.cancelAlarm();
@@ -1390,10 +1581,52 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
     @Override
     public void onDrop(DragObject d, DragOptions options) {
-        // If the icon was dropped while the page was being scrolled, we need to compute
-        // the target location again such that the icon is placed of the final page.
-        if (!mContent.rankOnCurrentPage(mEmptyCellRank)) {
-            // Reorder again.
+        FolderIcon nestedTarget = mDragOverFolderIcon;
+        if (nestedTarget == null) {
+            // The last onDragOver call's hover state may be a frame stale by the time the
+            // finger actually lifts - recompute directly from the drop's own position rather
+            // than only trusting it, so a drop that's still over the icon isn't missed.
+            nestedTarget = getFolderIconAtRank(getTargetRank(d, null), d.dragInfo);
+        }
+        if (nestedTarget != null && nestedTarget.acceptDrop(d.dragInfo)) {
+            // Dropping onto a nested subfolder icon shown in this folder's own grid: hand off
+            // to that icon's own onDrop (the same path a home-screen folder icon uses) instead
+            // of reordering the item as a new sibling next to it.
+            mDragOverFolderIcon = null;
+            if (!mIsExternalDrag) {
+                // The dragged item was already one of this folder's own children - remove it
+                // from here first, the same way any other item leaving this folder does
+                // (including the collapse-to-last-item check), before it's added to the
+                // subfolder below.
+                mInfo.remove(d.dragInfo, false);
+            }
+            nestedTarget.onDrop(d, false /* itemReturnedOnFailedDrop */);
+            return;
+        }
+
+        View mergeTarget = mDragOverMergeTarget;
+        if (mergeTarget == null) {
+            mergeTarget = getMergeTargetAtRank(getTargetRank(d, null), d.dragInfo);
+        }
+        if (mergeTarget != null) {
+            // Dropping onto a plain sibling item: wrap the two of them in a brand-new nested
+            // folder instead of reordering the dragged item as another new sibling.
+            mDragOverMergeTarget = null;
+            createNestedFolder(d, mergeTarget);
+            return;
+        }
+        if (mIsExternalDrag || d.dragSource != this) {
+            // mEmptyCellRank normally tracks a live placeholder gap left behind by one of this
+            // folder's own children being dragged out, which FolderPagedView#realTimeReorder
+            // (below, via mReorderAlarmListener) animates the other icons around - meaningless
+            // for an item that was never one of them, and whatever it's leftover at (this
+            // folder's own last internal drag, or its Java default of 0) can be badly out of
+            // bounds for the current item count by now, crashing that reorder. Skip straight to
+            // the freshly computed target rank instead of animating from a stale one.
+            mEmptyCellRank = getTargetRank(d, null);
+        } else if (!mContent.rankOnCurrentPage(mEmptyCellRank)) {
+            // If the icon was dropped while the page was being scrolled, we need to compute
+            // the target location again such that the icon is placed of the final page.
             mTargetRank = getTargetRank(d, null);
 
             // Rearrange items immediately.
@@ -1434,7 +1667,13 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             }
 
             View currentDragView;
-            if (mIsExternalDrag) {
+            if (mIsExternalDrag || d.dragSource != this) {
+                // The second condition covers a drag that was never spring-loaded open into
+                // this folder (so mIsExternalDrag never got set) but still didn't originate
+                // from here - e.g. an item dragged out of a different, already-open nested
+                // subfolder and dropped directly into this one. mCurrentDragView belongs to
+                // whichever drag *this* folder itself last started, if any, and using it here
+                // would either be null or a stale, unrelated view.
                 currentDragView = mContent.createAndAddViewForRank(si, mEmptyCellRank);
 
                 // Actually move the item in the database if it was an external drag. Call this

@@ -103,7 +103,14 @@ class LawnchairAlphabeticalAppsList<T>(
             }
         } else {
             folderList.forEach { folder ->
-                if (folder.getContents().size > 1) {
+                // A subfolder counts as a single item here even though it can hold several apps
+                // of its own - a raw size check would hide (and leave ungrouped in the drawer)
+                // a folder whose only content is one subfolder with multiple apps in it. Count
+                // what the closed-icon preview actually ends up showing instead (see
+                // FolderIcon#getPreviewItemsOnPage, which flattens one level of nesting the
+                // same way).
+                val flattenedCount = folder.getContents().sumOf { if (it is FolderInfo) it.getContents().size else 1 }
+                if (flattenedCount > 1) {
                     val folderInfo = FolderInfo()
                     folderInfo.title = folder.title
                     mAdapterItems.add(AdapterItem.asFolder(folderInfo))

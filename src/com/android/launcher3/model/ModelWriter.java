@@ -339,10 +339,26 @@ public class ModelWriter {
         ModelVerifier verifier = new ModelVerifier();
         notifyDelete(Collections.singleton(info));
 
+        // Snapshot the contents now, on the caller's thread, rather than deleting by a
+        // "CONTAINER = info.id" database query once the queued task below actually runs. An
+        // item that's mid-flight to a different container - e.g. a nested subfolder just
+        // dragged back out onto the home screen, which collapses this now-empty parent folder
+        // via the same path - may already be gone from info.getContents() in memory (it left
+        // properly, via the normal remove-then-add-elsewhere sequence) but not yet have its own
+        // moveItemInDatabase() write committed, since that's *also* an independently queued
+        // model-thread task with no ordering guarantee relative to this one. A raw "container ="
+        // match against the database at that point could still catch - and delete - the item
+        // that's on its way out, instead of leaving it alone. Deleting by this explicit
+        // snapshot's ids only ever touches what was actually still in this collection when the
+        // decision to delete it was made.
+        List<ItemInfo> contents = new ArrayList<>(info.getContents());
+
         enqueueDeleteRunnable(newModelTask(() -> {
-            mModel.getModelDbController().delete(Favorites.TABLE_NAME,
-                    Favorites.CONTAINER + "=" + info.id, null);
-            mBgDataModel.removeItem(mContext, info.getContents());
+            for (ItemInfo item : contents) {
+                mModel.getModelDbController().delete(Favorites.TABLE_NAME,
+                        Favorites._ID + "=" + item.id, null);
+            }
+            mBgDataModel.removeItem(mContext, contents);
             info.getContents().clear();
 
             mModel.getModelDbController().delete(Favorites.TABLE_NAME,
