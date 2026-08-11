@@ -110,6 +110,44 @@ from `505dbc40e6` and re-verified. Worth a standing habit: always grep a new
 clean-room branch for `app\.blownchart\|BlownChart` before marking it ready
 for review, not just at the end of a whole sweep.
 
+## 2026-08-11 squashed #2, #16, #10 for upstream submission (per project-owner plan)
+
+Rewrote commit history on the branches slated for the first submission
+round (#2, #8, #9, #16, plus #10 as a draft) into 1-3 logical commits
+each with clear, descriptive messages, ready to open as PRs on the
+project owner's go-ahead:
+
+- **#2** (`fix/folder-shape-geometry`) - squashed 2 commits into 1.
+- **#8** (`fix/home-lock-uninstall-widget-bypass`) - already a single
+  clean commit, untouched.
+- **#9** (`feat/split-drawer-home-lock`) - already 2 clean, distinct
+  commits (the split-lock feature, then the search-settings
+  lock-bypass fix found today), untouched. Still sits on #8's
+  unchanged commit, so no rebase needed.
+- **#16** (`feat/backup-lock-wallpaper`) - squashed 2 commits into 1.
+- **#10** (`feat/nested-folders-ui`) - squashed 19 commits into 3,
+  grouped by creation-path/era: data model + rendering + Settings
+  picker; drag-to-merge + all real-device crash hardening; the
+  round-4 home-screen wrap-vs-merge fix. Still stacked on #3's
+  (`feat/search-folder-label`) unchanged tip, per its real code
+  dependency.
+
+**Important catch, now standard practice for every future squash**:
+`feat/backup-lock-wallpaper` and `feat/nested-folders-ui` each had
+their own `docs/pr/<branch>.md` file committed onto the branch itself
+(our internal PR-tracking doc, referencing this fork's own audit
+process) - fine to keep on `15-dev`, but would land inside Lawnchair's
+own repo if sent upstream as part of the diff. Excluded from every
+squashed commit on both branches (verified via `git rm --cached` at
+each squash point and a full pre/post diff comparison, ignoring only
+that path). Check for this on every other branch before its own
+squash/PR, not just these two.
+
+Every squash verified byte-identical (`git diff base..old_tip` vs.
+`git diff base..new_tip`, docs/pr path excluded where relevant) before
+force-pushing, and CI re-triggered on all three rewritten branches
+(#2, #16, #10) to confirm nothing broke in the process.
+
 ## 2026-08-11 drift re-check closing the last gap (#2, #3, #4, #7, #8, #9)
 
 These six had last been checked in the 2026-08-01 nuance sweep - the
