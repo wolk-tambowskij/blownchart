@@ -248,6 +248,43 @@ handling, plus one entirely new interaction:
     on a closed home-screen folder icon. Added the same one-level guard
     there too, scoped to `!isInAppDrawer()` since the app drawer's own
     nesting is validated separately, before the drag ever starts.
+  - *Dragging one home-screen folder onto another (closed) one only ever
+    merged, even on a quick drop* - the two folder-drop outcomes users expect
+    by analogy with two plain apps (drop quickly to wrap both in a brand-new
+    folder) and with dropping onto an already-open folder (wait for it to
+    spring open, merge into its contents) were both real requirements, but
+    `Workspace#willCreateUserFolder` unconditionally excluded any
+    `FolderInfo` drop target from the "create a new wrapping folder" check,
+    so a folder-onto-folder drop always fell through to the merge path
+    regardless of timing - the two scenarios were indistinguishable.
+    Narrowed the exclusion so it only applies when the *dragged* item isn't
+    itself a folder (still correctly forces a plain app dropped onto an
+    existing folder straight to a merge, no new-folder ambiguity there),
+    with a `hasOwnSubfolder()` guard on both sides so wrapping two folders
+    can't create a second level of nesting. The actual wrap-vs-merge
+    decision on a sustained hover reuses the target `FolderIcon`'s own real
+    open/closed state (`Folder#isOpen()`) rather than a second, parallel
+    timer next to `FolderIcon`'s existing spring-load one: entering the
+    "create new folder" hover mode for a folder-onto-folder pairing also
+    calls the target's own `onDragEnter()`, which starts its native
+    spring-load alarm; each subsequent hover frame checks whether the
+    target has actually sprung open and switches `Workspace`'s drag mode
+    from create-new-folder to add-to-folder once it has (without
+    re-invoking `onDragEnter()`), with the pending notification cleared if
+    the drag moves to a different target or the drop happens before the
+    target opens.
+  - *Creating a new folder by wrapping one folder onto another crashed
+    immediately on drop* - `PreviewItemManager#prepareCreateAnimation`, used
+    for the "shrink the drop target into the new folder's preview" part of
+    the create-folder animation, unconditionally cast the target view to
+    `BubbleTextView` to read its icon `Drawable`. That held for every prior
+    target type (a plain app or app pair), but the fix above makes a
+    `FolderIcon` - which extends `FrameLayout`, not `BubbleTextView` - a
+    valid target for the first time, throwing a `ClassCastException` on
+    every such drop. `FolderIcon` has no single icon `Drawable` of its own
+    (its preview is drawn from several small icons), so this now falls back
+    to snapshotting the target's current on-screen appearance into a bitmap
+    for that case, giving the shrink animation something to animate from.
   - *Un-nesting a folder back out onto the home screen worked live but
     didn't survive a cold app restart either* - the mirror image of the
     persistence bug above, but a race rather than a missing check.
@@ -376,6 +413,20 @@ un-nesting was restarting the app *before* the queued database write had a
 realistic chance to run at all (effectively force-killing mid-write) -
 treated as an acceptable, non-nesting-specific limitation of any
 async-queued persistence, not something this PR's fix is expected to cover.
+
+Real-device testing (round 4, folder-onto-folder wrap vs merge): dragged
+home-screen folder A onto closed home-screen folder B and released quickly,
+before B's preview sprang open - a brand-new folder C appeared containing
+exactly A and B (both still folders, no apps flattened into C), matching the
+two-plain-apps wrap behavior. Repeated the drag, this time waiting for B to
+spring open before releasing A - A merged into B alongside B's existing
+contents instead, no new wrapper folder. Confirmed the depth guard: neither
+outcome was offered when either A or B already had a subfolder of its own.
+The first attempt at the quick-drop case crashed immediately on release
+(`ClassCastException` in `PreviewItemManager#prepareCreateAnimation`, see
+above); after the bitmap-snapshot fix, repeated the quick-drop case several
+times with no crash and the shrink-into-preview animation playing normally
+for a folder-shaped drop target.
 
 UI, cross-folder and race-condition checks: opened a nested subfolder inside
 its already-open parent (both open at once) and dragged an item from the
