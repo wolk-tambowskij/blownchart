@@ -263,6 +263,15 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     private FolderIcon mDragOverFolderIcon = null;
     private boolean mCreateUserFolderOnDrop = false;
     private boolean mAddToExistingFolderOnDrop = false;
+    // Dragging one folder onto another (closed) one is ambiguous between "wrap both in a new
+    // folder" and "merge into the target", unlike every other combination this class handles,
+    // where only one outcome makes sense. willCreateUserFolder() resolves the ambiguity in
+    // favor of wrapping by default (DRAG_MODE_CREATE_FOLDER wins the very first hover frame,
+    // same as the classic two-plain-apps case), and this alarm is what lets a sustained hover
+    // switch that decision over to merging instead, matching FolderIcon's own ON_OPEN_DELAY the
+    // user already associates with "hold to open a folder" elsewhere in the app.
+    private final Alarm mFolderOnFolderMergeAlarm = new Alarm();
+    private View mFolderOnFolderMergeTarget = null;
 
     // Variables relating to touch disambiguation (scrolling workspace vs. scrolling
     // a widget)
@@ -2080,16 +2089,39 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             return false;
         }
 
-        // Folder.willAccept() now also accepts FolderInfo (for app-drawer subfolder nesting),
-        // so without this exclusion, dropping an app onto an existing folder on the home screen
-        // would satisfy this check and wrap that folder in a brand-new one instead of falling
-        // through to willAddToExistingUserFolder(), which is the intended behavior here.
-        boolean aboveShortcut = Folder.willAccept(dropOverView.getTag())
-                && !(dropOverView.getTag() instanceof FolderInfo)
-                && ((ItemInfo) dropOverView.getTag()).container != CONTAINER_HOTSEAT_PREDICTION;
+        // Folder.willAccept() now also accepts FolderInfo (for app-drawer subfolder nesting), so
+        // without the instanceof exclusion below, dropping a plain app onto an existing folder
+        // on the home screen would satisfy this check and wrap that folder in a brand-new one
+        // instead of falling through to willAddToExistingUserFolder(), which is the intended
+        // behavior for that combination. But when *both* sides are folders, wrapping them in a
+        // brand-new folder is a real, deliberate outcome (drop quickly, before the target has a
+        // chance to spring-load open - see manageFolderFeedback/mFolderOnFolderMergeAlarm for the
+        // other outcome, merging into the target, on a sustained hover) - so the exclusion only
+        // applies when the dragged item isn't itself a folder. Either folder already having a
+        // subfolder of its own is still excluded regardless, since wrapping either would push
+        // something two levels deep.
+        ItemInfo targetInfo = (ItemInfo) dropOverView.getTag();
+        boolean targetIsFolder = targetInfo instanceof FolderInfo;
+        boolean draggedIsFolder = info instanceof FolderInfo;
+        boolean aboveShortcut = Folder.willAccept(targetInfo)
+                && (!targetIsFolder
+                        || (draggedIsFolder && !hasOwnSubfolder(targetInfo) && !hasOwnSubfolder(info)))
+                && targetInfo.container != CONTAINER_HOTSEAT_PREDICTION;
         boolean willBecomeShortcut = Folder.willAcceptItemType(info.itemType);
 
         return (aboveShortcut && willBecomeShortcut);
+    }
+
+    /**
+     * Whether wrapping [info] as a subfolder (of a brand-new folder, or an existing one) would
+     * push some item two levels deep - true if it's a folder that already contains a subfolder
+     * of its own. Mirrors the same one-level limit FolderIcon#willAcceptItem enforces for a
+     * plain add-to-folder drop, and FolderDao#getNestableFoldersFlow enforces for the app
+     * drawer's Settings-based nesting path.
+     */
+    private static boolean hasOwnSubfolder(ItemInfo info) {
+        return info instanceof FolderInfo folderInfo
+                && folderInfo.getContents().stream().anyMatch(item -> item instanceof FolderInfo);
     }
 
     boolean willAddToExistingUserFolder(ItemInfo dragInfo, CellLayout target, int[] targetCell,
@@ -2143,6 +2175,16 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (aboveShortcut && willBecomeShortcut) {
             ItemInfo sourceInfo = (ItemInfo) newView.getTag();
             ItemInfo destInfo = (ItemInfo) v.getTag();
+            // Wrapping two folders in a brand-new one is only valid when neither already has a
+            // subfolder of its own - see hasOwnSubfolder()'s doc. willCreateUserFolder() already
+            // excludes this during hover feedback, so this drop-time recheck should be
+            // unreachable in practice, but it mirrors that method's own defense-in-depth style
+            // (which independently recomputes aboveShortcut/willBecomeShortcut rather than
+            // trusting the earlier hover-time result) rather than relying solely on it.
+            if (destInfo instanceof FolderInfo && sourceInfo instanceof FolderInfo
+                    && (hasOwnSubfolder(destInfo) || hasOwnSubfolder(sourceInfo))) {
+                return false;
+            }
             // if the drag started here, we need to remove it from the workspace
             if (!external) {
                 getParentCellLayoutForView(mDragInfo.cell).removeView(mDragInfo.cell);
@@ -2525,6 +2567,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         setCurrentDragOverlappingLayout(null);
 
         mSpringLoadedDragController.cancel();
+        cancelFolderOnFolderMergeAlarm();
     }
 
     private void enforceDragParity(String event, int update, int expectedValue) {
@@ -2890,10 +2933,15 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     || mDragMode == DRAG_MODE_CREATE_FOLDER)) {
                 setDragMode(DRAG_MODE_NONE);
             }
+            cancelFolderOnFolderMergeAlarm();
             return;
         }
 
+        View previousDragOverView = mDragOverView;
         mDragOverView = mDragTargetLayout.getChildAt(mTargetCell[0], mTargetCell[1]);
+        if (mDragOverView != previousDragOverView) {
+            cancelFolderOnFolderMergeAlarm();
+        }
         ItemInfo info = dragObject.dragInfo;
         boolean userFolderPending = willCreateUserFolder(info, mDragOverView, false);
         if (mDragMode == DRAG_MODE_NONE && userFolderPending) {
@@ -2917,22 +2965,29 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
                         .getDescriptionForDropOver(mDragOverView, getContext()));
             }
+
+            // Dragging one folder onto another is ambiguous between wrapping both in this new
+            // folder (the outcome just entered above, and what a quick drop from here commits
+            // to) and merging into the target instead - offer the second outcome too, on a
+            // sustained hover, the same way dropping any other item onto an already-existing
+            // folder always would. See the mFolderOnFolderMergeAlarm field doc for why this needs
+            // its own timer rather than reusing FolderIcon's.
+            if (info instanceof FolderInfo && mDragOverView instanceof FolderIcon) {
+                mFolderOnFolderMergeTarget = mDragOverView;
+                mFolderOnFolderMergeAlarm.setOnAlarmListener(alarm -> {
+                    if (mDragMode == DRAG_MODE_CREATE_FOLDER
+                            && mDragOverView == mFolderOnFolderMergeTarget) {
+                        enterAddToFolderMode(info, dragObject);
+                    }
+                });
+                mFolderOnFolderMergeAlarm.setAlarm(FolderIcon.ON_OPEN_DELAY);
+            }
             return;
         }
 
         boolean willAddToFolder = willAddToExistingUserFolder(info, mDragOverView);
         if (willAddToFolder && mDragMode == DRAG_MODE_NONE) {
-            mDragOverFolderIcon = ((FolderIcon) mDragOverView);
-            mDragOverFolderIcon.onDragEnter(info);
-            if (mDragTargetLayout != null) {
-                mDragTargetLayout.clearDragOutlines();
-            }
-            setDragMode(DRAG_MODE_ADD_TO_FOLDER);
-
-            if (dragObject.stateAnnouncer != null) {
-                dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
-                        .getDescriptionForDropOver(mDragOverView, getContext()));
-            }
+            enterAddToFolderMode(info, dragObject);
             return;
         }
 
@@ -2942,6 +2997,26 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (mDragMode == DRAG_MODE_CREATE_FOLDER && !userFolderPending) {
             setDragMode(DRAG_MODE_NONE);
         }
+    }
+
+    private void enterAddToFolderMode(ItemInfo info, DragObject dragObject) {
+        cancelFolderOnFolderMergeAlarm();
+        mDragOverFolderIcon = ((FolderIcon) mDragOverView);
+        mDragOverFolderIcon.onDragEnter(info);
+        if (mDragTargetLayout != null) {
+            mDragTargetLayout.clearDragOutlines();
+        }
+        setDragMode(DRAG_MODE_ADD_TO_FOLDER);
+
+        if (dragObject.stateAnnouncer != null) {
+            dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
+                    .getDescriptionForDropOver(mDragOverView, getContext()));
+        }
+    }
+
+    private void cancelFolderOnFolderMergeAlarm() {
+        mFolderOnFolderMergeAlarm.cancelAlarm();
+        mFolderOnFolderMergeTarget = null;
     }
 
     class ReorderAlarmListener implements OnAlarmListener {
