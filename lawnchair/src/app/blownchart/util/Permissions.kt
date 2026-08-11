@@ -1,9 +1,11 @@
 package app.blownchart.util
 
+import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Process
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -21,6 +23,33 @@ fun Context.openAppPermissionSettings() {
         startActivity(intent)
     } else {
         Log.e("Permissions", "No activity found to handle application details settings intent")
+    }
+}
+
+/**
+ * Whether this app currently has usage access ("Usage access" in Settings) granted. Despite
+ * PACKAGE_USAGE_STATS being declared as a normal manifest permission, third-party apps are
+ * actually gated on it through [AppOpsManager], not the regular permission-grant system - there
+ * is no way to auto-grant it via the manifest, and [Context.checkCallingOrSelfPermission] for
+ * this specific permission reliably returns DENIED regardless of whether the user has actually
+ * enabled it, since its declared protection level was never meant to be satisfied by a normal
+ * grant dialog in the first place. This is the correct way to check it.
+ */
+fun Context.hasUsageStatsAccess(): Boolean {
+    val appOps = getSystemService(AppOpsManager::class.java) ?: return false
+
+    @Suppress("DEPRECATION")
+    val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), packageName)
+    return mode == AppOpsManager.MODE_ALLOWED
+}
+
+fun Context.openUsageAccessSettings() {
+    val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    if (intent.resolveActivity(packageManager) != null) {
+        startActivity(intent)
+    } else {
+        Log.e("Permissions", "No activity found to handle usage access settings intent")
     }
 }
 

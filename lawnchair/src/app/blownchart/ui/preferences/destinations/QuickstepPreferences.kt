@@ -33,8 +33,10 @@ import app.blownchart.ui.preferences.components.layout.PreferenceGroup
 import app.blownchart.ui.preferences.components.layout.PreferenceLayout
 import app.blownchart.ui.preferences.components.layout.PreferenceTemplate
 import app.blownchart.ui.util.preview.PreviewBlownChart
+import app.blownchart.util.hasUsageStatsAccess
 import app.blownchart.util.isOnePlusStock
 import app.blownchart.util.lifecycleState
+import app.blownchart.util.openUsageAccessSettings
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 
@@ -103,6 +105,19 @@ fun QuickstepPreferences(
                 }
                 ExpandAndShrink(visible = recentsButtonInterception.state.value && !accessibilityServiceBound) {
                     RecentsButtonInterceptionA11yBanner()
+                }
+                // "Usage access" is a special app-op grant, not a normal manifest permission - it
+                // can't be requested via a standard permission dialog, let alone pre-granted from
+                // the manifest, only pointed at from here. Without it, the button/gesture silently
+                // falls back to firing Recents directly from the launcher's own context again (the
+                // original, occasionally-misbehaving behavior this whole feature works around), so
+                // surface the gap the same way as the accessibility-service one above rather than
+                // leave it silent.
+                val usageAccessGranted = remember(lifecycleState()) {
+                    context.hasUsageStatsAccess()
+                }
+                ExpandAndShrink(visible = recentsButtonInterception.state.value && !usageAccessGranted) {
+                    RecentsButtonInterceptionUsageAccessBanner()
                 }
             }
         }
@@ -198,6 +213,37 @@ private fun RecentsButtonInterceptionA11yBanner(
             description = {
                 Text(
                     text = stringResource(id = R.string.recents_button_interception_a11y_hint),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            startWidget = {
+                Icon(
+                    imageVector = Icons.Rounded.TipsAndUpdates,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentDescription = null,
+                )
+            },
+        )
+    }
+}
+
+@PreviewBlownChart
+@Composable
+private fun RecentsButtonInterceptionUsageAccessBanner(
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    Surface(
+        modifier = modifier.padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        PreferenceTemplate(
+            modifier = Modifier.clickable { context.openUsageAccessSettings() },
+            title = {},
+            description = {
+                Text(
+                    text = stringResource(id = R.string.recents_button_interception_usage_access_hint),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },

@@ -19,7 +19,6 @@ package app.blownchart
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.ActivityOptions
-import android.app.AppOpsManager
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Intent
@@ -38,6 +37,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import app.blownchart.preferences2.PreferenceManager2
+import app.blownchart.util.hasUsageStatsAccess
 import com.patrykmichalik.opto.core.firstBlocking
 
 class BlownChartAccessibilityService : AccessibilityService() {
@@ -331,22 +331,6 @@ class BlownChartAccessibilityService : AccessibilityService() {
             }
         }
         return lastPackage
-    }
-
-    /**
-     * Whether this app currently has usage-access ("Usage access" in Settings) granted. Despite
-     * PACKAGE_USAGE_STATS being declared as a normal manifest permission, third-party apps are
-     * actually gated on it through [AppOpsManager], not the regular permission-grant system -
-     * [checkCallingOrSelfPermission] for this specific permission reliably returns DENIED
-     * regardless of whether the user has actually enabled it, since its declared protection
-     * level was never meant to be satisfied by a normal grant dialog in the first place.
-     */
-    private fun hasUsageStatsAccess(): Boolean {
-        val appOps = getSystemService(AppOpsManager::class.java) ?: return false
-
-        @Suppress("DEPRECATION")
-        val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
-        return mode == AppOpsManager.MODE_ALLOWED
     }
 
     companion object {
