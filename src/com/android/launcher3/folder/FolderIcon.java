@@ -276,6 +276,22 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
 
     private boolean willAcceptItem(ItemInfo item) {
         final int itemType = item.itemType;
+        if (itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER && !mFolder.isInAppDrawer()) {
+            // Nesting on the home screen is limited to exactly one level, matching the app
+            // drawer's equivalent constraint (see FolderDao#getNestableFoldersFlow): the target
+            // can't itself already be nested inside a folder, and the folder being dragged in
+            // can't already have a subfolder of its own - either would push some item two levels
+            // deep, which nothing in the model (or its preview/animation code) is built to
+            // represent. Scoped to !isInAppDrawer() since the app drawer's own nesting is
+            // validated separately, before the drag ever starts.
+            boolean targetAlreadyNested = mInfo.container != LauncherSettings.Favorites.CONTAINER_DESKTOP
+                    && mInfo.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT;
+            boolean draggedFolderHasSubfolder = item instanceof FolderInfo draggedFolder
+                    && draggedFolder.getContents().stream().anyMatch(i -> i instanceof FolderInfo);
+            if (targetAlreadyNested || draggedFolderHasSubfolder) {
+                return false;
+            }
+        }
         return (Folder.willAcceptItemType(itemType) && item != mInfo && !mFolder.isOpen());
     }
 
@@ -725,13 +741,15 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
      * Returns the list of items which should be visible in the preview
      */
     public List<ItemInfo> getPreviewItemsOnPage(int page) {
-        // A nested subfolder (one level of folder-in-folder, app drawer only) has no static
-        // preview drawable of its own - PreviewItemManager#setDrawable would crash on the bare
-        // FolderInfo. Rather than omit it from the preview, pull its own direct app contents in
-        // instead, so the parent's closed-icon preview shows real icons "from inside" the
-        // subfolder. Safe to flatten just one level: app-drawer folders only ever nest
-        // AppInfo-only subfolders, never a subfolder containing another subfolder. The small
-        // corner badge (see dispatchDraw) is the separate visual cue that a subfolder is present.
+        // A nested subfolder (one level of folder-in-folder, app drawer or home screen) has no
+        // static preview drawable of its own - PreviewItemManager#setDrawable would crash on the
+        // bare FolderInfo. Rather than omit it from the preview, pull its own direct app contents
+        // in instead, so the parent's closed-icon preview shows real icons "from inside" the
+        // subfolder. Safe to flatten just one level: nesting is enforced to exactly one level on
+        // both the app drawer (see FolderDao#getNestableFoldersFlow) and the home screen (see
+        // FolderIcon#willAcceptItem), so a subfolder never itself contains another subfolder. The
+        // small corner badge (see dispatchDraw) is the separate visual cue that a subfolder is
+        // present.
         List<ItemInfo> contents = mInfo.getContents().stream()
                 .flatMap(item -> item instanceof FolderInfo
                         ? ((FolderInfo) item).getContents().stream()
