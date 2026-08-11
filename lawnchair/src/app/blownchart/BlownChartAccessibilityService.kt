@@ -48,12 +48,20 @@ class BlownChartAccessibilityService : AccessibilityService() {
     private var overlayView: View? = null
     private var overlayBounds: Rect? = null
 
+    // The app most recently resumed by bounceToRecents(), and whether its Recents card has been
+    // observed dismissed (swiped away or "clear all") since - see checkTrackedAppStillInRecents().
+    private var trackedLastAppPackage: String? = null
+    private var trackedLastAppLabel: String? = null
+    private var sawTrackedAppInRecents = false
+    private var dismissedPackage: String? = null
+    private var dismissedAtMs = 0L
+
     override fun onServiceConnected() {
         // Watches TYPE_WINDOWS_CHANGED, unrestricted by package (nav bar layout changes aren't
         // tied to any single package) - see updateOverlay() below for why.
         Log.i(TAG, "onServiceConnected")
         serviceInfo = AccessibilityServiceInfo().apply {
-            eventTypes = AccessibilityEvent.TYPE_WINDOWS_CHANGED
+            eventTypes = AccessibilityEvent.TYPE_WINDOWS_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
             packageNames = null
             notificationTimeout = 0
             // FLAG_RETRIEVE_INTERACTIVE_WINDOWS: needed for getWindows() below to actually return
@@ -88,12 +96,20 @@ class BlownChartAccessibilityService : AccessibilityService() {
     override fun onInterrupt() {}
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event?.eventType != AccessibilityEvent.TYPE_WINDOWS_CHANGED) return
-        // Fires for window changes system-wide, not just the nav bar - debounced since a single
-        // button press/screen transition can trigger a burst of these, and each one would
-        // otherwise walk the nav bar's node tree again for no reason.
-        handler.removeCallbacks(debouncedUpdateOverlay)
-        handler.postDelayed(debouncedUpdateOverlay, OVERLAY_UPDATE_DEBOUNCE_MS)
+        when (event?.eventType) {
+            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
+                // Fires for window changes system-wide, not just the nav bar - debounced since a
+                // single button press/screen transition can trigger a burst of these, and each
+                // one would otherwise walk the nav bar's node tree again for no reason.
+                handler.removeCallbacks(debouncedUpdateOverlay)
+                handler.postDelayed(debouncedUpdateOverlay, OVERLAY_UPDATE_DEBOUNCE_MS)
+            }
+            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+                if (event.packageName?.toString() != blownChartApp.systemRecentsComponentName?.packageName) return
+                handler.removeCallbacks(debouncedCheckTrackedAppStillInRecents)
+                handler.postDelayed(debouncedCheckTrackedAppStillInRecents, RECENTS_CONTENT_CHECK_DEBOUNCE_MS)
+            }
+        }
     }
 
     // ---- Overlay: intercept the physical Recents button's touch before SystemUI ever sees it ----
@@ -263,6 +279,13 @@ class BlownChartAccessibilityService : AccessibilityService() {
             return
         }
         Log.i(TAG, "bounceToRecents: resuming $lastAppPackage before triggering Recents")
+        trackedLastAppPackage = lastAppPackage
+        trackedLastAppLabel = try {
+            packageManager.getApplicationLabel(packageManager.getApplicationInfo(lastAppPackage, 0)).toString()
+        } catch (e: Exception) {
+            null
+        }
+        sawTrackedAppInRecents = false
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
         try {
             // Zero-length custom animation: this app is only ever meant to be resumed for a
@@ -280,6 +303,70 @@ class BlownChartAccessibilityService : AccessibilityService() {
         blownChartApp.lastRecentsSelfTriggerAtMs = SystemClock.elapsedRealtime()
         val result = performGlobalAction(GLOBAL_ACTION_RECENTS)
         Log.i(TAG, "triggerRecents: performGlobalAction result=$result")
+    }
+
+    // ---- Dismiss tracking: don't resurrect an app the user just swiped away/cleared ----
+
+    private val debouncedCheckTrackedAppStillInRecents = Runnable { checkTrackedAppStillInRecents() }
+
+    /**
+     * [UsageEvents] has no concept of a task being removed from Recents - swiping a card away or
+     * hitting "clear all" doesn't generate any new event, so without this, the very next
+     * bounceToRecents() call would still find the same stale ACTIVITY_RESUMED entry and resume
+     * (i.e. relaunch) an app the user just explicitly dismissed. Instead, while the resumed app's
+     * card was last known visible in the live Recents window and a content change now shows it's
+     * gone, treat it as dismissed and have findLastForegroundPackage() skip it in favor of
+     * whichever app was used before it - exactly the "track the next one" behavior a real Recents
+     * screen would give you.
+     *
+     * A false-positive dismissal (e.g. mistaking the card vanishing because the user tapped it to
+     * actually reopen the app) is harmless: that reopen is itself a fresh, newer ACTIVITY_RESUMED
+     * event, which findLastForegroundPackage()'s timestamp check naturally treats as superseding
+     * the dismissal.
+     */
+    private fun checkTrackedAppStillInRecents() {
+        val label = trackedLastAppLabel ?: return
+        val pkg = trackedLastAppPackage ?: return
+        if (pkg == dismissedPackage) return
+        val stillPresent = isLabelVisibleInRecents(label)
+        if (sawTrackedAppInRecents && !stillPresent) {
+            Log.i(TAG, "checkTrackedAppStillInRecents: $pkg no longer present in Recents, marking dismissed")
+            dismissedPackage = pkg
+            dismissedAtMs = System.currentTimeMillis()
+        }
+        sawTrackedAppInRecents = sawTrackedAppInRecents || stillPresent
+    }
+
+    private fun isLabelVisibleInRecents(label: String): Boolean {
+        val recentsPackage = blownChartApp.systemRecentsComponentName?.packageName ?: return false
+        val windowList = try {
+            windows
+        } catch (e: SecurityException) {
+            return false
+        }
+        for (window in windowList) {
+            val root = window.root ?: continue
+            if (root.packageName?.toString() != recentsPackage) continue
+            if (containsLabel(root, label)) return true
+        }
+        return false
+    }
+
+    private fun containsLabel(root: AccessibilityNodeInfo, label: String): Boolean {
+        val queue = ArrayDeque<AccessibilityNodeInfo>()
+        queue.add(root)
+        while (queue.isNotEmpty()) {
+            val node = queue.removeFirst()
+            val text = node.text?.toString()
+            val description = node.contentDescription?.toString()
+            if (text?.contains(label, ignoreCase = true) == true ||
+                description?.contains(label, ignoreCase = true) == true
+            ) {
+                return true
+            }
+            for (i in 0 until node.childCount) node.getChild(i)?.let { queue.add(it) }
+        }
+        return false
     }
 
     /**
@@ -325,6 +412,12 @@ class BlownChartAccessibilityService : AccessibilityService() {
             ) {
                 continue
             }
+            // Skip an app confirmed dismissed from Recents since its last resume - falls through
+            // to whichever app was used before it. A genuinely newer resume (timestamp after the
+            // dismissal) means the user relaunched it themselves since, so it's eligible again.
+            if (event.packageName == dismissedPackage && event.timeStamp <= dismissedAtMs) {
+                continue
+            }
             if (event.timeStamp >= lastTimestamp) {
                 lastTimestamp = event.timeStamp
                 lastPackage = event.packageName
@@ -347,6 +440,10 @@ class BlownChartAccessibilityService : AccessibilityService() {
         private const val OVERLAY_UPDATE_DEBOUNCE_MS = 150L
         private const val SYSTEMUI_RECENTS_VIEW_ID = "com.android.systemui:id/recent_apps"
         private const val SYSTEMUI_PACKAGE = "com.android.systemui"
+
+        // Debounces checkTrackedAppStillInRecents() against bursts of content-changed events
+        // fired while a card's dismiss/removal animation plays out.
+        private const val RECENTS_CONTENT_CHECK_DEBOUNCE_MS = 200L
 
         // How far back to look for the last-used app. Generous on purpose: the cost of a wider
         // window is scanning a few more events, not correctness - the loop below always ends up
