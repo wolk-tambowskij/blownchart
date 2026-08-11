@@ -123,11 +123,17 @@ fun SelectAppsForDrawerFolder(
     // Excludes the folder being edited: its own membership is already tracked via selectedIds,
     // which updates synchronously on toggle. Including it here too would leave allFolderPackages
     // briefly stale (it only catches up once the DB write round-trips through the folders flow),
-    // causing a just-toggled item to flicker out and back in.
+    // causing a just-toggled item to flicker out and back in. Walks into nested subfolders too -
+    // folders only ever surfaces top-level entries, so a subfolder's own apps live inside its
+    // parent's getContents() as a nested FolderInfo, not as a top-level entry of their own; without
+    // recursing into it, apps already assigned to a subfolder looked unassigned everywhere else.
+    // The exclusion also has to apply at every nesting depth, not just the top level: editing a
+    // subfolder means folderInfoId never matches a top-level id, so it'd otherwise still be found
+    // (and double-counted) while recursing into its own parent's contents.
     LaunchedEffect(folders, folderInfoId) {
-        allFolderPackages = folders.filter { it.id != folderInfoId }
-            .flatMap { it.getContents() }
-            .filterIsInstance<AppInfo>()
+        allFolderPackages = folders
+            .filter { it.id != folderInfoId }
+            .flatMap { it.collectAppInfos(excludeFolderId = folderInfoId) }
             .mapNotNull { it.targetPackage }
             .toSet()
     }
@@ -350,3 +356,20 @@ fun SelectAppsForDrawerFolder(
         }
     }
 }
+
+/**
+ * This folder's own apps plus, recursively, every app inside a nested subfolder - unlike
+ * [FolderInfo.getContents], which stops at one level (a nested subfolder appears there as a
+ * single [FolderInfo] item, not flattened). [excludeFolderId] skips descending into (and thus
+ * counting apps from) one specific folder, wherever it's nested - needed since the folder
+ * currently being edited by [SelectAppsForDrawerFolder] can itself be a subfolder, which would
+ * otherwise be found again while walking its own parent's contents.
+ */
+private fun FolderInfo.collectAppInfos(excludeFolderId: Int?): List<AppInfo> =
+    getContents().flatMap { item ->
+        when {
+            item is AppInfo -> listOf(item)
+            item is FolderInfo && item.id != excludeFolderId -> item.collectAppInfos(excludeFolderId)
+            else -> emptyList()
+        }
+    }

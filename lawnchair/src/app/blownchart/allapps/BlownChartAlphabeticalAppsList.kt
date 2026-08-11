@@ -105,7 +105,16 @@ class BlownChartAlphabeticalAppsList<T>(
             }
         } else {
             folderList.forEach { folder ->
-                if (folder.getContents().size > 1) {
+                // getContents() mixes direct apps with (at most a handful of) nested subfolders,
+                // so a raw size check can't tell "2 apps" from "1 subfolder + 0 apps" apart - the
+                // latter has nothing but a subfolder to preview, which crashes
+                // PreviewItemManager#setDrawable (it has no icon of its own to draw). Require at
+                // least one real app whenever a subfolder is present; otherwise fall back to the
+                // original "more than one app" threshold unchanged.
+                val directAppCount = folder.getContents().count { it !is FolderInfo }
+                val hasSubfolder = directAppCount != folder.getContents().size
+                val shouldShowFolder = if (hasSubfolder) directAppCount >= 1 else directAppCount > 1
+                if (shouldShowFolder) {
                     val folderInfo = FolderInfo()
                     folderInfo.title = folder.title
                     mAdapterItems.add(AdapterItem.asFolder(folderInfo))
