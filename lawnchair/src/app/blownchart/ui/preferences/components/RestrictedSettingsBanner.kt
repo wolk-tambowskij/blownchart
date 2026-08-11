@@ -11,6 +11,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.blownchart.ui.preferences.components.controls.WarningPreference
 import app.blownchart.ui.preferences.destinations.openAppInfo
+import app.blownchart.ui.theme.BlownChartTheme
+import app.blownchart.ui.util.preview.PreferenceGroupPreviewContainer
 import app.blownchart.ui.util.preview.PreviewBlownChart
 import com.android.launcher3.R
 
@@ -22,7 +24,6 @@ import com.android.launcher3.R
  * no API to query whether the restriction is currently active, so this can only ever be an
  * always-shown informational tap target rather than something conditionally gated on state.
  */
-@PreviewBlownChart
 @Composable
 fun RestrictedSettingsBanner(
     modifier: Modifier = Modifier,
@@ -37,5 +38,15 @@ fun RestrictedSettingsBanner(
             modifier = Modifier.clickable { openAppInfo(context) },
             text = stringResource(id = R.string.restricted_settings_hint),
         )
+    }
+}
+
+@PreviewBlownChart
+@Composable
+private fun RestrictedSettingsBannerPreview() {
+    BlownChartTheme {
+        PreferenceGroupPreviewContainer {
+            RestrictedSettingsBanner()
+        }
     }
 }
