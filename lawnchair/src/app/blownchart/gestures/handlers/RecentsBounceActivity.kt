@@ -51,6 +51,14 @@ class RecentsBounceActivity : Activity() {
     // onResume() below.
     private var hasTriggeredRecents = false
 
+    // Set the moment either stale-tap detector (onCreate()'s elapsed-time check, or onResume()'s
+    // second-resume check) decides to bail out. Calling bounceHome()/finish() during onCreate()
+    // does NOT stop onStart()/onResume() from still running afterward in the same lifecycle pass -
+    // without this flag, onResume() had no idea onCreate() already gave up on this instance, and
+    // went ahead and scheduled its own triggerRecents() call regardless, which is exactly what
+    // made the home-bounce get overridden by yet another Recents open a moment later.
+    private var isBailingOut = false
+
     // A fully transparent 1x1 bitmap, not null: passing a null icon to TaskDescription leaves the
     // task icon unset rather than blank, and Android then falls back to the app's own launcher
     // icon for it - which is exactly what made the ghost card in Recents look like a duplicate
@@ -73,6 +81,7 @@ class RecentsBounceActivity : Activity() {
         val sinceLegitimateLaunch = SystemClock.elapsedRealtime() - blownChartApp.lastRecentsBounceActivityLaunchedAtMs
         if (sinceLegitimateLaunch > STALE_RESURRECTION_THRESHOLD_MS) {
             Log.i(TAG, "onCreate: stale resurrection (sinceLegitimateLaunch=${sinceLegitimateLaunch}ms), bouncing home")
+            isBailingOut = true
             bounceHome()
             return
         }
@@ -114,7 +123,16 @@ class RecentsBounceActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        Log.i(TAG, "onResume t=${SystemClock.elapsedRealtime()} hasTriggeredRecents=$hasTriggeredRecents")
+        Log.i(TAG, "onResume t=${SystemClock.elapsedRealtime()} hasTriggeredRecents=$hasTriggeredRecents isBailingOut=$isBailingOut")
+        if (isBailingOut) {
+            // onCreate() already decided this instance is a stale resurrection and called
+            // bounceHome() - calling finish()/finishAndRemoveTask() during onCreate() does NOT
+            // stop onStart()/onResume() from still running afterward in the same lifecycle pass.
+            // Without this check, this branch used to go ahead and schedule ANOTHER
+            // triggerRecents() call regardless, which is exactly what made the home-bounce from
+            // onCreate() get overridden by yet another Recents open a moment later.
+            return
+        }
         if (!hasTriggeredRecents) {
             hasTriggeredRecents = true
             handler.postDelayed(triggerRecents, TRIGGER_DELAY_MS)
@@ -128,10 +146,16 @@ class RecentsBounceActivity : Activity() {
         // the OS reusing the still-alive original instead, which real-device testing on this
         // firmware showed also happens. Nothing left to usefully do here either way - bounce home.
         Log.i(TAG, "onResume: second resume on same instance, treating as a stale-card tap, bouncing home")
+        isBailingOut = true
         bounceHome()
     }
 
     private fun bounceHome() {
+        // Guards against being invoked more than once on the same instance - e.g. onResume()'s
+        // second-resume branch firing again on a later resume of an instance that already bailed
+        // out once. The system logged "Duplicate finish request" warnings for this exact reason
+        // before this guard existed.
+        if (isFinishing) return
         startActivity(
             Intent(Intent.ACTION_MAIN)
                 .addCategory(Intent.CATEGORY_HOME)
