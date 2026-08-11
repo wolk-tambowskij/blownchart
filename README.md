@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/blownchart-icon.png" alt="BlownChart icon" width="96" height="96">
+</p>
+
 # BlownChart
 
 A simple, fast Android home screen launcher with categorized folders in the
@@ -31,67 +35,71 @@ foundation to add them.
 
 ### Differences from the original
 
-App drawer folders:
+The wording below mirrors the in-app changelog (Settings → About → What's
+new), so the two stay in sync as features change.
+
+Folders (app drawer and home screen):
 
 - One level of folder-in-folder nesting, with its own manual ordering
   (nested folders always sort before apps) and a small badge marking a
-  folder that contains another. Nest a folder from Settings (app drawer
-  folders), or drag one icon onto another inside an open folder (home
-  screen folders) to merge them into a new nested folder.
-- Optional manual drag-and-drop ordering of folders and their contents
-  (alphabetical stays the default).
-- Search bar when picking apps for a folder.
-- Export and import your whole folder layout as a JSON file.
-- A thin outline on folder previews, independent of theme/opacity.
-- Folder previews render using the exact configured icon shape (instead
-  of being approximated to a handful of hardcoded shapes), no longer
-  overflow their bounds for unusual app-count/shape combinations, and
-  update immediately when you change the icon shape setting instead of
-  the old shape lingering on folder icons until the app restarts.
+  folder that contains another. In the app drawer, nest a folder from
+  Settings; on the home screen, drag one folder onto another and release
+  quickly to wrap both into a new nested folder, or hold until the
+  target springs open to merge into its existing contents.
+- Choice between manual folder ordering and alphabetical sorting
+  (default).
+- Search bar when choosing apps for a folder.
+- Export and import your folder layout as a JSON file with all
+  parameters.
+- Thin outline added to folders on the home screen and in the drawer.
+  Folder previews no longer overflow their bounds for any number of
+  apps and any icon shape, and update immediately when you change the
+  icon shape setting instead of the old shape lingering on them until
+  the app was restarted.
 - Faster "App drawer folders" screen and folder editing with large
-  numbers of installed apps and folders — tested at 40 folders / 1766
-  apps to catch and fix the slowdowns that only show up at that scale.
-- App drawer search results show which folder an app is in, including
-  the full path for an app inside a nested subfolder.
-- A confirmation dialog before deleting a folder, warning if it contains
-  a nested folder (the apps inside are not deleted either way).
+  numbers of installed apps — tested under real-world load (40 folders,
+  1766 installed apps) to catch and fix the slowdowns that only show up
+  at that scale.
+- App drawer search results show which folder an app is in (with its
+  icon), including the full path for an app inside a nested subfolder.
+- Confirmation dialog before deleting a folder, warning if it contains
+  nested folders.
 
 Privacy and locking:
 
-- "Lock app drawer" and "Lock home screen" are separate settings: the
-  drawer lock blocks renaming/hiding/changing the icon/uninstalling apps
-  from the drawer, while the home screen lock separately blocks moving
-  and resizing widgets too — closing a gap where either lock could
-  previously be bypassed via the Uninstall shortcut or widget
-  placement/resize.
-- A PIN/fingerprint lock gates the launcher's own settings and any exit
-  into system Settings. It does not apply to shortcuts or widgets that
-  belong to other apps, or to opening settings through system UI
-  elements such as a quick-settings tile.
-- The launcher's own app-drawer entry is hidden by default.
+- "Lock app drawer" and "Lock home screen" are separate settings:
+  locking the app drawer blocks renaming, hiding, changing the icon,
+  and uninstalling apps from the drawer, while locking the home screen
+  also separately blocks moving and resizing widgets, the Uninstall
+  shortcut from any surface, and new widget placement — closing a
+  bypass the drawer lock alone didn't cover.
+- A PIN/fingerprint lock for the launcher's own settings and any exit
+  into system Settings (does not apply to shortcuts/widgets created by
+  third-party apps, or to opening settings through system UI elements
+  such as a quick-settings tile).
+- The launcher's own app drawer entry is hidden by default.
 
 Backup and restore:
 
-- Backup/restore reliability fixes: a first restore no longer silently
-  drops grid-bound home-screen items, doesn't need to be run twice, and
-  no longer crashes on certain devices.
+- Backup and restore now reliably cover the full home screen layout,
+  widgets, and grid size in a single pass, without crashing or needing
+  to run twice.
 - Optional: back up the lock screen's wallpaper independently of the
-  home screen one, with a live preview on the backup and restore
-  screens.
+  home screen one, with a live preview next to the home wallpaper on
+  the backup and restore screens.
 
 Other:
 
-- Experimental: reliably opens the real Recents/Overview screen from
-  the physical Recents button or a double-tap gesture, on firmware
-  where invoking it directly renders it broken (flashes and
-  disappears).
-- Faster first launch and app drawer loading on devices with many
-  installed apps, thanks in part to a thread-scheduling fix and a
+- Experimental: opens the real Recents/Overview screen from the
+  physical Recents button or a double-tap gesture, on firmware where
+  invoking it directly renders it broken (flashes and disappears).
+- Faster first launch and app drawer loading with a large number of
+  installed apps, building in part on a thread-scheduling fix and a
   batched icon-loading optimization borrowed from Lawnchair 16's
   development branch (see
   [`docs/pr/fix-loader-model-thread-priority.md`](docs/pr/fix-loader-model-thread-priority.md)).
 - A persistent prompt to exempt the launcher from battery optimization,
-  since it's easy to dismiss once and forget.
+  since a one-time prompt is too easy to dismiss and forget.
 - Rebranded identity (name, icon, `applicationId`) so it can be installed
   side by side with Lawnchair itself; hand-maintained Russian
   translations instead of upstream's Crowdin-managed ones; signed
@@ -200,71 +208,75 @@ BlownChart появился из-за того, что на простое же�
 
 ### Отличия от оригинала
 
-Папки в меню приложений:
+Формулировки ниже повторяют список изменений в самом приложении
+(Настройки → О приложении → Что нового), чтобы README и приложение не
+расходились.
+
+Папки (меню приложений и домашний экран):
 
 - Один уровень вложенности папок друг в друга, с собственной ручной
   сортировкой (вложенные папки всегда идут перед приложениями) и
-  небольшим значком, отмечающим папку с вложенной папкой внутри.
-  Создать через настройки (папки в меню приложений) или перетаскиванием
-  одного значка на другой внутри открытой папки (папки на домашнем
-  экране).
-- Опциональная ручная сортировка папок и их содержимого перетаскиванием
-  (по умолчанию — алфавитная).
+  небольшим значком, отмечающим папку с вложенной папкой внутри. В меню
+  приложений вложить папку можно через настройки; на домашнем экране —
+  перетащить одну папку на другую и быстро отпустить, чтобы обернуть
+  обе в новую вложенную папку, либо дождаться, пока папка раскроется, и
+  отпустить — чтобы объединить с её содержимым.
+- Выбор между ручной сортировкой папок и сортировкой по алфавиту (по
+  умолчанию).
 - Строка поиска при выборе приложений для папки.
-- Экспорт и импорт всей раскладки папок в JSON-файл.
-- Тонкая обводка у превью папок, не зависящая от темы/прозрачности.
-- Превью папок рисуются по точной настроенной форме иконок (а не по
-  нескольким жёстко закодированным приближениям), больше не выходят за
-  границы при необычных сочетаниях формы и количества приложений, и
-  сразу обновляются при смене формы иконок вместо того, чтобы старая
-  форма оставалась на значках папок до перезапуска приложения.
-- Более быстрые экран «Папки в app drawer» и редактирование папок при
-  большом количестве установленных приложений и папок — проверено на 40
-  папках и 1766 приложениях, чтобы найти и исправить замедления, которые
-  проявляются только при таком масштабе.
-- Результаты поиска в меню приложений показывают, в какой папке лежит
-  приложение, включая полный путь для приложения во вложенной подпапке.
+- Экспорт/импорт структуры папок в формате JSON со всеми параметрами.
+- Добавлена тонкая рамка для папок на рабочем столе и в меню
+  приложений. Иконки больше не выходят за края превью папки — для
+  любого количества приложений и любой формы иконок — и сразу
+  обновляются при смене формы, вместо того чтобы старая форма
+  оставалась на значках папок до перезапуска приложения.
+- Ускорено открытие экрана «Папки в меню приложений» и редактирование
+  папок при большом количестве установленных приложений — проверено на
+  реальной нагрузке (40 папок, 1766 приложений), чтобы найти и
+  исправить замедления, которые проявляются только при таком масштабе.
+- В результатах поиска в меню приложений теперь показывается, в какой
+  папке находится приложение (с иконкой папки), а для вложенных папок —
+  полный путь.
 - Диалог подтверждения перед удалением папки, с предупреждением, если
-  внутри есть вложенная папка (приложения внутри в любом случае не
-  удаляются).
+  внутри есть вложенные папки.
 
 Приватность и блокировка:
 
-- «Заблокировать app drawer» и «Заблокировать главный экран» — теперь
-  раздельные настройки: блокировка app drawer запрещает переименование,
-  скрытие, смену иконки и удаление приложений из меню приложений, а
-  блокировка главного экрана отдельно запрещает ещё и перемещение с
-  изменением размера виджетов — закрыт обход, при котором любую из
-  блокировок раньше можно было обойти через пункт «Удалить» или
-  размещение/изменение размера виджета.
-- PIN-код/отпечаток блокирует настройки самого лончера и любой выход в
-  системные настройки. Не распространяется на ярлыки и виджеты сторонних
-  приложений, а также на открытие настроек через элементы системного
-  интерфейса, например плитку быстрых настроек.
-- Собственная запись лончера в меню приложений скрыта по умолчанию.
+- Блокировка рабочего стола и блокировка меню приложений — теперь
+  отдельные настройки: блокировка меню приложений запрещает
+  переименование, скрытие, смену иконки и удаление приложений из меню,
+  а блокировка рабочего стола дополнительно запрещает перемещение и
+  изменение размера виджетов, ярлык «Удалить» на любой поверхности и
+  размещение новых виджетов — закрыт обход, который не перекрывала
+  только блокировка меню приложений.
+- Защита PIN-кодом/отпечатком пальца для настроек лончера и любого
+  перехода в системные настройки (не работает для ярлыков/виджетов,
+  созданных сторонними приложениями, а также для открытия настроек
+  через элементы системного интерфейса, например плитку быстрых
+  настроек).
+- Собственный пункт лончера в меню приложений по умолчанию скрыт.
 
 Резервное копирование и восстановление:
 
-- Исправления надёжности восстановления: первое восстановление больше
-  не теряет незаметно привязанные к сетке элементы домашнего экрана, не
-  требует повторного запуска и не приводит к сбою на некоторых
-  устройствах.
+- Резервное копирование и восстановление теперь надёжно сохраняют
+  структуру рабочего стола, виджеты и размер сетки за один проход, без
+  сбоев и без необходимости запускать восстановление дважды.
 - Опционально: резервное копирование обоев экрана блокировки отдельно
-  от обоев рабочего стола, с предпросмотром на экранах создания и
-  восстановления резервной копии.
+  от обоев рабочего стола, с предпросмотром рядом с обоями рабочего
+  стола на экранах создания и восстановления резервной копии.
 
 Прочее:
 
-- Экспериментально: надёжно открывает настоящий экран Recents/Overview
-  по физической кнопке «Недавние» или жесту двойного нажатия — на
-  прошивках, где прямой вызов ломается (мелькает и сразу пропадает).
-- Более быстрый первый запуск и построение списка приложений на
-  устройствах с большим количеством установленных приложений — отчасти
-  благодаря фиксу планирования потоков и оптимизации пакетной загрузки
-  иконок, заимствованных из ветки разработки Lawnchair 16 (см.
+- Экспериментально: физическая кнопка «Недавние»/Overview и двойное
+  касание теперь открывают настоящий экран недавних приложений на
+  прошивках, где прямой вызов ломается (мигает и пропадает).
+- Более быстрый первый запуск и построение списка приложений при
+  большом количестве установленных приложений — отчасти на основе
+  фикса планирования потоков и оптимизации пакетной загрузки иконок,
+  заимствованных из ветки разработки Lawnchair 16 (см.
   [`docs/pr/fix-loader-model-thread-priority.md`](docs/pr/fix-loader-model-thread-priority.md)).
-- Постоянное (а не одноразовое) напоминание исключить лончер из
-  оптимизации батареи — одноразовое слишком легко закрыть и забыть.
+- Постоянная подсказка исключить лончер из оптимизации батареи —
+  одноразовую слишком легко закрыть и забыть.
 - Собственный брендинг (название, иконка, `applicationId`), чтобы можно
   было ставить рядом с оригинальным Lawnchair; переведено на русский
   вручную, без CrowdIn, которым пользуется апстрим; автоматическая

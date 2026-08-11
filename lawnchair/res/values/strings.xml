@@ -518,7 +518,7 @@
     <string name="about_developed_by">Developed by %1$s</string>
     <string name="about_fork_disclosure">BlownChart is an independent, unofficial fork of Lawnchair (based on Lawnchair 15 Beta 3), an open-source Android launcher. It is not affiliated with or endorsed by the Lawnchair project.</string>
     <string name="about_whats_new_heading">What\'s new in this fork</string>
-    <string name="about_change_1">One level of folder-in-folder nesting, with its own manual ordering (folders always sort before apps) and a small badge marking a folder that contains one — nest a folder from Settings (app drawer folders) or drag one icon onto another inside an open folder (home screen folders) to merge them into a new nested folder</string>
+    <string name="about_change_1">One level of folder-in-folder nesting, with its own manual ordering (nested folders always sort before apps) and a small badge marking a folder that contains another. In the app drawer, nest a folder from Settings; on the home screen, drag one folder onto another and release quickly to wrap both into a new nested folder, or hold until the target springs open to merge into its existing contents</string>
     <string name="about_change_2">Faster \"App drawer folders\" screen and folder editing with large numbers of installed apps</string>
     <string name="about_change_3">Choice between manual folder ordering and alphabetical sorting (default)</string>
     <string name="about_change_4">Search bar when choosing apps for a folder</string>
@@ -528,10 +528,10 @@
     <string name="about_change_8">\"Lock app drawer\" and \"Lock home screen\" are now separate settings: locking the app drawer blocks renaming, hiding, changing the icon, and uninstalling apps from the drawer, while locking the home screen also separately blocks moving and resizing widgets</string>
     <string name="about_change_9">New PIN/fingerprint lock for the launcher\'s own settings and any exit into system Settings (does not apply to shortcuts/widgets created by third-party apps, or to opening settings through system UI elements such as a quick-settings tile)</string>
     <string name="about_change_10">App drawer search results now show which folder an app is in (with its icon), including the full path for an app inside a nested subfolder</string>
-    <string name="about_change_11">Prompt to disable battery optimization for the launcher on first launch</string>
+    <string name="about_change_11">A persistent prompt to exempt the launcher from battery optimization, since a one-time prompt is too easy to dismiss and forget</string>
     <string name="about_change_12">Tested under real-world load — 40 folders and 1766 installed apps — to catch and fix the slowdowns that only show up at that scale</string>
     <string name="about_change_13">Faster first launch and app drawer loading with a large number of installed apps, building in part on a thread-scheduling fix and a batched icon-loading optimization borrowed from Lawnchair 16\'s development branch</string>
-    <string name="about_change_14">Experimental: reliably opens the real Recents/Overview screen from the physical Recents button or a double-tap gesture, on firmware where invoking it directly renders it broken (flashes and disappears)</string>
+    <string name="about_change_14">Experimental: opens the real Recents/Overview screen from the physical Recents button or a double-tap gesture, on firmware where invoking it directly renders it broken (flashes and disappears)</string>
     <string name="about_change_15">\"Lock home screen\" now also blocks the Uninstall shortcut from any surface and new widget placement/resizing, closing a bypass the drawer lock alone didn\'t cover</string>
     <string name="about_change_16">The launcher\'s own app drawer entry is hidden by default</string>
     <string name="about_change_17">Backup and restore now reliably cover the full home screen layout, widgets, and grid size in a single pass, without crashing or needing to run twice</string>
