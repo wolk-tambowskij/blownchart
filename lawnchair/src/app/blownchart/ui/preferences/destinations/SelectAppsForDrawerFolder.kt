@@ -365,11 +365,10 @@ fun SelectAppsForDrawerFolder(
  * currently being edited by [SelectAppsForDrawerFolder] can itself be a subfolder, which would
  * otherwise be found again while walking its own parent's contents.
  */
-private fun FolderInfo.collectAppInfos(excludeFolderId: Int?): List<AppInfo> =
-    getContents().flatMap { item ->
-        when {
-            item is AppInfo -> listOf(item)
-            item is FolderInfo && item.id != excludeFolderId -> item.collectAppInfos(excludeFolderId)
-            else -> emptyList()
-        }
+private fun FolderInfo.collectAppInfos(excludeFolderId: Int?): List<AppInfo> = getContents().flatMap { item ->
+    when {
+        item is AppInfo -> listOf(item)
+        item is FolderInfo && item.id != excludeFolderId -> item.collectAppInfos(excludeFolderId)
+        else -> emptyList()
     }
+}
