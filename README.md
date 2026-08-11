@@ -54,7 +54,8 @@ Folders (app drawer and home screen):
   folder that contains another. In the app drawer, nest a folder from
   Settings; on the home screen, drag one folder onto another and release
   quickly to wrap both into a new nested folder, or hold until the
-  target springs open to merge into its existing contents.
+  target springs open to merge into its existing contents. Answers a
+  long-standing upstream feature request, [lawnchair#5435](https://github.com/LawnchairLauncher/lawnchair/issues/5435).
 - Choice between manual folder ordering and alphabetical sorting
   (default).
 - Search bar when choosing apps for a folder or for the hidden-apps list.
@@ -64,11 +65,17 @@ Folders (app drawer and home screen):
   Folder previews no longer overflow their bounds for any number of
   apps and any icon shape, and update immediately when you change the
   icon shape setting instead of the old shape lingering on them until
-  the app was restarted.
+  the app was restarted. Related to upstream
+  [lawnchair#6495](https://github.com/LawnchairLauncher/lawnchair/issues/6495)
+  (closed, but only on the newer 16-dev branch).
 - Faster "App drawer folders" screen and folder editing with large
   numbers of installed apps — tested under real-world load (40 folders,
   1766 installed apps) to catch and fix the slowdowns that only show up
-  at that scale.
+  at that scale. Targets upstream
+  [lawnchair#6147](https://github.com/LawnchairLauncher/lawnchair/issues/6147),
+  which is still open on 15-dev; a similar rewrite,
+  [#6996](https://github.com/LawnchairLauncher/lawnchair/pull/6996),
+  already landed upstream but only on the newer 16-dev branch.
 - App drawer search results show which folder an app is in (with its
   icon), including the full path for an app inside a nested subfolder.
 - Confirmation dialog before deleting a folder, warning if it contains
@@ -81,7 +88,12 @@ Privacy and locking:
   and uninstalling apps from the drawer, while locking the home screen
   also separately blocks moving and resizing widgets, the Uninstall
   shortcut from any surface, and new widget placement — closing a
-  bypass the drawer lock alone didn't cover.
+  bypass the drawer lock alone didn't cover. Fixes upstream
+  [lawnchair#5839](https://github.com/LawnchairLauncher/lawnchair/issues/5839):
+  reporters wanted "Lock home screen" to leave the app drawer alone,
+  which the old single flag couldn't do. The uninstall/widget bypass
+  half is also related to
+  [lawnchair#6929](https://github.com/LawnchairLauncher/lawnchair/issues/6929).
 - A PIN/fingerprint lock for the launcher's own settings and any exit
   into system Settings (does not apply to shortcuts/widgets created by
   third-party apps, or to opening settings through system UI elements
@@ -92,10 +104,16 @@ Backup and restore:
 
 - Backup and restore now reliably cover the full home screen layout,
   widgets, and grid size in a single pass, without crashing or needing
-  to run twice.
+  to run twice. Related to upstream
+  [lawnchair#6576](https://github.com/LawnchairLauncher/lawnchair/issues/6576)
+  ("requires 2 restore processes") — that report is about a cross-version
+  restore (15→16), while this fix targets the same-version (15→15) case,
+  so it's not confirmed to be the identical root cause.
 - Optional: back up the lock screen's wallpaper independently of the
   home screen one, with a live preview next to the home wallpaper on
-  the backup and restore screens.
+  the backup and restore screens. Fixes upstream
+  [lawnchair#5462](https://github.com/LawnchairLauncher/lawnchair/issues/5462)
+  ("restore overwrites my lock screen wallpaper").
 
 Other:
 
@@ -107,6 +125,9 @@ Other:
   batched icon-loading optimization borrowed from Lawnchair 16's
   development branch (see
   [`docs/pr/fix-loader-model-thread-priority.md`](docs/pr/fix-loader-model-thread-priority.md)).
+  The thread-scheduling half shares its root cause with upstream's own
+  fix for Bug 396250724; the batched icon-loading half is unsolicited,
+  separate work.
 - A persistent prompt to exempt the launcher from battery optimization,
   since a one-time prompt is too easy to dismiss and forget.
 - Rebranded identity (name, icon, `applicationId`) so it can be installed
@@ -229,7 +250,9 @@ BlownChart появился из-за того, что на простое же�
   приложений вложить папку можно через настройки; на домашнем экране —
   перетащить одну папку на другую и быстро отпустить, чтобы обернуть
   обе в новую вложенную папку, либо дождаться, пока папка раскроется, и
-  отпустить — чтобы объединить с её содержимым.
+  отпустить — чтобы объединить с её содержимым. Закрывает давний запрос
+  в апстриме,
+  [lawnchair#5435](https://github.com/LawnchairLauncher/lawnchair/issues/5435).
 - Выбор между ручной сортировкой папок и сортировкой по алфавиту (по
   умолчанию).
 - Строка поиска при выборе приложений для папки или в списке скрытых
@@ -239,11 +262,19 @@ BlownChart появился из-за того, что на простое же�
   приложений. Иконки больше не выходят за края превью папки — для
   любого количества приложений и любой формы иконок — и сразу
   обновляются при смене формы, вместо того чтобы старая форма
-  оставалась на значках папок до перезапуска приложения.
+  оставалась на значках папок до перезапуска приложения. По теме
+  апстрим-issue
+  [lawnchair#6495](https://github.com/LawnchairLauncher/lawnchair/issues/6495)
+  (закрыт, но только в ветке 16-dev).
 - Ускорено открытие экрана «Папки в меню приложений» и редактирование
   папок при большом количестве установленных приложений — проверено на
   реальной нагрузке (40 папок, 1766 приложений), чтобы найти и
   исправить замедления, которые проявляются только при таком масштабе.
+  Решает ту же проблему, что и открытый в апстриме
+  [lawnchair#6147](https://github.com/LawnchairLauncher/lawnchair/issues/6147)
+  (там же остаётся открытым для ветки 15-dev); похожая переработка,
+  [#6996](https://github.com/LawnchairLauncher/lawnchair/pull/6996), уже
+  влита в апстрим, но только в более новую ветку 16-dev.
 - В результатах поиска в меню приложений теперь показывается, в какой
   папке находится приложение (с иконкой папки), а для вложенных папок —
   полный путь.
@@ -258,7 +289,12 @@ BlownChart появился из-за того, что на простое же�
   а блокировка рабочего стола дополнительно запрещает перемещение и
   изменение размера виджетов, ярлык «Удалить» на любой поверхности и
   размещение новых виджетов — закрыт обход, который не перекрывала
-  только блокировка меню приложений.
+  только блокировка меню приложений. Закрывает апстрим-issue
+  [lawnchair#5839](https://github.com/LawnchairLauncher/lawnchair/issues/5839):
+  авторы обращения хотели, чтобы «Блокировка рабочего стола» не
+  затрагивала меню приложений, а старый единый переключатель не позволял
+  этого сделать. Обход через ярлык «Удалить»/виджеты также по теме
+  [lawnchair#6929](https://github.com/LawnchairLauncher/lawnchair/issues/6929).
 - Защита PIN-кодом/отпечатком пальца для настроек лончера и любого
   перехода в системные настройки (не работает для ярлыков/виджетов,
   созданных сторонними приложениями, а также для открытия настроек
@@ -270,10 +306,18 @@ BlownChart появился из-за того, что на простое же�
 
 - Резервное копирование и восстановление теперь надёжно сохраняют
   структуру рабочего стола, виджеты и размер сетки за один проход, без
-  сбоев и без необходимости запускать восстановление дважды.
+  сбоев и без необходимости запускать восстановление дважды. По теме
+  апстрим-issue
+  [lawnchair#6576](https://github.com/LawnchairLauncher/lawnchair/issues/6576)
+  («требуется 2 восстановления») — там речь о восстановлении между
+  версиями (15→16), а этот фикс закрывает случай в пределах одной версии
+  (15→15), так что совпадение первопричины не подтверждено.
 - Опционально: резервное копирование обоев экрана блокировки отдельно
   от обоев рабочего стола, с предпросмотром рядом с обоями рабочего
-  стола на экранах создания и восстановления резервной копии.
+  стола на экранах создания и восстановления резервной копии. Закрывает
+  апстрим-issue
+  [lawnchair#5462](https://github.com/LawnchairLauncher/lawnchair/issues/5462)
+  («восстановление перезаписывает обои экрана блокировки»).
 
 Прочее:
 
@@ -285,6 +329,9 @@ BlownChart появился из-за того, что на простое же�
   фикса планирования потоков и оптимизации пакетной загрузки иконок,
   заимствованных из ветки разработки Lawnchair 16 (см.
   [`docs/pr/fix-loader-model-thread-priority.md`](docs/pr/fix-loader-model-thread-priority.md)).
+  Половина с планированием потоков имеет ту же первопричину, что и
+  собственный фикс апстрима для Bug 396250724; пакетная загрузка иконок —
+  отдельная, самостоятельная доработка.
 - Постоянная подсказка исключить лончер из оптимизации батареи —
   одноразовую слишком легко закрыть и забыть.
 - Собственный брендинг (название, иконка, `applicationId`), чтобы можно
