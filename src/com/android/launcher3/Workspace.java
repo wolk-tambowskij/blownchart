@@ -263,15 +263,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     private FolderIcon mDragOverFolderIcon = null;
     private boolean mCreateUserFolderOnDrop = false;
     private boolean mAddToExistingFolderOnDrop = false;
-    // Dragging one folder onto another (closed) one is ambiguous between "wrap both in a new
-    // folder" and "merge into the target", unlike every other combination this class handles,
-    // where only one outcome makes sense. willCreateUserFolder() resolves the ambiguity in
-    // favor of wrapping by default (DRAG_MODE_CREATE_FOLDER wins the very first hover frame,
-    // same as the classic two-plain-apps case), and this alarm is what lets a sustained hover
-    // switch that decision over to merging instead, matching FolderIcon's own ON_OPEN_DELAY the
-    // user already associates with "hold to open a folder" elsewhere in the app.
-    private final Alarm mFolderOnFolderMergeAlarm = new Alarm();
-    private View mFolderOnFolderMergeTarget = null;
 
     // Variables relating to touch disambiguation (scrolling workspace vs. scrolling
     // a widget)
@@ -2095,8 +2086,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         // instead of falling through to willAddToExistingUserFolder(), which is the intended
         // behavior for that combination. But when *both* sides are folders, wrapping them in a
         // brand-new folder is a real, deliberate outcome (drop quickly, before the target has a
-        // chance to spring-load open - see manageFolderFeedback/mFolderOnFolderMergeAlarm for the
-        // other outcome, merging into the target, on a sustained hover) - so the exclusion only
+        // chance to spring-load open - see manageFolderFeedback, which switches to merging into
+        // the target instead once the target's own Folder#isOpen() reports it sprang open on a
+        // sustained hover) - so the exclusion only
         // applies when the dragged item isn't itself a folder. Either folder already having a
         // subfolder of its own is still excluded regardless, since wrapping either would push
         // something two levels deep.
@@ -2567,7 +2559,13 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         setCurrentDragOverlappingLayout(null);
 
         mSpringLoadedDragController.cancel();
-        cancelFolderOnFolderMergeAlarm();
+        if (mDragMode == DRAG_MODE_CREATE_FOLDER && mDragOverFolderIcon != null) {
+            // The target hasn't sprung open yet, so this drop is wrapping both folders in a new
+            // one (scenario 1) rather than merging into the target (scenario 2) - stop notifying
+            // it so its own spring-load timer doesn't fire after it's been reparented.
+            mDragOverFolderIcon.onDragExit();
+            mDragOverFolderIcon = null;
+        }
     }
 
     private void enforceDragParity(String event, int update, int expectedValue) {
@@ -2933,61 +2931,71 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     || mDragMode == DRAG_MODE_CREATE_FOLDER)) {
                 setDragMode(DRAG_MODE_NONE);
             }
-            cancelFolderOnFolderMergeAlarm();
             return;
         }
 
         View previousDragOverView = mDragOverView;
         mDragOverView = mDragTargetLayout.getChildAt(mTargetCell[0], mTargetCell[1]);
-        if (mDragOverView != previousDragOverView) {
-            cancelFolderOnFolderMergeAlarm();
-        }
         ItemInfo info = dragObject.dragInfo;
+
+        // Dragging one folder onto another (closed) one is ambiguous between wrapping both in a
+        // brand-new folder and merging into the target instead. Rather than run a second, custom
+        // timer alongside FolderIcon's own spring-load one, this piggybacks on the target's real
+        // open/closed state directly - the same state that already governs the plain-item-onto-
+        // folder case below, just checked here one hover-mode earlier. Once the target folder
+        // itself has sprung open (FolderIcon#onDragEnter, called as soon as we notice this
+        // pairing, is what starts that spring-load timer), a sustained hover switches the mode
+        // over to merging.
+        if (mDragMode == DRAG_MODE_CREATE_FOLDER && mDragOverFolderIcon != null) {
+            if (mDragOverView != previousDragOverView) {
+                // Hopped to a different target before the first one opened; stop notifying it so
+                // its spring-load timer doesn't fire later for a target we've left.
+                mDragOverFolderIcon.onDragExit();
+                mDragOverFolderIcon = null;
+            } else if (mDragOverFolderIcon.getFolder().isOpen()) {
+                enterAddToFolderMode(info, dragObject, /* notifyFolderIcon= */ false);
+                return;
+            }
+        }
+
         boolean userFolderPending = willCreateUserFolder(info, mDragOverView, false);
-        if (mDragMode == DRAG_MODE_NONE && userFolderPending) {
+        if ((mDragMode == DRAG_MODE_NONE || mDragMode == DRAG_MODE_CREATE_FOLDER) && userFolderPending
+                && mDragOverFolderIcon == null) {
 
-            mFolderCreateBg = new PreviewBackground(getContext());
-            mFolderCreateBg.setup(mLauncher, mLauncher, null,
-                    mDragOverView.getMeasuredWidth(), mDragOverView.getPaddingTop());
+            if (mDragMode == DRAG_MODE_NONE) {
+                mFolderCreateBg = new PreviewBackground(getContext());
+                mFolderCreateBg.setup(mLauncher, mLauncher, null,
+                        mDragOverView.getMeasuredWidth(), mDragOverView.getPaddingTop());
 
-            // The full preview background should appear behind the icon
-            mFolderCreateBg.isClipping = false;
+                // The full preview background should appear behind the icon
+                mFolderCreateBg.isClipping = false;
 
-            if (mDragOverView instanceof AppPairIcon api) {
-                api.getIconDrawableArea().onTemporaryContainerChange(DISPLAY_FOLDER);
+                if (mDragOverView instanceof AppPairIcon api) {
+                    api.getIconDrawableArea().onTemporaryContainerChange(DISPLAY_FOLDER);
+                }
+
+                mFolderCreateBg.animateToAccept(mDragTargetLayout, mTargetCell[0], mTargetCell[1]);
+                mDragTargetLayout.clearDragOutlines();
+                setDragMode(DRAG_MODE_CREATE_FOLDER);
+
+                if (dragObject.stateAnnouncer != null) {
+                    dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
+                            .getDescriptionForDropOver(mDragOverView, getContext()));
+                }
             }
 
-            mFolderCreateBg.animateToAccept(mDragTargetLayout, mTargetCell[0], mTargetCell[1]);
-            mDragTargetLayout.clearDragOutlines();
-            setDragMode(DRAG_MODE_CREATE_FOLDER);
-
-            if (dragObject.stateAnnouncer != null) {
-                dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
-                        .getDescriptionForDropOver(mDragOverView, getContext()));
-            }
-
-            // Dragging one folder onto another is ambiguous between wrapping both in this new
-            // folder (the outcome just entered above, and what a quick drop from here commits
-            // to) and merging into the target instead - offer the second outcome too, on a
-            // sustained hover, the same way dropping any other item onto an already-existing
-            // folder always would. See the mFolderOnFolderMergeAlarm field doc for why this needs
-            // its own timer rather than reusing FolderIcon's.
-            if (info instanceof FolderInfo && mDragOverView instanceof FolderIcon) {
-                mFolderOnFolderMergeTarget = mDragOverView;
-                mFolderOnFolderMergeAlarm.setOnAlarmListener(alarm -> {
-                    if (mDragMode == DRAG_MODE_CREATE_FOLDER
-                            && mDragOverView == mFolderOnFolderMergeTarget) {
-                        enterAddToFolderMode(info, dragObject);
-                    }
-                });
-                mFolderOnFolderMergeAlarm.setAlarm(FolderIcon.ON_OPEN_DELAY);
+            // See the comment above for why this starts the target's own native spring-load
+            // timer without yet committing to DRAG_MODE_ADD_TO_FOLDER.
+            if (info instanceof FolderInfo && mDragOverView instanceof FolderIcon folderIcon) {
+                mDragOverFolderIcon = folderIcon;
+                folderIcon.onDragEnter(info);
             }
             return;
         }
 
         boolean willAddToFolder = willAddToExistingUserFolder(info, mDragOverView);
         if (willAddToFolder && mDragMode == DRAG_MODE_NONE) {
-            enterAddToFolderMode(info, dragObject);
+            enterAddToFolderMode(info, dragObject, /* notifyFolderIcon= */ true);
             return;
         }
 
@@ -2999,10 +3007,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         }
     }
 
-    private void enterAddToFolderMode(ItemInfo info, DragObject dragObject) {
-        cancelFolderOnFolderMergeAlarm();
+    private void enterAddToFolderMode(ItemInfo info, DragObject dragObject,
+            boolean notifyFolderIcon) {
         mDragOverFolderIcon = ((FolderIcon) mDragOverView);
-        mDragOverFolderIcon.onDragEnter(info);
+        if (notifyFolderIcon) {
+            mDragOverFolderIcon.onDragEnter(info);
+        }
         if (mDragTargetLayout != null) {
             mDragTargetLayout.clearDragOutlines();
         }
@@ -3012,11 +3022,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
                     .getDescriptionForDropOver(mDragOverView, getContext()));
         }
-    }
-
-    private void cancelFolderOnFolderMergeAlarm() {
-        mFolderOnFolderMergeAlarm.cancelAlarm();
-        mFolderOnFolderMergeTarget = null;
     }
 
     class ReorderAlarmListener implements OnAlarmListener {

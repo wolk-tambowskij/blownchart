@@ -113,10 +113,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     public static final boolean SPRING_LOADING_ENABLED = true;
 
     // Delay when drag enters until the folder opens, in miliseconds.
-    // Visible so Workspace#manageFolderFeedback can time its own folder-onto-folder
-    // wrap-vs-merge decision to match the delay users already associate with "hold to open a
-    // folder" elsewhere in the app.
-    public static final int ON_OPEN_DELAY = 800;
+    private static final int ON_OPEN_DELAY = 800;
 
     @Thunk BubbleTextView mFolderName;
 
