@@ -92,9 +92,15 @@ and the home screen):**
   click handling - no changes needed there, and this is why the same code
   path renders correctly whether the parent folder lives in the drawer or on
   the home screen.
-- `FolderIcon.getPreviewItemsOnPage()`: excludes subfolders from the parent's
-  own closed-icon mini-preview, since a subfolder has no static preview
-  `Drawable` of its own yet and would NPE in `PreviewItemManager#setDrawable`.
+- `FolderIcon.getPreviewItemsOnPage()`: a subfolder has no static preview
+  `Drawable` of its own and would NPE in `PreviewItemManager#setDrawable` if
+  passed straight through, so this flattens one level - pulling the
+  subfolder's own direct contents into the parent's closed-icon mini-preview
+  in its place, rather than filtering it out. Shows real icons "from inside"
+  the subfolder instead of leaving empty preview slots (or omitting the
+  folder from the drawer/home screen entirely, an earlier approach reverted
+  after on-device testing - see the "Crash and race-condition hardening"
+  entries below for the follow-on fixes that flattening required elsewhere).
 - `FolderIcon.drawNestedFolderBadge()`: draws a small, solid, fixed-color
   folder glyph (new `ic_folder_badge.xml`) straddling the bottom-right edge
   of a parent folder's closed icon when it contains a subfolder - centered on
@@ -197,6 +203,77 @@ handling, plus one entirely new interaction:
     of the normal `onDrop` flow, since it's called from an early-return
     branch. Added the same cleanup at the end of `createNestedFolder()`
     itself.
+  - *Opening a folder whose only content is a subfolder crashed*: once
+    `FolderIcon.getPreviewItemsOnPage()` started flattening a subfolder's
+    contents into the closed-icon preview (see above), a parallel list build
+    in `FolderAnimationManager#getPreviewIconsOnPage` - the source list for
+    the open/close preview-item animation - still filtered `FolderIcon`
+    views out entirely, correct back when a subfolder had no preview slot to
+    animate to/from but not after. A folder whose only content was a
+    subfolder now filtered down to an *empty* list there, and
+    `getAnimator()` indexes into it unconditionally
+    (`itemsInPreview.get(0)`) - `IndexOutOfBoundsException` on open.
+    `getBubbleTextView()` already safely handles a `FolderIcon` (falls back
+    to its own name label, same role `AppPairIcon`'s title view plays) from
+    the crash hardening above, it just wasn't being reached because of this
+    separate filter. Stopped filtering `FolderIcon` views out here too - the
+    animated preview isn't a pixel-perfect match to the flattened
+    closed-icon one in this one case (it animates the subfolder's own
+    glyph, not icons pulled from inside it), but it's correct and doesn't
+    crash.
+  - *Tapping a subfolder-only folder did nothing once the crash above was
+    fixed*: `Folder#shouldAnimateOpen` gates `animateOpen()` on a raw
+    `items.size() > 1` - a reasonable guard against opening a degenerate
+    0-or-1-item folder in general, but it undercounts a folder whose only
+    content is one subfolder holding several apps of its own, which is
+    exactly the state the fix above now makes safely openable. Counts a
+    subfolder's own contents instead of counting it as 1, matching the same
+    flattening used everywhere else in this area.
+  - *A folder nested into another folder on the home screen didn't survive
+    a cold app restart*: `BgDataModel#addItem`'s `ITEM_TYPE_FOLDER` case
+    always filed a folder into `workspaceItems` (a top-level item with a
+    grid position) regardless of its `container`, unlike the
+    `ITEM_TYPE_APPLICATION`/`ITEM_TYPE_DEEP_SHORTCUT`/`ITEM_TYPE_APP_PAIR`
+    case just below it, which already branches on container. The live
+    drag-drop session (which mutates the in-memory `FolderInfo` directly)
+    looked correct right up until the next reload, at which point the
+    nested folder popped back out to the top level. Routed the same way
+    app pairs already are (identical "container vs. containable"
+    duality).
+  - *No depth-limit enforcement on the home-screen drag-acceptance path*:
+    unlike the in-folder merge-create path's `getMergeTargetAtRank()`/
+    `isNested()` checks above, `FolderIcon#willAcceptItem` had no check at
+    all against nesting into an already-nested target, or nesting a folder
+    that already has a subfolder of its own, when the drag lands directly
+    on a closed home-screen folder icon. Added the same one-level guard
+    there too, scoped to `!isInAppDrawer()` since the app drawer's own
+    nesting is validated separately, before the drag ever starts.
+  - *Un-nesting a folder back out onto the home screen worked live but
+    didn't survive a cold app restart either* - the mirror image of the
+    persistence bug above, but a race rather than a missing check.
+    Dragging a nested folder's only content back out collapses the
+    now-empty parent through the same "folder is down to <=1 items" path
+    documented above (*Collapsing a nested folder to its last item*), which
+    calls `ModelWriter#deleteCollectionAndContentsFromDatabase`. That method
+    deleted a collection's contents with a raw `CONTAINER = info.id`
+    database query issued from *inside* its own queued model-thread task,
+    rather than from a snapshot taken when the decision to delete was made.
+    The departing subfolder is already removed from `info.getContents()` in
+    memory by this point (the normal remove-then-add-elsewhere sequence any
+    drag out of a folder goes through), but its own `moveItemInDatabase()`
+    write - which updates that same row's `CONTAINER` column - is an
+    independently queued model-thread task with no ordering guarantee
+    relative to this one. If the cascading delete query ran first, it could
+    still match and delete the departing item's row before its own move
+    ever committed. Switched to deleting by an explicit id list snapshotted
+    up front, so this can only ever touch what was actually still in the
+    collection at the moment the delete was decided - never an item already
+    logically elsewhere, regardless of which queued task happens to run
+    first. One residual, non-nesting-specific edge case: like any
+    async-queued write, un-nesting can still be lost if the process is
+    killed before the queue drains - e.g. force-closing the launcher within
+    the same instant as the drop, before `enqueueDeleteRunnable`'s task has
+    actually run.
 
 **App layer:**
 
@@ -282,6 +359,23 @@ screen - B became a top-level home-screen folder again with no crash, and
 A's badge cleared. Confirmed an app-drawer subfolder still refuses to start
 a drag at all (unaffected by this fix, since `isInAppDrawer()` is true for
 that case).
+
+Real-device restart persistence (round 3): dragged a folder onto another
+home-screen folder that had exactly one item - it merged, the parent
+correctly showed the badge and flattened preview icons, and (this is what
+round 2 had missed) force-restarting the launcher afterward kept the
+nesting intact instead of popping the child back out to the top level.
+Tapping the parent (now holding only that one subfolder) opened it with no
+crash and no dead-tap. Dragged the subfolder back out onto the home screen -
+un-nested live with no crash, parent correctly collapsed/removed since it
+was down to zero items - and, after the `ModelWriter` race fix, a
+force-restart immediately afterward kept it un-nested instead of it
+reappearing back inside the parent. Repeated several times to rule out the
+race being timing-dependent; the one case that still reverted the
+un-nesting was restarting the app *before* the queued database write had a
+realistic chance to run at all (effectively force-killing mid-write) -
+treated as an acceptable, non-nesting-specific limitation of any
+async-queued persistence, not something this PR's fix is expected to cover.
 
 UI, cross-folder and race-condition checks: opened a nested subfolder inside
 its already-open parent (both open at once) and dragged an item from the
