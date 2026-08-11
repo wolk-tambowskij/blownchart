@@ -41,20 +41,24 @@ class LawnchairBackup(
     lateinit var info: BackupInfo
     var screenshot: Bitmap? = null
     var wallpaper: Bitmap? = null
+    var lockWallpaper: Bitmap? = null
 
     suspend fun readInfoAndPreview() {
         var tmpScreenshot: Bitmap? = null
         var tmpWallpaper: Bitmap? = null
+        var tmpLockWallpaper: Bitmap? = null
         readZip(
             mapOf(
                 INFO_FILE_NAME to { info = BackupInfo.newBuilder().mergeFrom(it).build() },
                 SCREENSHOT_FILE_NAME to { tmpScreenshot = BitmapFactory.decodeStream(it) },
                 WALLPAPER_FILE_NAME to { tmpWallpaper = BitmapFactory.decodeStream(it) },
+                LOCK_WALLPAPER_FILE_NAME to { tmpLockWallpaper = BitmapFactory.decodeStream(it) },
             ),
         )
         val size = max(info.previewWidth, info.previewHeight).coerceAtMost(4000)
         screenshot = tmpScreenshot?.scaleDownTo(size)
         wallpaper = tmpWallpaper?.scaleDownToDisplaySize(context)
+        lockWallpaper = tmpLockWallpaper?.scaleDownToDisplaySize(context)
     }
 
     suspend fun restore(selectedContents: Int) {
@@ -75,6 +79,18 @@ class LawnchairBackup(
             handlers[WALLPAPER_FILE_NAME] = {
                 val wallpaperManager = WallpaperManager.getInstance(context)
                 wallpaperManager.setBitmap(BitmapFactory.decodeStream(it))
+            }
+        }
+        if (contents.hasFlag(INCLUDE_LOCK_WALLPAPER)) {
+            // Only present in the zip if the device had a lock-screen wallpaper distinct from
+            // the home one when the backup was made (see the LOCK_WALLPAPER_FILE_NAME check in
+            // create()) - if this handler never fires, the lock screen just inherits whatever
+            // the INCLUDE_WALLPAPER restore above set it to, same as before this flag existed.
+            // Zip entries are processed in the order create() wrote them, so this always runs
+            // after the home wallpaper's, letting it independently overwrite just the lock side.
+            handlers[LOCK_WALLPAPER_FILE_NAME] = {
+                val wallpaperManager = WallpaperManager.getInstance(context)
+                wallpaperManager.setBitmap(BitmapFactory.decodeStream(it), null, true, WallpaperManager.FLAG_LOCK)
             }
         }
         context.getDatabasePath(LAUNCHER_DB_FILE_NAME).parentFile?.deleteRecursively()
@@ -111,12 +127,14 @@ class LawnchairBackup(
 
         const val INFO_FILE_NAME = "info.pb"
         const val WALLPAPER_FILE_NAME = "wallpaper.png"
+        const val LOCK_WALLPAPER_FILE_NAME = "lock_wallpaper.png"
         const val SCREENSHOT_FILE_NAME = "screenshot.png"
         const val LAUNCHER_DB_FILE_NAME = "launcher.db"
         const val RESTORED_DB_FILE_NAME = "restored.db"
 
         const val INCLUDE_LAYOUT_AND_SETTINGS = 1 shl 0
         const val INCLUDE_WALLPAPER = 1 shl 1
+        const val INCLUDE_LOCK_WALLPAPER = 1 shl 2
 
         const val MIME_TYPE = "application/zip"
         val EXTRA_MIME_TYPES = arrayOf(MIME_TYPE, "application/x-zip", "application/octet-stream")
@@ -124,6 +142,7 @@ class LawnchairBackup(
         val contentOptions = listOf(
             INCLUDE_LAYOUT_AND_SETTINGS to R.string.backup_content_layout_and_settings,
             INCLUDE_WALLPAPER to R.string.backup_content_wallpaper,
+            INCLUDE_LOCK_WALLPAPER to R.string.backup_content_lock_wallpaper,
         )
 
         fun generateBackupFileName(): String {
@@ -171,6 +190,20 @@ class LawnchairBackup(
                             if (wallpaperBitmap != null) {
                                 out.putNextEntry(ZipEntry(WALLPAPER_FILE_NAME))
                                 wallpaperBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                            }
+                        }
+                        if (contents.hasFlag(INCLUDE_LOCK_WALLPAPER)) {
+                            val wallpaperManager = WallpaperManager.getInstance(context)
+                            // Null unless the lock screen has its own wallpaper distinct from
+                            // the home one (and isn't a live wallpaper) - most devices default
+                            // to sharing a single wallpaper, so there's often nothing to write
+                            // here even with this option enabled.
+                            wallpaperManager.getWallpaperFile(WallpaperManager.FLAG_LOCK)?.use { pfd ->
+                                val lockWallpaperBitmap = BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
+                                if (lockWallpaperBitmap != null) {
+                                    out.putNextEntry(ZipEntry(LOCK_WALLPAPER_FILE_NAME))
+                                    lockWallpaperBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                                }
                             }
                         }
                         if (contents.hasFlag(INCLUDE_LAYOUT_AND_SETTINGS)) {

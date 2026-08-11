@@ -10,7 +10,9 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,6 +47,7 @@ import app.lawnchair.ui.preferences.components.WithWallpaper
 import app.lawnchair.ui.preferences.components.controls.FlagSwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.ui.preferences.components.lockWallpaperDrawable
 import app.lawnchair.util.BackHandler
 import app.lawnchair.util.FileAccessState
 import app.lawnchair.util.hasFlag
@@ -125,26 +128,45 @@ fun CreateBackupScreen(
             WithWallpaper(
                 displayWallpaperButton = false,
             ) { wallpaper ->
-                DummyLauncherBox(
+                val lockWallpaper = lockWallpaperDrawable(hasWallpaperPermission)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .weight(1f)
-                        .align(Alignment.CenterHorizontally)
-                        .clip(MaterialTheme.shapes.large),
+                        .align(Alignment.CenterHorizontally),
                 ) {
-                    if (contents.hasFlag(LawnchairBackup.INCLUDE_WALLPAPER)) {
-                        WallpaperPreview(
-                            wallpaper = wallpaper,
-                            modifier = Modifier.fillMaxSize(),
-                        )
+                    DummyLauncherBox(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(MaterialTheme.shapes.large),
+                    ) {
+                        if (contents.hasFlag(LawnchairBackup.INCLUDE_WALLPAPER)) {
+                            WallpaperPreview(
+                                wallpaper = wallpaper,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                        if (contents.hasFlag(LawnchairBackup.INCLUDE_LAYOUT_AND_SETTINGS)) {
+                            Image(
+                                bitmap = screenshot.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.FillHeight,
+                            )
+                        }
                     }
-                    if (contents.hasFlag(LawnchairBackup.INCLUDE_LAYOUT_AND_SETTINGS)) {
-                        Image(
-                            bitmap = screenshot.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillHeight,
-                        )
+                    DummyLauncherBox(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(MaterialTheme.shapes.large),
+                    ) {
+                        if (contents.hasFlag(LawnchairBackup.INCLUDE_LOCK_WALLPAPER)) {
+                            WallpaperPreview(
+                                wallpaper = lockWallpaper,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
                     }
                 }
             }
@@ -169,6 +191,18 @@ fun CreateBackupScreen(
                 mask = LawnchairBackup.INCLUDE_WALLPAPER,
                 label = stringResource(id = R.string.backup_content_wallpaper),
                 enabled = !hasLiveWallpaper,
+            )
+            FlagSwitchPreference(
+                flags = contents,
+                setFlags = {
+                    if (it.hasFlag(LawnchairBackup.INCLUDE_LOCK_WALLPAPER) && !hasWallpaperPermission) {
+                        showPermissionDialog = true
+                    } else {
+                        viewModel.setBackupContents(it)
+                    }
+                },
+                mask = LawnchairBackup.INCLUDE_LOCK_WALLPAPER,
+                label = stringResource(id = R.string.backup_content_lock_wallpaper),
             )
         }
         Box(
