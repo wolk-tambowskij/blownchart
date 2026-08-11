@@ -18,7 +18,6 @@ package app.lawnchair.gestures.handlers
 
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
 import android.provider.Settings
 import app.lawnchair.LawnchairLauncher
 import app.lawnchair.lawnchairApp
@@ -41,24 +40,12 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
             }
             return
         }
-        // Routes through RecentsBounceActivity instead of calling performGlobalAction directly
-        // from the launcher: on firmware where config_recentsComponentName points to a broken
-        // vendor Recents renderer, invoking it directly from the launcher's own resumed context
-        // makes the OS flash it and immediately fall back to the launcher, as if a stray back
-        // press had dismissed it. Standing in as a plain, non-launcher foreground activity first
-        // works around that - see RecentsBounceActivity for the full explanation.
-        app.lastRecentsBounceActivityLaunchedAtMs = SystemClock.elapsedRealtime()
-        launcher.startActivity(
-            Intent(launcher, RecentsBounceActivity::class.java)
-                .addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                        // Without this, a launch that lands while a previous bounce activity's
-                        // task hasn't fully torn down yet (same empty taskAffinity) could get
-                        // added to that stale task instead of a fresh one.
-                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK or
-                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
-                        Intent.FLAG_ACTIVITY_NO_ANIMATION,
-                ),
-        )
+        // Routes through bounceToRecents() (which resumes the real last-used app first) instead of
+        // calling performGlobalAction(GLOBAL_ACTION_RECENTS) directly from the launcher: on
+        // firmware where config_recentsComponentName points to a broken vendor Recents renderer,
+        // invoking it directly from the launcher's own focused window makes the OS misinterpret it
+        // as a dismiss rather than an open. See LawnchairAccessibilityService.bounceToRecents for
+        // the full explanation.
+        app.bounceToRecents()
     }
 }

@@ -572,6 +572,8 @@
     <string name="recents_button_interception_description">Experimental: on some devices, firmware hardcodes a different app as the Recents screen provider, so the physical button/gesture always opens that app\'s Recents screen instead of Lawnchair\'s. This tries to redirect to Lawnchair\'s own Recents screen right after it opens. Behavior isn\'t guaranteed on every device, and may briefly show the other app\'s Recents screen first.</string>
     <string name="recents_button_interception_label">Redirect to Lawnchair Recents (experimental)</string>
     <string name="recents_button_interception_a11y_hint">This won\'t do anything until you turn on the Lawnchair accessibility service: tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"</string>
+    <string name="recents_button_interception_usage_access_hint">This also won\'t do anything until you grant \"Usage access\": tap here, select \"Lawnchair\" and turn it on. Without it, the button/gesture falls back to its original, occasionally-misbehaving behavior.</string>
+    <string name="recents_button_interception_device_admin_hint">Also recommended: grant device administrator access. Some manufacturers are less aggressive about killing a launcher\'s background service when it holds device admin, which keeps the button/gesture working reliably after long idle periods.</string>
 
     <!--
 

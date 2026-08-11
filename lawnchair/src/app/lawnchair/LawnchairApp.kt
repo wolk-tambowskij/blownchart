@@ -77,30 +77,15 @@ class LawnchairApp : Application() {
     /**
      * Timestamp ([android.os.SystemClock.elapsedRealtime]) of the last time this app itself
      * invoked [performGlobalAction] with GLOBAL_ACTION_RECENTS from
-     * [app.lawnchair.gestures.handlers.RecentsBounceActivity] - regardless of whether that bounce
-     * was launched from the gesture path ([app.lawnchair.gestures.handlers.RecentsGestureHandler])
-     * or the physical-button accessibility watcher ([LawnchairAccessibilityService]). Both of
-     * those launch paths funnel into the same bounce activity, which is what actually fires the
-     * action that makes the real Recents window appear - so this single shared timestamp is what
-     * [LawnchairAccessibilityService] checks to tell a self-caused reappearance of that window
-     * apart from a genuine new button press, no matter which path caused it.
+     * [LawnchairAccessibilityService.bounceToRecents] - regardless of whether that bounce was
+     * triggered from the gesture path ([app.lawnchair.gestures.handlers.RecentsGestureHandler])
+     * or the physical-button accessibility watcher. Both of those trigger paths funnel into the
+     * same method, which is what actually fires the action that makes the real Recents window
+     * appear - so this single shared timestamp is what [LawnchairAccessibilityService] checks to
+     * tell a self-caused reappearance of that window apart from a genuine new button press, no
+     * matter which path caused it.
      */
     var lastRecentsSelfTriggerAtMs: Long = 0L
-
-    /**
-     * Timestamp ([android.os.SystemClock.elapsedRealtime]) of the last time
-     * [app.lawnchair.gestures.handlers.RecentsGestureHandler]/[LawnchairAccessibilityService]
-     * actually asked the system to launch
-     * [app.lawnchair.gestures.handlers.RecentsBounceActivity], stamped immediately before the
-     * `startActivity()` call that does so.
-     * [app.lawnchair.gestures.handlers.RecentsBounceActivity.onCreate] checks this to tell a
-     * genuine fresh launch apart from the system/vendor Recents UI resurrecting a stale card for
-     * an already-finished instance of this activity when the user taps it directly - on firmware
-     * where excludeFromRecents/finishAndRemoveTask aren't reliably honored, that stale card can
-     * outlive the task it depicts, and tapping it otherwise leaves a bare, non-interactive
-     * transparent activity on screen with nothing to show and nothing to tap.
-     */
-    var lastRecentsBounceActivityLaunchedAtMs: Long = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -259,6 +244,12 @@ class LawnchairApp : Application() {
                 .let(::startActivity)
             false
         }
+    }
+
+    /** @see LawnchairAccessibilityService.bounceToRecents */
+    fun bounceToRecents() {
+        accessibilityService?.bounceToRecents()
+            ?: Log.d(TAG, "bounceToRecents: no accessibility service bound")
     }
 
     companion object {
