@@ -107,10 +107,28 @@ class LawnchairAlphabeticalAppsList<T>(
                     val folderInfo = FolderInfo()
                     folderInfo.title = folder.title
                     mAdapterItems.add(AdapterItem.asFolder(folderInfo))
-                    folder.getContents().forEach { app ->
-                        (appsStore.getApp(app.componentKey) as? AppInfo)?.let {
-                            folderInfo.add(it)
-                            if (prefs.folderApps.get()) filteredList.add(it)
+                    folder.getContents().forEach { item ->
+                        if (item is FolderInfo) {
+                            // One level of folder-in-folder nesting: re-resolve the subfolder's
+                            // own apps against the live AllAppsStore the same way as the
+                            // top-level folder above - passing the subfolder through as-is would
+                            // keep FolderService's own AppInfo objects, which carry no
+                            // icon/label, forever.
+                            val subfolderInfo = FolderInfo()
+                            subfolderInfo.id = item.id
+                            subfolderInfo.title = item.title
+                            item.getContents().forEach { subItem ->
+                                (appsStore.getApp(subItem.componentKey) as? AppInfo)?.let {
+                                    subfolderInfo.add(it)
+                                    if (prefs.folderApps.get()) filteredList.add(it)
+                                }
+                            }
+                            folderInfo.add(subfolderInfo)
+                        } else {
+                            (appsStore.getApp(item.componentKey) as? AppInfo)?.let {
+                                folderInfo.add(it)
+                                if (prefs.folderApps.get()) filteredList.add(it)
+                            }
                         }
                     }
                 }

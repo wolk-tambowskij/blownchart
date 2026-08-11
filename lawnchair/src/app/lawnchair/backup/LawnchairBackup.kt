@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.graphics.drawable.toBitmap
 import app.lawnchair.LawnchairProto.BackupInfo
+import app.lawnchair.data.AppDatabase
 import app.lawnchair.util.hasFlag
 import app.lawnchair.util.scaleDownTo
 import app.lawnchair.util.scaleDownToDisplaySize
@@ -160,6 +161,12 @@ class LawnchairBackup(
 
             val pfd = context.contentResolver.openFileDescriptor(fileUri, "w")!!
             withContext(Dispatchers.IO) {
+                // The "preferences" Room db is WAL-mode; flush it to the main db file first so
+                // the raw file copy below can't miss folder/icon-override/wallpaper writes
+                // still sitting in the -wal file. checkpointSync() blocks the calling thread,
+                // so it must run here (Dispatchers.IO), not on whatever thread called create().
+                AppDatabase.INSTANCE.get(context).checkpointSync()
+
                 pfd.use {
                     ZipOutputStream(FileOutputStream(pfd.fileDescriptor).buffered()).use { out ->
                         out.putNextEntry(ZipEntry(INFO_FILE_NAME))

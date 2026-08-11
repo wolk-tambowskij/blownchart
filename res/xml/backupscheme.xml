@@ -7,6 +7,10 @@
     <include domain="database" path="launcher_4_by_4.db" />
     <include domain="database" path="launcher_3_by_3.db" />
     <include domain="database" path="launcher_2_by_2.db" />
+    <!-- Icon overrides, wallpapers, and app-drawer folders (including nesting). This is a
+         WAL-mode Room db, so LauncherBackupAgent#onFullBackup checkpoints it first - a raw
+         file copy without that could miss recent writes. -->
+    <include domain="database" path="preferences" />
     <include domain="sharedpref" path="com.android.launcher3.prefs.xml" />
     <include domain="file" path="downgrade_schema.json" />
 

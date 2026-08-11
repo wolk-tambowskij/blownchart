@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import app.lawnchair.data.folder.service.FolderListEntry
 import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.preferences2.ReloadHelper
 import com.android.launcher3.model.data.AppInfo
@@ -37,6 +38,41 @@ class FolderViewModel(
         )
 
     val foldersLiveData: LiveData<List<FolderInfo>> = folders.asLiveData(viewModelScope.coroutineContext)
+
+    /** Flat list (top-level and nested folders alike) for the Settings management screen. */
+    val flatFolders: StateFlow<List<FolderListEntry>> = repository.getAllFoldersFlatFlow()
+        .distinctUntilChanged()
+        .catch { exception ->
+            Log.e("FolderViewModel", "Error in flat folders flow", exception)
+            emit(emptyList())
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
+
+    private val _nestableFolders = MutableStateFlow<List<FolderInfo>>(emptyList())
+    val nestableFolders = _nestableFolders.asStateFlow()
+
+    /** Refreshes [nestableFolders] with the valid nesting targets for [folderId]. */
+    fun loadNestableFolders(folderId: Int) {
+        viewModelScope.launch {
+            _nestableFolders.value = repository.getNestableFolders(folderId)
+        }
+    }
+
+    /**
+     * Nests [folderId] inside [parentFolderId], or un-nests it if [parentFolderId] is null.
+     * [onResult] reports whether the change actually applied - see
+     * [FolderService.setParentFolder] for why it might not.
+     */
+    fun setParentFolder(folderId: Int, parentFolderId: Int?, onResult: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            onResult(repository.setParentFolder(folderId, parentFolderId))
+        }
+        reloadHelper.reloadGrid()
+    }
 
     private val _folderInfo = MutableStateFlow<FolderInfo?>(null)
     val folderInfo = _folderInfo.asStateFlow()

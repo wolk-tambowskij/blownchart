@@ -91,6 +91,7 @@ import com.android.launcher3.widget.PendingAddShortcutInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * An icon that can appear on in the workspace representing an {@link Folder}.
@@ -136,6 +137,10 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     private DotRenderer.DrawParams mDotParams;
     private float mDotScale;
     private Animator mDotScaleAnim;
+
+    // Small static badge marking a folder that has a nested subfolder among its contents (app
+    // drawer only, one level deep) - lazily inflated since most folders never need it.
+    private Drawable mNestedFolderBadge;
 
     private Rect mTouchArea = new Rect();
 
@@ -621,15 +626,49 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
             mBackground.drawBackground(canvas);
         }
 
-        if (mCurrentPreviewItems.isEmpty() && !mAnimating) return;
+        // Skipping straight to the dot/badge below when there's nothing to preview (e.g. a
+        // folder whose only content is a nested subfolder) - but when there IS preview content,
+        // draw it (and the stroke) first, so the dot/badge below always end up on top instead of
+        // being painted over by preview icons that can easily cover the same bottom-right corner
+        // at low item counts.
+        if (!mCurrentPreviewItems.isEmpty() || mAnimating) {
+            mPreviewItemManager.draw(canvas);
 
-        mPreviewItemManager.draw(canvas);
-
-        if (!mBackground.drawingDelegated()) {
-            mBackground.drawBackgroundStroke(canvas);
+            if (!mBackground.drawingDelegated()) {
+                mBackground.drawBackgroundStroke(canvas);
+            }
         }
 
         drawDot(canvas);
+        drawNestedFolderBadge(canvas);
+    }
+
+    /**
+     * Draws a small static folder glyph straddling the bottom-right edge of the preview when
+     * this folder contains a nested subfolder (app drawer only, one level deep) - a quick visual
+     * cue that there's more to open here, distinct from the notification dot's own corner.
+     * Centered ON the (inset) edge, rather than tucked entirely inside it, so the background's
+     * own border passes through roughly the middle of the badge instead of running along its
+     * edge, where a solid-colored badge would otherwise be hard to tell apart from the border
+     * itself.
+     */
+    private void drawNestedFolderBadge(Canvas canvas) {
+        boolean hasNestedFolder = mInfo.getContents().stream().anyMatch(item -> item instanceof FolderInfo);
+        if (!hasNestedFolder) {
+            return;
+        }
+        if (mNestedFolderBadge == null) {
+            mNestedFolderBadge = getContext().getDrawable(R.drawable.ic_folder_badge).mutate();
+        }
+        Rect bounds = new Rect();
+        mBackground.getBounds(bounds);
+        int badgeSize = Math.round(bounds.width() * 0.3f);
+        int half = badgeSize / 2;
+        int inset = Math.round(bounds.width() * 0.04f);
+        int centerX = bounds.right - inset;
+        int centerY = bounds.bottom - inset;
+        mNestedFolderBadge.setBounds(centerX - half, centerY - half, centerX + half, centerY + half);
+        mNestedFolderBadge.draw(canvas);
     }
 
     public void drawDot(Canvas canvas) {
@@ -683,7 +722,15 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
      * Returns the list of items which should be visible in the preview
      */
     public List<ItemInfo> getPreviewItemsOnPage(int page) {
-        return mPreviewVerifier.setFolderInfo(mInfo).previewItemsForPage(page, mInfo.getContents());
+        // A nested subfolder (one level of folder-in-folder, app drawer only) has no static
+        // preview drawable of its own yet, so it's excluded here rather than crashing in
+        // PreviewItemManager#setDrawable - the parent's closed-icon preview simply shows the
+        // plain apps/app-pairs it contains and omits the subfolder glyph (see
+        // drawNestedFolderBadge() for the separate cue that it's there).
+        List<ItemInfo> contents = mInfo.getContents().stream()
+                .filter(item -> !(item instanceof FolderInfo))
+                .collect(Collectors.toList());
+        return mPreviewVerifier.setFolderInfo(mInfo).previewItemsForPage(page, contents);
     }
 
     @Override

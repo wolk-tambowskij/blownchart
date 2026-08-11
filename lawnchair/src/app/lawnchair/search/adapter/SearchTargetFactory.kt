@@ -56,8 +56,8 @@ class SearchTargetFactory(
         val id = ComponentKey(componentName, user).toString()
         // Only meaningful in the row layout (SearchResultIconRow renders a subtitle line);
         // the vertical grid layout has no subtitle slot at all.
-        val folderTitle = if (asRow) {
-            FolderService.INSTANCE.get(context).getFolderNameForComponentKey(id)
+        val folderPath = if (asRow) {
+            FolderService.INSTANCE.get(context).getFolderPathForComponentKey(id)
         } else {
             null
         }
@@ -71,11 +71,18 @@ class SearchTargetFactory(
             setExtras(bundleOf("class" to (componentName?.className ?: "")))
             // The row's own title always comes from a live icon.bind() lookup, not from this
             // action - the action here exists only to carry the "which folder is this app in"
-            // subtitle through to SearchResultIconRow.
-            if (folderTitle != null) {
+            // subtitle through to SearchResultIconRow. parentTitle is only set when the app is
+            // inside a nested subfolder - the immediate/nested folder is the answer to "which
+            // folder", with the top-level one as extra context (e.g. "In Google → Work").
+            if (folderPath != null) {
+                val subtitle = if (folderPath.parentTitle != null) {
+                    context.getString(R.string.search_result_in_nested_folder, folderPath.parentTitle, folderPath.title)
+                } else {
+                    context.getString(R.string.search_result_in_folder, folderPath.title)
+                }
                 setSearchAction(
                     SearchActionCompat.Builder(id, "")
-                        .setSubtitle(context.getString(R.string.search_result_in_folder, folderTitle))
+                        .setSubtitle(subtitle)
                         .build(),
                 )
             }

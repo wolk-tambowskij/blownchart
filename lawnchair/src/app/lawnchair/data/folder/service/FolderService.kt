@@ -36,29 +36,84 @@ class FolderService(val context: Context) : SafeCloseable {
     // tables actually change (Room's Flow only emits on writes, not on a timer) - so search, which
     // needs this on every keystroke, never blocks on a DB query.
     @Volatile
-    private var folderNameByComponentKey: Map<String, String> = emptyMap()
+    private var folderPathByComponentKey: Map<String, FolderPath> = emptyMap()
 
     init {
         getFoldersFlow()
             .onEach { folders ->
-                folderNameByComponentKey = folders.flatMap { folder ->
-                    folder.getContents().mapNotNull { item ->
-                        item.targetComponent?.let { ComponentKey(it, item.user).toString() to folder.title.toString() }
+                val map = mutableMapOf<String, FolderPath>()
+                folders.forEach { folder ->
+                    folder.getContents().forEach { item ->
+                        if (item is FolderInfo) {
+                            // A nested subfolder is embedded as its own item inside its parent's
+                            // contents (see getFoldersFlow) - recurse one level to map its own
+                            // apps, tagged with the top-level folder as parent context for the
+                            // "In Parent → Folder" subtitle.
+                            item.getContents().forEach { subItem ->
+                                subItem.targetComponent?.let {
+                                    map[ComponentKey(it, subItem.user).toString()] =
+                                        FolderPath(item.title.toString(), folder.title.toString())
+                                }
+                            }
+                        } else {
+                            item.targetComponent?.let {
+                                map[ComponentKey(it, item.user).toString()] = FolderPath(folder.title.toString(), null)
+                            }
+                        }
                     }
-                }.toMap()
+                }
+                folderPathByComponentKey = map
             }
             .launchIn(scope)
     }
 
     /** Which drawer folder (if any) currently contains [componentKey], for search result labels. */
-    fun getFolderNameForComponentKey(componentKey: String): String? = folderNameByComponentKey[componentKey]
+    fun getFolderPathForComponentKey(componentKey: String): FolderPath? = folderPathByComponentKey[componentKey]
 
+    /**
+     * Top-level folders only, for building the actual app-drawer folder list. A nested folder
+     * is embedded as its own [FolderInfo] item inside its parent's contents (appended after the
+     * plain apps) rather than listed as a second top-level entry - [FolderInfo] extends
+     * [com.android.launcher3.model.data.CollectionInfo], itself an [com.android.launcher3.model.data.ItemInfo],
+     * so this is a first-class content item, the same way an app pair already is. Recursing with
+     * no further children keeps this to exactly one level deep, enforced by
+     * [getNestableFolders] only offering childless folders as valid nesting targets elsewhere,
+     * not by anything here.
+     */
     fun getFoldersFlow(): Flow<List<FolderInfo>> {
-        return folderDao.getAllFolders().map { folderEntities ->
-            folderEntities.mapNotNull { folderEntity ->
-                getFolderInfo(folderEntity.id, true)
+        return folderDao.getTopLevelFolders().map { topLevelEntities ->
+            topLevelEntities.mapNotNull { topEntity ->
+                val topFolder = getFolderInfo(topEntity.id, true) ?: return@mapNotNull null
+                folderDao.getChildFolders(topEntity.id).forEach { childEntity ->
+                    getFolderInfo(childEntity.id, true)?.let { topFolder.add(it, false) }
+                }
+                topFolder
             }
         }
+    }
+
+    /**
+     * Every folder (top-level and nested) as a flat list, each paired with its parent's id if
+     * any. [getFoldersFlow] only returns top-level folders (right for building the drawer), but
+     * a nested folder still needs its own entry to manage (rename, delete, un-nest) from
+     * Settings - this is that flat list.
+     */
+    fun getAllFoldersFlatFlow(): Flow<List<FolderListEntry>> {
+        return folderDao.getAllFolders().map { folderEntities ->
+            folderEntities.mapNotNull { folderEntity ->
+                getFolderInfo(folderEntity.id, true)?.let { FolderListEntry(it, folderEntity.parentFolderId) }
+            }
+        }
+    }
+
+    /**
+     * Valid nesting targets for [folderId]: other top-level folders. Empty if [folderId] itself
+     * already has children, since nesting it further would push those children two levels deep,
+     * which isn't supported.
+     */
+    suspend fun getNestableFolders(folderId: Int): List<FolderInfo> = withContext(Dispatchers.IO) {
+        if (folderDao.getChildFolders(folderId).isNotEmpty()) return@withContext emptyList()
+        folderDao.getNestableFolders(folderId).mapNotNull { getFolderInfo(it.id, true) }
     }
 
     suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>) = withContext(Dispatchers.IO) {
@@ -79,7 +134,23 @@ class FolderService(val context: Context) : SafeCloseable {
     }
 
     suspend fun deleteFolderInfo(id: Int) = withContext(Dispatchers.IO) {
-        folderDao.deleteFolder(id)
+        folderDao.deleteFolderWithChildren(id)
+    }
+
+    /**
+     * Nests [folderId] inside [parentFolderId], or un-nests it back to the top level if
+     * [parentFolderId] is null. Only one level of nesting is supported, so this is a no-op
+     * (returns false) if [parentFolderId] itself already has a parent, or if [folderId]
+     * already has children of its own.
+     */
+    suspend fun setParentFolder(folderId: Int, parentFolderId: Int?): Boolean = withContext(Dispatchers.IO) {
+        if (parentFolderId != null) {
+            val parent = folderDao.getFolderWithItems(parentFolderId)?.folder
+            if (parent?.parentFolderId != null) return@withContext false
+            if (folderDao.getChildFolders(folderId).isNotEmpty()) return@withContext false
+        }
+        folderDao.setParentFolder(folderId, parentFolderId)
+        true
     }
 
     suspend fun getFolderInfo(folderId: Int, hasId: Boolean = false): FolderInfo? = withContext(Dispatchers.Default) {
@@ -143,3 +214,8 @@ class FolderService(val context: Context) : SafeCloseable {
         val INSTANCE = MainThreadInitializedObject(::FolderService)
     }
 }
+
+data class FolderListEntry(val folderInfo: FolderInfo, val parentFolderId: Int?)
+
+/** Folder title (and, for a nested subfolder, its top-level parent's title) for search labels. */
+data class FolderPath(val title: String, val parentTitle: String?)

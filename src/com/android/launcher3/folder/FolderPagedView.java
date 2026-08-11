@@ -46,6 +46,7 @@ import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.keyboard.ViewGroupFocusHelper;
 import com.android.launcher3.model.data.AppPairInfo;
+import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
@@ -226,6 +227,12 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
             // TODO (b/332607759): Make view cache work with app pair icons
             icon = AppPairIcon.inflateIcon(R.layout.folder_app_pair, ActivityContext.lookupContext(
                     getContext()), null , api, BubbleTextView.DISPLAY_FOLDER);
+        } else if (item instanceof FolderInfo subFolderInfo) {
+            // One level of folder-in-folder nesting (app drawer only): render the same way a
+            // top-level drawer folder renders itself, tapping it opens its own Folder popup via
+            // the existing FolderInfo click handling - no extra wiring needed for that part.
+            icon = FolderIcon.inflateFolderAndIcon(R.layout.folder_subfolder,
+                    ActivityContext.lookupContext(getContext()), null, subFolderInfo);
         } else {
             if (mFolder.isInAppDrawer()) {
                 icon = mViewCache.getView(R.layout.all_apps_folder_application, getContext(), null);
