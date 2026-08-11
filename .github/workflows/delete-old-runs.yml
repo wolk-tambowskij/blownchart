@@ -1,0 +1,74 @@
+name: Delete old workflow runs
+
+# Manual cleanup: for every (workflow, branch) pair, keeps only the single most recent run and
+# deletes the rest (their logs and uploaded artifacts go with them). Never touches a run that's
+# still queued or in progress. Defaults to a dry run - you have to consciously flip dry_run off.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: list what would be deleted without deleting anything'
+        type: boolean
+        required: true
+        default: true
+
+jobs:
+  delete-old-runs:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete old runs
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const dryRun = ${{ github.event.inputs.dry_run }};
+            const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            });
+
+            const groups = new Map();
+            for (const run of runs) {
+              const key = `${run.workflow_id}:${run.head_branch}`;
+              if (!groups.has(key)) groups.set(key, []);
+              groups.get(key).push(run);
+            }
+
+            let kept = 0;
+            let deleted = 0;
+            let skippedActive = 0;
+
+            for (const [key, groupRuns] of groups) {
+              groupRuns.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+              const [newest, ...rest] = groupRuns;
+              console.log(`${key}: keeping #${newest.run_number} (${newest.created_at})`);
+              kept++;
+
+              for (const run of rest) {
+                if (run.status === 'queued' || run.status === 'in_progress') {
+                  console.log(`  skip (still ${run.status}): #${run.run_number}`);
+                  skippedActive++;
+                  continue;
+                }
+                if (dryRun) {
+                  console.log(`  [dry-run] would delete: #${run.run_number} (${run.conclusion}, ${run.created_at})`);
+                } else {
+                  try {
+                    await github.rest.actions.deleteWorkflowRun({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      run_id: run.id,
+                    });
+                    console.log(`  deleted: #${run.run_number} (${run.conclusion})`);
+                  } catch (e) {
+                    console.log(`  ::warning::failed to delete #${run.run_number}: ${e.message}`);
+                  }
+                }
+                deleted++;
+              }
+            }
+
+            console.log(`\n${groups.size} (workflow, branch) groups; kept ${kept}, ${dryRun ? 'would delete' : 'deleted'} ${deleted}, skipped ${skippedActive} still-active runs.`);
