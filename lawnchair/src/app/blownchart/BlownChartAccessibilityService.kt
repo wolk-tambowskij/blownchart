@@ -329,6 +329,7 @@ class BlownChartAccessibilityService : AccessibilityService() {
      */
     private fun hasUsageStatsAccess(): Boolean {
         val appOps = getSystemService(AppOpsManager::class.java) ?: return false
+
         @Suppress("DEPRECATION")
         val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
         return mode == AppOpsManager.MODE_ALLOWED
