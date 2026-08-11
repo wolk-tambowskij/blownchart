@@ -18,9 +18,7 @@ package app.blownchart.gestures.handlers
 
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
 import android.provider.Settings
-import android.util.Log
 import app.blownchart.BlownChartLauncher
 import app.blownchart.blownChartApp
 import app.blownchart.views.ComposeBottomSheet
@@ -42,23 +40,12 @@ class RecentsGestureHandler(context: Context) : GestureHandler(context) {
             }
             return
         }
-        // TEST: route through RecentsBounceActivity instead of calling
-        // performGlobalAction(GLOBAL_ACTION_RECENTS) directly from the launcher, to check
-        // whether the system Recents screen renders correctly when it isn't invoked with the
-        // launcher itself as the resumed foreground task.
-        Log.i("BlownChartRecents", "RecentsGestureHandler: launching bounce activity t=${SystemClock.elapsedRealtime()}")
-        app.lastRecentsBounceActivityLaunchedAtMs = SystemClock.elapsedRealtime()
-        launcher.startActivity(
-            Intent(launcher, RecentsBounceActivity::class.java)
-                .addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                        // Without this, a launch that lands while a previous bounce activity's
-                        // task hasn't fully torn down yet (same empty taskAffinity) could get
-                        // added to that stale task instead of a fresh one.
-                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK or
-                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
-                        Intent.FLAG_ACTIVITY_NO_ANIMATION,
-                ),
-        )
+        // Routes through the accessibility service's focus-grabbing overlay instead of calling
+        // performGlobalAction(GLOBAL_ACTION_RECENTS) directly from the launcher: on firmware where
+        // config_recentsComponentName points to a broken vendor Recents renderer, invoking it
+        // directly from the launcher's own focused window makes the OS misinterpret it as a
+        // dismiss rather than an open. See BlownChartAccessibilityService.bounceToRecents for the
+        // full explanation.
+        app.bounceToRecents()
     }
 }
