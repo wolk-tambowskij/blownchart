@@ -80,7 +80,7 @@ unverified claim risks a maintainer finding the gap instead of us.
 
 | Branch | Why it's not in the queue above |
 |---|---|
-| `feat/folder-manual-order` (#11) | Blocked on #10 landing first (code dependency). **New finding (2026-08-11)**: also overlaps with already-merged upstream `#6173` ("app reordering in folder settings"), merged into `15-dev` in Dec 2025 - before this fork's own base tag. Needs a real diff against what #6173 already provides before this is proposed at all; likely only the folder-vs-folder ordering part (not the within-folder app reordering, which #6173 may already cover) is genuinely new. Not started. |
+| `feat/folder-manual-order` (#11) | Blocked on #10 landing first (code dependency) - not a redundancy problem. **2026-08-11 diff against upstream #6173 confirms this branch is genuinely additive, not a duplicate**: #6173 only adds always-on drag-reorder for apps *within* one folder; this branch adds the alphabetical/manual *toggle* on top of that (#6173 offers no choice) plus a second, separate manual-ordering path for the *folder list itself* (`AppDrawerFoldersPreference.kt`), which #6173 never touches. Once #10 lands, this can move into the batches above - frame the PR body as building on #6173, not re-proposing it, so reviewers don't mistake the scope. |
 | `feat/settings-pin-lock` (#12) | Design doc approved, branch not started. Nothing to submit yet. |
 
 ## Excluded from upstream entirely

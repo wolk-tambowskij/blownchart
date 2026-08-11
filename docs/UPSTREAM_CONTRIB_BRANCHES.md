@@ -163,26 +163,33 @@ finishing the correspondence sweep started 2026-08-01:
   efficiency. Cite as `Fixes #5435`.
 - **#11** (`feat/folder-manual-order`) - no issue found for the specific
   ask (manually ordering folders relative to each other/their contents,
-  alphabetical as the default). However, searching surfaced a real base
-  overlap that needs attention before this branch is ever proposed:
+  alphabetical as the default). Searching surfaced
   [#6173](https://github.com/LawnchairLauncher/lawnchair/pull/6173),
   "feat(drawer): implement app reordering in folder settings", **merged
   into upstream `15-dev` 2026-12-15** - before our fork point
   (`v15.0.0-beta3.0`, tagged 2026-04-11) - so it's already present in the
-  base this branch is meant to diff against. It adds drag-and-drop
-  reordering of apps *within* one folder via a "Selected apps"/"Add apps"
-  split screen, a remove button, and batched DB updates - all
-  suspiciously close to what this fork's own manual-order work (task #68,
-  "+/- buttons for manual sort") does. Two other tangential hits, neither
-  a real match: [#1820](https://github.com/LawnchairLauncher/lawnchair/issues/1820)
+  base this branch diffs against. Initially flagged as a possible
+  redundancy; **2026-08-11 follow-up diff confirms it is not** -
+  #6173 only touches `SelectAppsForDrawerFolder.kt` (drag-reorder + a
+  remove button for apps *within* one already-open folder, always on, no
+  toggle) and `FolderService.kt`'s rank field. This fork's own code
+  builds on top of that, not around it: (1) `folderManualOrder` is an
+  opt-in *toggle* (alphabetical stays default) gating whether
+  #6173's reorder UI even shows, vs. #6173's own always-on behavior; (2)
+  the same toggle also drives manual ordering of the *folder list
+  itself* (`AppDrawerFoldersPreference.kt`, its own separate screen and
+  `ReorderablePreferenceGroup` instance) - a data path #6173 never
+  touches at all, folders relative to each other, not apps within one.
+  Genuinely additive, not a duplicate - safe to propose once its turn in
+  the queue comes, framed as "adds an alphabetical/manual choice on top
+  of #6173, plus extends manual ordering to the folder list itself" so
+  reviewers don't mistake it for re-proposing what #6173 already did.
+  Two other tangential hits, neither a real match:
+  [#1820](https://github.com/LawnchairLauncher/lawnchair/issues/1820)
   ("manual sort in app drawer", closed not-planned - about the *whole
   drawer*, not folders) and [#6918](https://github.com/LawnchairLauncher/lawnchair/issues/6918)
   ("alphabetical order for folders", open - the opposite request, one-click
-  auto-sort rather than manual). **Before building or proposing this
-  branch**: diff the fork's manual-order implementation against what
-  #6173 already provides, since some (possibly most) of the "+/- add/remove
-  buttons for folder contents" half of this row's scope may already be
-  redundant with it - not yet done, flagging so it isn't lost.
+  auto-sort rather than manual).
 - **#12** (`feat/settings-pin-lock`) - searched multiple keyword sets
   (PIN/password/biometric settings lock, kiosk mode, parental control);
   no matching issue found. Existing "lock" issues on the tracker are all
