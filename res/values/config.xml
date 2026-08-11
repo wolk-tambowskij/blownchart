@@ -17,9 +17,13 @@
     <!-- Miscellaneous -->
     <bool name="config_largeHeap">false</bool>
 
-    <!-- A string pointer to the original app name string. This allows derived projects to
-     easily override the app name without providing all translations -->
-    <string name="derived_app_name" translatable="false">@string/app_name</string>
+    <!-- derived_app_name is intentionally NOT defined here: both declared buildTypes
+     (debug/release, see root build.gradle) always provide it via resValue(), and a static
+     fallback of the same name in this file collided with that generated resource - AAPT2's
+     merge order for the collision wasn't reliably deterministic across builds, occasionally
+     producing an <application> entry whose label/icon the OS couldn't resolve (showing the raw
+     package id and a generic icon in, e.g., the "Usage access" settings list) instead of a hard
+     build failure that would have caught it immediately. -->
 
     <!-- String representing the intent to delete a package.-->
     <string name="delete_package_intent" translatable="false">#Intent;action=android.intent.action.DELETE;launchFlags=0x10800000;end</string>
