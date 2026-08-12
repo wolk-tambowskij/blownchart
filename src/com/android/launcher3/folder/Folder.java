@@ -1642,20 +1642,28 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             // A nested folder's own icon sits inside its parent's already-open window, so
             // centering on it the way a top-level folder centers on its home-screen/drawer icon
             // would bury most of the parent's own visible icons under the child's window.
-            // Instead, offset the child folder to sit just outside the parent's window, on
-            // whichever side has the most room within the page bounding box - the same one the
-            // clamp below already keeps every open folder inside - so the parent stays visible
-            // around the child instead of needing a guessed-at safe overlap margin.
+            // Offset the child folder toward whichever side has the most room within the page
+            // bounding box - the same one the clamp below already keeps every open folder inside
+            // - so most of the parent stays visible around the child, but only by most of its own
+            // size: leaving it flush against the parent's edge (zero overlap) breaks
+            // notifyParentOfAutoClose's hand-off below, which counts on a drag leaving this
+            // folder's bounds still landing over the parent so the parent can reopen for a
+            // plain-sibling drop instead of auto-closing right along with this one. Overlapping
+            // by one icon's width/height keeps that hand-off working and keeps it visually
+            // unambiguous which of the two is the parent.
             Rect parentRect = new Rect();
             parent.getDescendantRectRelativeToSelf(openParent, parentRect);
+            int overlap = mActivityContext.getDeviceProfile().iconSizePx;
             int spaceLeft = parentRect.left - pageBounds.left;
             int spaceRight = pageBounds.right - parentRect.right;
             int spaceTop = parentRect.top - pageBounds.top;
             int spaceBottom = pageBounds.bottom - parentRect.bottom;
             if (Math.max(spaceLeft, spaceRight) >= Math.max(spaceTop, spaceBottom)) {
-                left = spaceRight >= spaceLeft ? parentRect.right : parentRect.left - width;
+                left = spaceRight >= spaceLeft
+                        ? parentRect.right - overlap : parentRect.left - width + overlap;
             } else {
-                top = spaceBottom >= spaceTop ? parentRect.bottom : parentRect.top - height;
+                top = spaceBottom >= spaceTop
+                        ? parentRect.bottom - overlap : parentRect.top - height + overlap;
             }
         }
 
