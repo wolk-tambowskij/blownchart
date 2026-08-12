@@ -301,7 +301,7 @@ public class ModelWriter {
 
         ModelVerifier verifier = new ModelVerifier();
         final StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-        newModelTask(() -> {
+        newUnconditionalModelTask(() -> {
             // Write the item on background thread, as some properties might have been
             // updated in
             // the background.
@@ -590,11 +590,23 @@ public class ModelWriter {
 
         @Override
         public final void run() {
-            if (mLoadId != mModel.getLastLoadId()) {
+            if (skipsStaleLoad() && mLoadId != mModel.getLastLoadId()) {
                 Log.d(TAG, "Model changed before the task could execute");
                 return;
             }
             runImpl();
+        }
+
+        /**
+         * Whether this task should be silently dropped (see {@link #run}) if a full model reload
+         * completed on some other thread between this task being constructed (capturing
+         * {@link #mLoadId}) and it actually running on {@link Executors#MODEL_EXECUTOR}. True by
+         * default: a queued move/update reads and depends on state that reload may have changed
+         * out from under it, so replaying it against the newly-reloaded model could silently
+         * corrupt it in a different way than just not running at all.
+         */
+        protected boolean skipsStaleLoad() {
+            return true;
         }
 
         public final void executeOnModelThread() {
@@ -606,6 +618,32 @@ public class ModelWriter {
 
     private ModelTask newModelTask(Runnable r) {
         return new ModelTask() {
+            @Override
+            public void runImpl() {
+                r.run();
+            }
+        };
+    }
+
+    /**
+     * Like {@link #newModelTask}, but never silently dropped by an intervening model reload (see
+     * {@link ModelTask#skipsStaleLoad}). Only safe for tasks that purely insert a brand-new row -
+     * {@link #addItemToDatabase} always assigns a fresh id right before enqueuing one of these, so
+     * there's no "old" state such a task could be reading and getting wrong; the risk runs the
+     * other way; silently dropping it would leave {@link ItemInfo#id} already handed out and
+     * relied on (e.g. by a new folder's about-to-be-added children, whose own move tasks aren't
+     * silently dropped once a later reload's own id becomes their captured mLoadId) with no
+     * corresponding row or {@link BgDataModel#collections} entry ever created for it - exactly
+     * what previously surfaced as "container ... not in the list of collections" followed by a
+     * cell collision silently deleting one of the two items on the very next full reload.
+     */
+    private ModelTask newUnconditionalModelTask(Runnable r) {
+        return new ModelTask() {
+            @Override
+            protected boolean skipsStaleLoad() {
+                return false;
+            }
+
             @Override
             public void runImpl() {
                 r.run();
