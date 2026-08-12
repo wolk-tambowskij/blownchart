@@ -192,12 +192,27 @@ public class ModelWriter {
         updateItemInfoProps(item, container, screenId, cellX, cellY);
         notifyItemModified(item);
 
+        // Snapshot what this call just wrote instead of having the deferred runnable below
+        // re-read item.* when it actually executes on the model thread: item is a shared,
+        // mutable object, and if something else moves the same item again (e.g. a quick,
+        // separate drag landing it in a folder right after this call placed it elsewhere)
+        // before this write reaches the DB, item.container/cellX/cellY/rank/screenId would
+        // already reflect that LATER move by then - writing this call's now-stale cell position
+        // under whatever container the item happens to be in *now* instead of the one this call
+        // actually intended, silently corrupting the row (and racing whether that later
+        // container is even registered in the live model yet - see the "not in the list of
+        // collections" warning above).
+        final int finalContainer = item.container;
+        final int finalScreenId = item.screenId;
+        final int finalCellX = item.cellX;
+        final int finalCellY = item.cellY;
+        final int finalRank = item.rank;
         enqueueDeleteRunnable(new UpdateItemRunnable(item, () -> new ContentWriter(mContext)
-                .put(Favorites.CONTAINER, item.container)
-                .put(Favorites.CELLX, item.cellX)
-                .put(Favorites.CELLY, item.cellY)
-                .put(Favorites.RANK, item.rank)
-                .put(Favorites.SCREEN, item.screenId)));
+                .put(Favorites.CONTAINER, finalContainer)
+                .put(Favorites.CELLX, finalCellX)
+                .put(Favorites.CELLY, finalCellY)
+                .put(Favorites.RANK, finalRank)
+                .put(Favorites.SCREEN, finalScreenId)));
     }
 
     /**
@@ -236,14 +251,23 @@ public class ModelWriter {
         item.spanX = spanX;
         item.spanY = spanY;
         notifyItemModified(item);
+        // Snapshot what this call just wrote - see moveItemInDatabase above for why reading
+        // item.* live inside the deferred runnable instead is unsafe.
+        final int finalContainer = item.container;
+        final int finalScreenId = item.screenId;
+        final int finalCellX = item.cellX;
+        final int finalCellY = item.cellY;
+        final int finalRank = item.rank;
+        final int finalSpanX = item.spanX;
+        final int finalSpanY = item.spanY;
         new UpdateItemRunnable(item, () -> new ContentWriter(mContext)
-                .put(Favorites.CONTAINER, item.container)
-                .put(Favorites.CELLX, item.cellX)
-                .put(Favorites.CELLY, item.cellY)
-                .put(Favorites.RANK, item.rank)
-                .put(Favorites.SPANX, item.spanX)
-                .put(Favorites.SPANY, item.spanY)
-                .put(Favorites.SCREEN, item.screenId))
+                .put(Favorites.CONTAINER, finalContainer)
+                .put(Favorites.CELLX, finalCellX)
+                .put(Favorites.CELLY, finalCellY)
+                .put(Favorites.RANK, finalRank)
+                .put(Favorites.SPANX, finalSpanX)
+                .put(Favorites.SPANY, finalSpanY)
+                .put(Favorites.SCREEN, finalScreenId))
                 .executeOnModelThread();
     }
 
