@@ -267,6 +267,14 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     private boolean mItemAddedBackToSelfViaIcon = false;
     private boolean mIsEditingName = false;
 
+    // The most recent in-progress drag this folder was told about via onDragExit - kept around
+    // (not copied) purely so completeDragExit/notifyParentOfAutoClose can hand it off to a parent
+    // folder once this one auto-closes; DragController keeps mutating the same DragObject
+    // instance's fields as the touch moves, so this stays live rather than going stale while the
+    // ON_EXIT_CLOSE_DELAY alarm is pending. Cleared once that alarm actually fires.
+    @Nullable
+    private DragObject mLastDragObject;
+
     // The nested subfolder icon (if any) the drag is currently hovering over within this
     // folder's own grid - set/cleared in onDragOver/onDragExit so a drop lands inside that
     // subfolder (like dragging onto a folder icon on the home screen) instead of being reordered
@@ -1043,9 +1051,25 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     public void onDragEnter(DragObject d) {
         mPrevTargetRank = -1;
         mOnExitAlarm.cancelAlarm();
+        mLastDragObject = null;
         // Get the area offset such that the folder only closes if half the drag icon width
         // is outside the folder area
         mScrollAreaOffset = d.dragView.getDragRegionWidth() / 2 - d.xOffset;
+    }
+
+    /**
+     * True if this folder is itself shown as a nested-subfolder icon inside another,
+     * already-open folder - i.e. {@link #findParentFolder} would return non-null. See
+     * {@link #isNested()}, whose parent-chain walk this mirrors, for why that's the signal used.
+     */
+    @Nullable
+    private Folder findParentFolder() {
+        for (ViewParent p = mFolderIcon.getParent(); p != null; p = p.getParent()) {
+            if (p instanceof FolderPagedView) {
+                return ((FolderPagedView) p).getFolder();
+            }
+        }
+        return null;
     }
 
     OnAlarmListener mReorderAlarmListener = new OnAlarmListener() {
@@ -1305,13 +1329,54 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             return;
         }
         if (mIsOpen) {
+            // Close first: notifyParentOfAutoClose forces DragController to immediately re-run
+            // its drop-target hit test (see its javadoc), and this folder needs to have already
+            // stopped accepting drops (isDropEnabled() false, set synchronously once the close
+            // animation's onAnimationStart fires from within close() below) by then - otherwise
+            // that hit test would just resolve back to this folder again, unchanged, and never
+            // reach the parent at all.
             close(true);
+            notifyParentOfAutoClose();
             mRearrangeOnClose = true;
         } else if (mState == STATE_ANIMATING) {
             mRearrangeOnClose = true;
         } else {
             rearrangeChildren();
             clearDragInfo();
+        }
+        mLastDragObject = null;
+    }
+
+    /**
+     * When this folder auto-closes mid-drag (this method only runs via {@link #mOnExitAlarmListener}
+     * after {@link #onDragExit} armed {@link #mOnExitAlarm}), DragController's own touch-driven
+     * enter/exit dispatch never reaches this folder's parent on its own: while both were open,
+     * this folder - opened more recently, on top - kept winning the drop-target hit test over its
+     * parent for any touch point within their (near-identical) bounds, so the parent never became
+     * DragController's own tracked "last drop target" in the first place and has no exit call of
+     * its own waiting to fire. Without this, the parent is only ever cleaned up much later, by
+     * unrelated state-transition cleanup once the whole drag ends some other way - the "long
+     * wait"/finger-back-and-forth users otherwise have to work around.
+     *
+     * <p>Hand it off explicitly instead: tell the parent the same drag just exited it too, which
+     * arms its own standard {@link #ON_EXIT_CLOSE_DELAY} close timer, then force DragController to
+     * re-run its normal hit test against the drag's current position. If the touch is still over
+     * the parent, that resolves back to it and its own {@link #onDragEnter} cancels the timer just
+     * armed - reopening it for a plain-sibling drop (see {@link #getMergeTargetAtRank}). If not,
+     * the timer is left to fire on its own, closing the parent on the same schedule as any other
+     * drag-exit close instead of an indeterminate one.
+     */
+    private void notifyParentOfAutoClose() {
+        if (mLastDragObject == null || mLastDragObject.dragComplete) {
+            return;
+        }
+        Folder parent = findParentFolder();
+        if (parent == null || !parent.mIsOpen) {
+            return;
+        }
+        parent.onDragExit(mLastDragObject);
+        if (getDragController().isDragging()) {
+            getDragController().forceTouchMove();
         }
     }
 
@@ -1325,6 +1390,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         // We only close the folder if this is a true drag exit, ie. not because
         // a drop has occurred above the folder.
         if (!d.dragComplete) {
+            mLastDragObject = d;
             mOnExitAlarm.setOnAlarmListener(mOnExitAlarmListener);
             mOnExitAlarm.setAlarm(ON_EXIT_CLOSE_DELAY);
         }
