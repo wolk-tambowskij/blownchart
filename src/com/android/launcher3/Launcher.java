@@ -2053,6 +2053,15 @@ public class Launcher extends StatefulActivity<LauncherState>
         mWorkspace.addInScreen(newFolder, folderInfo);
         // Force measure the new folder icon
         CellLayout parent = mWorkspace.getParentCellLayoutForView(newFolder);
+        if (parent == null) {
+            // addInScreen() should always place the new icon into some workspace/hotseat
+            // CellLayout, but if the target screen's own state changed concurrently (e.g. a page
+            // got removed/reordered by an unrelated operation finishing around the same time),
+            // it can come back empty-handed - crashed here with a real-device NPE from exactly
+            // that. layout is the CellLayout this call was actually asked to add the folder
+            // into, so fall back to it instead of crashing on a null one.
+            parent = layout;
+        }
         parent.getShortcutsAndWidgets().measureChild(newFolder);
         return newFolder;
     }
