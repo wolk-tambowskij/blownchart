@@ -520,7 +520,16 @@ public class ModelWriter {
                         // the list of Folders.
                         String msg = "item: " + item + " container being set to: " +
                                 item.container + ", not in the list of collections";
-                        Log.e(TAG, msg);
+                        // Attach the caller's stack (captured at enqueue time, in the
+                        // UpdateItemBaseRunnable constructor) rather than this background
+                        // runnable's own generic dispatch stack - this warning has been observed
+                        // during nested-folder drag/collapse sequences but without it there's no
+                        // way to tell which specific write beat the target collection's own
+                        // registration into mBgDataModel.collections without guessing from log
+                        // timing alone.
+                        RuntimeException origin = new RuntimeException(msg);
+                        origin.setStackTrace(mStackTrace);
+                        Log.e(TAG, msg, origin);
                     }
                 }
 
