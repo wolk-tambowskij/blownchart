@@ -3340,10 +3340,17 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * children, which could otherwise wrongly trip Folder's own collapse-to-last-item check.
      */
     private void materializeDrawerFolderInto(FolderInfo source, FolderIcon destIcon) {
+        // setTitle marks it MANUAL (so it isn't silently overwritten by auto-suggestion later)
+        // and persists it - safe to call immediately since destIcon.mInfo.id is already real by
+        // this point (Launcher#addFolder assigned it before returning destIcon).
+        destIcon.mInfo.setTitle(source.title, mLauncher.getModelWriter());
         for (ItemInfo child : source.getContents()) {
             if (child instanceof FolderInfo nestedSource) {
                 FolderInfo nestedDest = new FolderInfo();
                 destIcon.addItem(nestedDest);
+                // Only now, after addItem has assigned nestedDest a real id, can setTitle's own
+                // persistence (an UPDATE matched on that id) actually find its row.
+                nestedDest.setTitle(nestedSource.title, mLauncher.getModelWriter());
                 materializeDrawerFolderContentsRaw(nestedSource, nestedDest);
             } else if (child instanceof AppInfo appInfo) {
                 destIcon.addItem(appInfo.makeWorkspaceItem(mLauncher));
