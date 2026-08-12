@@ -1,1 +1,1 @@
-Homescreen based on on Launcher3 from AOSP
+Fast home launcher with app drawer folders and a full settings/layout lock
