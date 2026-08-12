@@ -105,14 +105,14 @@ class BlownChartAlphabeticalAppsList<T>(
             }
         } else {
             folderList.forEach { folder ->
-                // A subfolder counts as a single item here even though it can hold several apps
-                // of its own - a raw size check would hide (and, worse, leave ungrouped in the
-                // drawer - see the filteredSet population below) a folder whose only content is
-                // one subfolder with multiple apps in it. Count what the closed-icon preview
-                // actually ends up showing instead (see FolderIcon#getPreviewItemsOnPage, which
-                // flattens one level of nesting the same way).
-                val flattenedCount = folder.getContents().sumOf { if (it is FolderInfo) it.getContents().size else 1 }
-                if (flattenedCount > 1) {
+                // Minimum to show as a folder chip is two *direct* items - two shortcuts, two
+                // subfolders, or one of each - not two flattened apps. A folder whose only direct
+                // content is a single subfolder is still just one item, no matter how many apps
+                // live inside that subfolder, so it must not pass this check even though its
+                // flattened app count could be well over one; below this size, its own apps fall
+                // through unfiltered (filteredSet stays empty for it) and show up as plain,
+                // ungrouped entries instead of vanishing.
+                if (folder.getContents().size >= 2) {
                     val folderInfo = FolderInfo()
                     folderInfo.title = folder.title
                     mAdapterItems.add(AdapterItem.asFolder(folderInfo))
