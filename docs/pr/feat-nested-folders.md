@@ -456,6 +456,72 @@ one of two items out of a nested folder no longer crashes, and the other
 item correctly reappears in the parent folder in the nested folder's former
 position.
 
+**Change (round 6, dragging an item out of a nested folder toward the parent
+or the home screen)**: prompted by real-device use (not a crash this time -
+UX friction), reported as: (1) a nested folder's own close-on-drag-exit felt
+slower than a top-level folder's; (2) dropping an item back onto the still-
+open parent right after the nested folder closed never landed it as a plain
+sibling - only re-nesting into the same subfolder, or merging with a sibling
+into yet another new subfolder, were ever offered; (3) if the parent wasn't
+re-focused, it stayed open far longer than expected, or needed the drag
+walked back into it and back out again to "kick" it into closing.
+
+Root cause for (2): `Folder#getMergeTargetAtRank` was claiming almost every
+hovered rank in a non-empty folder before the (already-correct)
+plain-insert-as-sibling fallback in `Folder#onDrop` ever got a chance to
+run - including when the drag is an item leaving one of the folder's own
+nested subfolders back out into it, its immediate parent. Fixed by adding
+`Folder#isDragSourceOwnNestedChild` (true when the drag's source is a
+`Folder` whose own `FolderIcon` is one of this folder's current content
+items) and having `getMergeTargetAtRank` return null in that case, so the
+plain-insert fallback wins instead.
+
+Root cause for (1) and (3): `DragController` tracks a single "last drop
+target" and only calls `onDragExit` on it once the touch resolves somewhere
+else. While a nested folder is open on top of its still-open parent, it
+keeps winning that resolution for any touch point within their (near-
+identical) bounds, so the parent never becomes that tracked target in the
+first place - it has no exit call of its own waiting to fire once the drag
+actually leaves, and is only ever cleaned up much later by unrelated state-
+transition cleanup once the whole drag ends some other way. Fixed by having
+`Folder#completeDragExit` (once a nested folder actually closes) call the
+new `notifyParentOfAutoClose`: it tells the parent the same drag just
+exited it too (arming its own standard `ON_EXIT_CLOSE_DELAY` timer, the same
+400ms used everywhere else), then forces `DragController` to immediately
+re-run its hit test. If the touch is still over the parent, that resolves
+back to it and its own `onDragEnter` cancels the timer just armed,
+reopening it in time for the plain-sibling drop above; otherwise the timer
+is left to fire on its own, closing the parent on the same schedule as any
+other drag-exit close instead of an indeterminate one.
+
+While investigating, also found (and fixed properly this time) a related,
+previously-reverted crash fix: `Workspace#onDropExternal` - the path a drag
+out of an open folder takes - reruns its own independent cell resolution
+rather than reusing `Workspace#acceptDrop`'s, so a workspace layout change
+in the narrow gap between the two (e.g. this same close/rearrange
+happening) could make the second resolution fail even though the first one,
+which is what actually decided `DragController`'s accepted/success outcome
+for the drag, had already succeeded - producing a `NullPointerException` in
+`DragLayer#animateViewIntoPosition` from an unresolved (negative) target
+cell. An earlier attempt at this fix used a bare early return, but
+`DragController.drop()` locks in accepted/success from `acceptDrop()`'s
+return value before `onDrop()` ever runs, so silently placing nothing while
+still telling the drag source the drop succeeded corrupted
+`Folder#onDropCompleted`'s collapse-to-last-item logic instead - a worse
+regression, which is why that attempt was reverted. Fixed properly this
+time by keeping the promise `acceptDrop()` already made: when
+`performReorder` can't resolve a cell in `onDropExternal`, fall back to the
+same `CellLayout#findCellForSpan` "just find any vacant cell" resolution
+this method already uses for its other no-reliable-position case, so the
+item always actually lands somewhere valid.
+
+These three changes are grounded in a real device crash log plus static
+tracing of `DragController`/`Folder`'s accept/exit/timer logic, not
+independently reproduced on a physical device end-to-end - flagging that
+the specific claim about nested/parent bounds overlapping enough that the
+parent is never otherwise hit-tested is a working hypothesis, not something
+directly observed with debugger/logging output.
+
 ### Compatibility
 
 Migration is additive and nullable - no data loss, no forced backfill for
