@@ -356,8 +356,14 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                 FolderInfo folderInfo = mApps.getAdapterItems().get(position).folderInfo;
                 ViewGroup container = (ViewGroup) holder.itemView;
                 container.removeAllViews();
-                container.addView(FolderIcon.inflateFolderAndIcon(R.layout.all_apps_folder_icon, mActivityContext,
-                    container, folderInfo));
+                FolderIcon drawerFolderIcon = FolderIcon.inflateFolderAndIcon(
+                        R.layout.all_apps_folder_icon, mActivityContext, container, folderInfo);
+                // Lets a drawer folder chip be long-pressed and dragged to the home screen the
+                // same way a plain app icon already can (see VIEW_TYPE_ICON above) - materializing
+                // it there is handled by Workspace#onDropExternal, keyed off the dropped item
+                // being a FolderInfo with no id yet (i.e. this drawer-only, not-yet-persisted one).
+                drawerFolderIcon.setOnLongClickListener(mOnIconLongClickListener);
+                container.addView(drawerFolderIcon);
                 break;
             default:
                 if (mAdapterProvider.isViewSupported(holder.getItemViewType())) {

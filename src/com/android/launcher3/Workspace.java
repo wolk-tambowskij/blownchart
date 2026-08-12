@@ -101,6 +101,8 @@ import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent;
+import com.android.launcher3.model.ModelWriter;
+import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -2062,7 +2064,24 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         return willCreateUserFolder(info, dropOverView, considerTimeout);
     }
 
+    /**
+     * True for the app drawer's own virtual, not-yet-persisted folder wrapper - the FolderInfo
+     * {@link app.blownchart.allapps.BlownChartAlphabeticalAppsList} builds fresh on every list
+     * rebuild purely to display a folder chip, with no id of its own yet. Its "contents" are
+     * still the live AppInfo/subfolder objects from the all-apps list, not real WorkspaceItemInfo
+     * rows, so it can't be merged into or wrapped together with another icon the way an
+     * already-materialized, real FolderInfo dragged off the home screen can - see
+     * {@link #onDropExternal}'s own FolderInfo branch, which is the only path that knows how to
+     * turn one of these into a real folder (and its real children) in the first place.
+     */
+    private static boolean isUnmaterializedFolderDrag(ItemInfo info) {
+        return info instanceof FolderInfo && info.id == ItemInfo.NO_ID;
+    }
+
     boolean willCreateUserFolder(ItemInfo info, View dropOverView, boolean considerTimeout) {
+        if (isUnmaterializedFolderDrag(info)) {
+            return false;
+        }
         if (dropOverView != null) {
             CellLayoutLayoutParams lp = (CellLayoutLayoutParams) dropOverView.getLayoutParams();
             if (lp.useTmpCoords && (lp.getTmpCellX() != lp.getCellX()
@@ -2126,6 +2145,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     }
 
     boolean willAddToExistingUserFolder(ItemInfo dragInfo, View dropOverView) {
+        if (isUnmaterializedFolderDrag(dragInfo)) {
+            return false;
+        }
         if (dropOverView != null) {
             CellLayoutLayoutParams lp = (CellLayoutLayoutParams) dropOverView.getLayoutParams();
             if (lp.useTmpCoords && (lp.getTmpCellX() != lp.getCellX()
@@ -3191,6 +3213,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             }
             animateWidgetDrop(info, cellLayout, d.dragView, onAnimationCompleteRunnable,
                     animationStyle, finalView, true);
+        } else if (isUnmaterializedFolderDrag(info)) {
+            dropDrawerFolderExternal((FolderInfo) info, container, screenId, cellLayout, touchXY, d);
         } else {
             // This is for other drag/drop cases, like dragging from All Apps
             mLauncher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
@@ -3257,6 +3281,102 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     .log(LauncherEvent.LAUNCHER_ITEM_DROP_COMPLETED);
         }
 
+    }
+
+    /**
+     * Materializes the app drawer's own virtual, not-yet-persisted folder ({@param draggedInfo} -
+     * see {@link #isUnmaterializedFolderDrag}) as a brand-new real folder on the workspace. Its
+     * "contents" are still live AppInfo/subfolder objects from the all-apps list rather than real
+     * WorkspaceItemInfo rows, so - unlike the generic single-item path in {@link #onDropExternal}
+     * this is called instead of - each of them needs converting and persisting individually
+     * (see {@link #materializeDrawerFolderInto}). The drawer's own definition of the folder (kept
+     * entirely in app.blownchart.data.folder's own database, not the launcher model at all) is
+     * left completely untouched, mirroring the same drag-a-single-app-out copy semantics a plain
+     * drawer icon already has.
+     */
+    private void dropDrawerFolderExternal(FolderInfo draggedInfo, int container, int screenId,
+            CellLayout cellLayout, int[] touchXY, DragObject d) {
+        mLauncher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
+        if (touchXY != null) {
+            mTargetCell = findNearestArea(touchXY[0], touchXY[1], 1, 1, cellLayout, mTargetCell);
+            mTargetCell = cellLayout.performReorder((int) mDragViewVisualCenter[0],
+                    (int) mDragViewVisualCenter[1], 1, 1, 1, 1, null, mTargetCell, null,
+                    CellLayout.MODE_ON_DROP_EXTERNAL);
+        } else {
+            cellLayout.findCellForSpan(mTargetCell, 1, 1);
+        }
+        if (mTargetCell[0] < 0 || mTargetCell[1] < 0) {
+            // As in the generic path above: this drag was already accepted, so a resolution
+            // failure here must still end in a real placement.
+            cellLayout.findCellForSpan(mTargetCell, 1, 1);
+        }
+
+        // Launcher#addFolder already persists the new (still-empty) folder itself and adds/
+        // measures its icon in the screen, the same way Workspace#createUserFolderIfNecessary
+        // relies on it to for the two-icon-merge case.
+        FolderIcon newIcon = mLauncher.addFolder(cellLayout, container, screenId,
+                mTargetCell[0], mTargetCell[1]);
+        materializeDrawerFolderInto(draggedInfo, newIcon);
+        d.dragInfo = newIcon.mInfo;
+
+        if (d.dragView != null) {
+            setFinalTransitionTransform();
+            mLauncher.getDragLayer().animateViewIntoPosition(d.dragView, newIcon, this);
+            resetTransitionTransform();
+        }
+        mStatsLogManager.logger().withItemInfo(newIcon.mInfo).withInstanceId(d.logInstanceId)
+                .log(LauncherEvent.LAUNCHER_ITEM_DROP_COMPLETED);
+    }
+
+    /**
+     * Converts and adds every item in the app drawer's virtual {@param source} folder into
+     * {@param destIcon}'s own, freshly created and already-persisted, real FolderInfo - via
+     * {@link FolderIcon#addItem}, the same call {@link #createUserFolderIfNecessary} itself uses
+     * to populate a brand-new folder, so each child is written through the normal
+     * listener-driven path ({@link com.android.launcher3.folder.Folder#onAdd}) that
+     * {@link com.android.launcher3.folder.FolderIcon#inflateFolderAndIcon} already wired up for
+     * {@param destIcon} by the time {@link Launcher#addFolder} returns it. Starting from an empty
+     * destination and only ever adding avoids ever exposing a transient state with too few real
+     * children, which could otherwise wrongly trip Folder's own collapse-to-last-item check.
+     */
+    private void materializeDrawerFolderInto(FolderInfo source, FolderIcon destIcon) {
+        for (ItemInfo child : source.getContents()) {
+            if (child instanceof FolderInfo nestedSource) {
+                FolderInfo nestedDest = new FolderInfo();
+                destIcon.addItem(nestedDest);
+                materializeDrawerFolderContentsRaw(nestedSource, nestedDest);
+            } else if (child instanceof AppInfo appInfo) {
+                destIcon.addItem(appInfo.makeWorkspaceItem(mLauncher));
+            }
+        }
+    }
+
+    /**
+     * Nested-subfolder counterpart of {@link #materializeDrawerFolderInto}, for a subfolder that
+     * isn't backed by any open Folder/FolderIcon of its own (a nested folder only ever gets a
+     * bound FolderIcon once its parent is actually opened and renders it) - so each child is
+     * persisted directly through {@link ModelWriter} instead of relying on a listener, the same
+     * pattern {@link com.android.launcher3.folder.Folder#createNestedFolder} uses for the
+     * equivalent in-folder case. Drawer folders only ever nest one level deep (see
+     * app.blownchart.allapps.BlownChartAlphabeticalAppsList), so {@param source} is never itself
+     * expected to contain another subfolder.
+     */
+    private void materializeDrawerFolderContentsRaw(FolderInfo source, FolderInfo dest) {
+        ModelWriter writer = mLauncher.getModelWriter();
+        int rank = 0;
+        for (ItemInfo child : source.getContents()) {
+            if (child instanceof AppInfo appInfo) {
+                // Unlike materializeDrawerFolderInto's FolderIcon#addItem path - where
+                // Folder#onAdd stamps rank via FolderGridOrganizer before persisting - nothing
+                // else assigns rank here, so every item would otherwise get written with the
+                // same default (0), leaving their order among each other undefined on the next
+                // reload.
+                WorkspaceItemInfo wii = appInfo.makeWorkspaceItem(mLauncher);
+                wii.rank = rank++;
+                dest.add(wii, false);
+                writer.addOrMoveItemInDatabase(wii, dest.id, 0, 0, 0);
+            }
+        }
     }
 
     private Drawable createWidgetDrawable(ItemInfo widgetInfo, View layout) {
