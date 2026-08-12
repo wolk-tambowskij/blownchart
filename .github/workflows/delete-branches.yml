@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       branches:
-        description: 'Branches to delete - one per line, or comma-separated. Never include 15-dev, 16-dev, or the repo default branch; those are refused automatically even if listed.'
+        description: 'Branches to delete - one per line, or comma-separated. Never include 15-dev or the repo default branch; those are refused automatically even if listed.'
         type: string
         required: true
       dry_run:
@@ -43,7 +43,7 @@ jobs:
             exit 1
           fi
 
-          PROTECTED="15-dev 16-dev main master $DEFAULT_BRANCH"
+          PROTECTED="15-dev main master $DEFAULT_BRANCH"
           FAILED=0
 
           while IFS= read -r branch; do
