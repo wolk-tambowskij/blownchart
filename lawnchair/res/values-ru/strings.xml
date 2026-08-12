@@ -623,6 +623,7 @@
     <string name="app_drawer_lock">Блокировка меню приложений</string>
     <string name="app_drawer_lock_description">Запретить переименование, скрытие, смену иконки и удаление приложений из меню приложений</string>
     <string name="battery_optimization_tip">Для стабильной работы в фоне нажмите, чтобы разрешить лончеру игнорировать оптимизацию батареи</string>
+    <string name="device_admin_reliability_tip">Для дополнительной надёжности, особенно на глючных прошивках, нажмите, чтобы выдать BlownChart права администратора устройства — некоторые производители реже выгружают из памяти фоновую службу лаунчера, если у него есть эти права, что снижает частоту неожиданных перезапусков</string>
     <string name="settings_lock_label">Блокировка настроек лончера</string>
     <string name="settings_lock_status_on">Вкл</string>
     <string name="settings_lock_status_off">Выкл</string>

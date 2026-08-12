@@ -76,8 +76,10 @@ import app.blownchart.ui.theme.isSelectedThemeDark
 import app.blownchart.ui.theme.preferenceGroupColor
 import app.blownchart.ui.util.addIf
 import app.blownchart.util.isDefaultLauncher
+import app.blownchart.util.isDeviceAdminActive
 import app.blownchart.util.isIgnoringBatteryOptimizations
 import app.blownchart.util.lifecycleState
+import app.blownchart.util.requestDeviceAdmin
 import app.blownchart.util.restartLauncher
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
@@ -115,6 +117,15 @@ fun PreferencesDashboard(
 
         if (!context.isDefaultLauncher()) {
             PreferencesSetDefaultLauncherWarning()
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // Same re-check-on-resume reasoning as the battery-optimization warning above: this
+        // screen stays alive while the user grants device admin from system settings and back,
+        // so a plain function call would only ever be evaluated once.
+        val deviceAdminActive = remember(lifecycleState()) { context.isDeviceAdminActive() }
+        if (!deviceAdminActive) {
+            PreferencesDeviceAdminWarning()
             Spacer(modifier = Modifier.height(8.dp))
         }
 
@@ -404,6 +415,36 @@ fun PreferencesSetDefaultLauncherWarning(
             description = {
                 Text(
                     text = stringResource(id = R.string.set_default_launcher_tip),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            startWidget = {
+                Icon(
+                    imageVector = Icons.Rounded.TipsAndUpdates,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentDescription = null,
+                )
+            },
+        )
+    }
+}
+
+@Composable
+fun PreferencesDeviceAdminWarning(
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    Surface(
+        modifier = modifier.padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        PreferenceTemplate(
+            modifier = Modifier.clickable { context.requestDeviceAdmin() },
+            title = {},
+            description = {
+                Text(
+                    text = stringResource(id = R.string.device_admin_reliability_tip),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },

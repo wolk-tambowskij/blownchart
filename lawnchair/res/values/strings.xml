@@ -676,6 +676,8 @@
 
     <string name="battery_optimization_tip">For stable background work, tap to let the launcher ignore battery optimization</string>
 
+    <string name="device_admin_reliability_tip">For extra reliability, especially on quirky firmware, tap to grant BlownChart device administrator access - some manufacturers are less aggressive about killing a launcher\'s background service when it holds device admin, reducing unexpected restarts</string>
+
     <string name="security_label">Security</string>
     <string name="settings_lock_label">Lock launcher settings</string>
     <string name="settings_lock_status_on">On</string>
