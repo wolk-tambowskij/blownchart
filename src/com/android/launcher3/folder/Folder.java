@@ -1053,7 +1053,18 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             mRearrangeOnClose = false;
         }
         if (getItemCount() <= 1) {
-            if (!mIsDragInProgress && !mSuppressFolderDeletion && !isInAppDrawer()) {
+            if (!mDestroyed && !mIsDragInProgress && !mSuppressFolderDeletion
+                    && !isInAppDrawer()) {
+                // mDestroyed guards against calling this a second time: onDropCompleted()'s own
+                // success branch already calls replaceFolderWithFinalItem() directly when a drop
+                // completes with a pending exit alarm still armed, then cancels that alarm by
+                // calling completeDragExit() -> close(true) - whose own close animation lands
+                // here, asynchronously, once it finishes. By then mIsDragInProgress has already
+                // been reset to false (also in onDropCompleted(), just after that same call), so
+                // without this guard this ran a second time on a folder already collapsed/deleted
+                // by the first call - re-removing already-removed content and re-deleting an
+                // already-deleted collection, which is what actually produced the "second icon
+                // ends up on the home screen instead of the parent" / vanishing-item reports.
                 replaceFolderWithFinalItem();
             } else if (mIsDragInProgress) {
                 mDeleteFolderOnDropCompleted = true;
