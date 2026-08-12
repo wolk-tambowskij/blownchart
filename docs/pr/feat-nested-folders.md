@@ -436,6 +436,26 @@ nested-subfolder icon and released right at its edge, deliberately trying to
 outrun the hover state, to check the drop still lands correctly via the
 position-recompute fallback rather than being dropped on the floor.
 
+**Real-device testing (round 5, crash collapsing a two-item nested folder)**:
+opening a nested folder holding exactly two items and dragging one of them
+out to the home screen crashed on release
+(`IndexOutOfBoundsException: Index 0 out of bounds for length 0` in
+`PreviewItemManager#createFirstItemAnimation`, from a full logcat/crash
+trace). The nested folder collapses down to its remaining item via
+`LauncherDelegate#replaceNestedFolderWithFinalItem`, which triggers a
+destroy animation on the nested folder's own icon - but that icon's preview
+params (`mFirstPageParams`) can still be empty at that exact moment, before
+they've caught up with the new (post-drag) content count.
+`createFirstItemAnimation` now returns null instead of indexing into an
+empty list when there's nothing to animate, and both callers
+(`performCreateAnimation`, `performDestroyAnimation`) skip straight to the
+completion callback in that case - the collapse-to-final-item logic itself
+(moving the sole remaining item back into the parent) is unaffected either
+way, only the shrink/grow preview animation is skipped. Verified: dragging
+one of two items out of a nested folder no longer crashes, and the other
+item correctly reappears in the parent folder in the nested folder's former
+position.
+
 ### Compatibility
 
 Migration is additive and nullable - no data loss, no forced backfill for
