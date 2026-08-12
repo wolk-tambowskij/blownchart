@@ -192,12 +192,27 @@ public class ModelWriter {
         updateItemInfoProps(item, container, screenId, cellX, cellY);
         notifyItemModified(item);
 
+        // Snapshot what this call just wrote instead of having the deferred runnable below
+        // re-read item.* when it actually executes on the model thread: item is a shared,
+        // mutable object, and if something else moves the same item again (e.g. a quick,
+        // separate drag landing it in a folder right after this call placed it elsewhere)
+        // before this write reaches the DB, item.container/cellX/cellY/rank/screenId would
+        // already reflect that LATER move by then - writing this call's now-stale cell position
+        // under whatever container the item happens to be in *now* instead of the one this call
+        // actually intended, silently corrupting the row (and racing whether that later
+        // container is even registered in the live model yet - see the "not in the list of
+        // collections" warning above).
+        final int finalContainer = item.container;
+        final int finalScreenId = item.screenId;
+        final int finalCellX = item.cellX;
+        final int finalCellY = item.cellY;
+        final int finalRank = item.rank;
         enqueueDeleteRunnable(new UpdateItemRunnable(item, () -> new ContentWriter(mContext)
-                .put(Favorites.CONTAINER, item.container)
-                .put(Favorites.CELLX, item.cellX)
-                .put(Favorites.CELLY, item.cellY)
-                .put(Favorites.RANK, item.rank)
-                .put(Favorites.SCREEN, item.screenId)));
+                .put(Favorites.CONTAINER, finalContainer)
+                .put(Favorites.CELLX, finalCellX)
+                .put(Favorites.CELLY, finalCellY)
+                .put(Favorites.RANK, finalRank)
+                .put(Favorites.SCREEN, finalScreenId)));
     }
 
     /**
@@ -236,14 +251,23 @@ public class ModelWriter {
         item.spanX = spanX;
         item.spanY = spanY;
         notifyItemModified(item);
+        // Snapshot what this call just wrote - see moveItemInDatabase above for why reading
+        // item.* live inside the deferred runnable instead is unsafe.
+        final int finalContainer = item.container;
+        final int finalScreenId = item.screenId;
+        final int finalCellX = item.cellX;
+        final int finalCellY = item.cellY;
+        final int finalRank = item.rank;
+        final int finalSpanX = item.spanX;
+        final int finalSpanY = item.spanY;
         new UpdateItemRunnable(item, () -> new ContentWriter(mContext)
-                .put(Favorites.CONTAINER, item.container)
-                .put(Favorites.CELLX, item.cellX)
-                .put(Favorites.CELLY, item.cellY)
-                .put(Favorites.RANK, item.rank)
-                .put(Favorites.SPANX, item.spanX)
-                .put(Favorites.SPANY, item.spanY)
-                .put(Favorites.SCREEN, item.screenId))
+                .put(Favorites.CONTAINER, finalContainer)
+                .put(Favorites.CELLX, finalCellX)
+                .put(Favorites.CELLY, finalCellY)
+                .put(Favorites.RANK, finalRank)
+                .put(Favorites.SPANX, finalSpanX)
+                .put(Favorites.SPANY, finalSpanY)
+                .put(Favorites.SCREEN, finalScreenId))
                 .executeOnModelThread();
     }
 
@@ -277,7 +301,7 @@ public class ModelWriter {
 
         ModelVerifier verifier = new ModelVerifier();
         final StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-        newModelTask(() -> {
+        newUnconditionalModelTask(() -> {
             // Write the item on background thread, as some properties might have been
             // updated in
             // the background.
@@ -520,7 +544,16 @@ public class ModelWriter {
                         // the list of Folders.
                         String msg = "item: " + item + " container being set to: " +
                                 item.container + ", not in the list of collections";
-                        Log.e(TAG, msg);
+                        // Attach the caller's stack (captured at enqueue time, in the
+                        // UpdateItemBaseRunnable constructor) rather than this background
+                        // runnable's own generic dispatch stack - this warning has been observed
+                        // during nested-folder drag/collapse sequences but without it there's no
+                        // way to tell which specific write beat the target collection's own
+                        // registration into mBgDataModel.collections without guessing from log
+                        // timing alone.
+                        RuntimeException origin = new RuntimeException(msg);
+                        origin.setStackTrace(mStackTrace);
+                        Log.e(TAG, msg, origin);
                     }
                 }
 
@@ -557,11 +590,23 @@ public class ModelWriter {
 
         @Override
         public final void run() {
-            if (mLoadId != mModel.getLastLoadId()) {
+            if (skipsStaleLoad() && mLoadId != mModel.getLastLoadId()) {
                 Log.d(TAG, "Model changed before the task could execute");
                 return;
             }
             runImpl();
+        }
+
+        /**
+         * Whether this task should be silently dropped (see {@link #run}) if a full model reload
+         * completed on some other thread between this task being constructed (capturing
+         * {@link #mLoadId}) and it actually running on {@link Executors#MODEL_EXECUTOR}. True by
+         * default: a queued move/update reads and depends on state that reload may have changed
+         * out from under it, so replaying it against the newly-reloaded model could silently
+         * corrupt it in a different way than just not running at all.
+         */
+        protected boolean skipsStaleLoad() {
+            return true;
         }
 
         public final void executeOnModelThread() {
@@ -573,6 +618,32 @@ public class ModelWriter {
 
     private ModelTask newModelTask(Runnable r) {
         return new ModelTask() {
+            @Override
+            public void runImpl() {
+                r.run();
+            }
+        };
+    }
+
+    /**
+     * Like {@link #newModelTask}, but never silently dropped by an intervening model reload (see
+     * {@link ModelTask#skipsStaleLoad}). Only safe for tasks that purely insert a brand-new row -
+     * {@link #addItemToDatabase} always assigns a fresh id right before enqueuing one of these, so
+     * there's no "old" state such a task could be reading and getting wrong; the risk runs the
+     * other way; silently dropping it would leave {@link ItemInfo#id} already handed out and
+     * relied on (e.g. by a new folder's about-to-be-added children, whose own move tasks aren't
+     * silently dropped once a later reload's own id becomes their captured mLoadId) with no
+     * corresponding row or {@link BgDataModel#collections} entry ever created for it - exactly
+     * what previously surfaced as "container ... not in the list of collections" followed by a
+     * cell collision silently deleting one of the two items on the very next full reload.
+     */
+    private ModelTask newUnconditionalModelTask(Runnable r) {
+        return new ModelTask() {
+            @Override
+            protected boolean skipsStaleLoad() {
+                return false;
+            }
+
             @Override
             public void runImpl() {
                 r.run();

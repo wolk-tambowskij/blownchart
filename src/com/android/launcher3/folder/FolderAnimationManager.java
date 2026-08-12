@@ -54,9 +54,9 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import java.util.List;
 
-import app.lawnchair.theme.color.ColorOption;
-import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.blownchart.theme.color.ColorOption;
+import app.blownchart.theme.color.tokens.ColorTokens;
+import app.blownchart.util.BlownChartUtilsKt;
 
 /**
  * Manages the opening and closing animations for a {@link Folder}.
@@ -185,7 +185,7 @@ public class FolderAnimationManager {
 
         // Set up the Folder background.
         int previewColor = ColorTokens.FolderPreviewColor.resolveColor(mContext);
-        int initialColor = ColorUtils.setAlphaComponent(previewColor, LawnchairUtilsKt.getFolderPreviewAlpha(mContext));
+        int initialColor = ColorUtils.setAlphaComponent(previewColor, BlownChartUtilsKt.getFolderPreviewAlpha(mContext));
         int finalColor = ColorTokens.FolderBackgroundColor.resolveColor(mContext);
 
         ColorOption colorOption = PreferenceExtensionsKt.firstBlocking(mFolder.preferenceManager2.getFolderColor());
@@ -360,10 +360,22 @@ public class FolderAnimationManager {
 
     /**
      * Returns the list of "preview items" on {@param page}.
+     *
+     * A nested subfolder (one level of folder-in-folder, app drawer only) used to be excluded
+     * here, on the theory that it has no static preview slot on the collapsed icon to animate
+     * to/from - true before {@link FolderIcon#getPreviewItemsOnPage} started flattening a
+     * subfolder's own contents into that preview, but not after: filtering it out here left a
+     * folder containing *only* subfolder(s) with an empty preview list, and {@link #getAnimator}
+     * indexes into it unconditionally (`itemsInPreview.get(0)`) - crashing on open instead of
+     * just animating the subfolder's own icon like {@link #getBubbleTextView} already supports.
+     * The animated open/close preview isn't a pixel-perfect match to the flattened closed-icon
+     * one in this case (it animates the subfolder's own glyph, not icons pulled from inside it),
+     * but it's correct and doesn't crash.
      */
     private List<View> getPreviewIconsOnPage(int page) {
-        return mPreviewVerifier.setFolderInfo(mFolder.mInfo)
-                .previewItemsForPage(page, mFolder.getIconsInReadingOrder());
+        List<View> iconsInReadingOrder = mFolder.getIconsInReadingOrder();
+        return mPreviewVerifier.setContentSize(iconsInReadingOrder.size())
+                .previewItemsForPage(page, iconsInReadingOrder);
     }
 
     /**

@@ -287,7 +287,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import app.lawnchair.LawnchairApp;
+import app.blownchart.BlownChartApp;
 
 /**
  * Default launcher application.
@@ -1697,7 +1697,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                     // Only change state, if not already the same. This prevents cancelling any
                     // animations running as part of resume
                     boolean animate = mStateManager.shouldAnimateStateChange();
-                    if (!LawnchairApp.isRecentsEnabled()) {
+                    if (!BlownChartApp.isRecentsEnabled()) {
                         animate &= alreadyOnHome;
                     }
                     mStateManager.goToState(NORMAL, animate);
@@ -2053,6 +2053,15 @@ public class Launcher extends StatefulActivity<LauncherState>
         mWorkspace.addInScreen(newFolder, folderInfo);
         // Force measure the new folder icon
         CellLayout parent = mWorkspace.getParentCellLayoutForView(newFolder);
+        if (parent == null) {
+            // addInScreen() should always place the new icon into some workspace/hotseat
+            // CellLayout, but if the target screen's own state changed concurrently (e.g. a page
+            // got removed/reordered by an unrelated operation finishing around the same time),
+            // it can come back empty-handed - crashed here with a real-device NPE from exactly
+            // that. layout is the CellLayout this call was actually asked to add the folder
+            // into, so fall back to it instead of crashing on a null one.
+            parent = layout;
+        }
         parent.getShortcutsAndWidgets().measureChild(newFolder);
         return newFolder;
     }

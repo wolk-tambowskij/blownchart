@@ -56,10 +56,10 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.theme.color.ColorOption;
-import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.blownchart.preferences2.PreferenceManager2;
+import app.blownchart.theme.color.ColorOption;
+import app.blownchart.theme.color.tokens.ColorTokens;
+import app.blownchart.util.BlownChartUtilsKt;
 
 /**
  * This object represents a FolderIcon preview background. It stores drawing /
@@ -69,7 +69,7 @@ import app.lawnchair.util.LawnchairUtilsKt;
 public class PreviewBackground extends DelegatedCellDrawing {
 
     private static final boolean DRAW_SHADOW = false;
-    private static final boolean DRAW_STROKE = false;
+    private static final boolean DRAW_STROKE = true;
 
     @VisibleForTesting
     protected static final int CONSUMPTION_ANIMATION_DURATION = 100;
@@ -195,13 +195,15 @@ public class PreviewBackground extends DelegatedCellDrawing {
 
         TypedArray ta = context.getTheme().obtainStyledAttributes(R.styleable.FolderIconPreview);
         mDotColor = ColorTokens.FolderDotColor.resolveColor(context);
-        mStrokeColor = ColorTokens.FolderIconBorderColor.resolveColor(context);
+        // A plain gray outline (independent of theme color and background opacity) so folders
+        // stay visually distinguishable regardless of the chosen background color/transparency.
+        mStrokeColor = ColorTokens.FolderOutlineColor.resolveColor(context);
         if (folderColor != 0) {
             mBgColor = folderColor;
         } else {
             mBgColor = ColorTokens.FolderPreviewColor.resolveColor(context);
         }
-        mBgColor = ColorUtils.setAlphaComponent(mBgColor, LawnchairUtilsKt.getFolderPreviewAlpha(context));
+        mBgColor = ColorUtils.setAlphaComponent(mBgColor, BlownChartUtilsKt.getFolderPreviewAlpha(context));
         ta.recycle();
 
         DeviceProfile grid = activity.getDeviceProfile();

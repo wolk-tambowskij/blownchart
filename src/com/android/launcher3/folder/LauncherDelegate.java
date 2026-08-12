@@ -18,9 +18,9 @@ package com.android.launcher3.folder;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_FOLDER_CONVERTED_TO_ICON;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewParent;
 
 import androidx.annotation.Nullable;
 
@@ -45,6 +45,8 @@ import java.util.function.Consumer;
  * Wrapper around Launcher methods to allow folders in non-launcher context
  */
 public class LauncherDelegate {
+
+    private static final String TAG = "LauncherDelegate";
 
     private final Launcher mLauncher;
 
@@ -79,7 +81,17 @@ public class LauncherDelegate {
     }
 
     boolean replaceFolderWithFinalItem(Folder folder) {
-        Folder parentFolder = findParentFolder(folder.mFolderIcon);
+        Folder parentFolder = folder.findParentFolder();
+        // Diagnostic: which Folder instance is being collapsed, whether it resolved to a nested
+        // parent or the top-level path, and how many items each side currently has - added while
+        // chasing reports of the *parent* folder disappearing along with its contents during a
+        // nested-folder drag-out, to see the actual object identities/counts involved instead of
+        // inferring them from a text description of the repro steps.
+        Log.d(TAG, "replaceFolderWithFinalItem: folder=" + System.identityHashCode(folder)
+                + " items=" + folder.getItemCount()
+                + " parentFolder=" + (parentFolder == null
+                        ? "null (top-level path)"
+                        : System.identityHashCode(parentFolder) + " items=" + parentFolder.getItemCount()));
         if (parentFolder != null) {
             return replaceNestedFolderWithFinalItem(folder, parentFolder);
         }
@@ -142,23 +154,6 @@ public class LauncherDelegate {
     }
 
     /**
-     * Finds the {@link Folder} that owns {@param folderIconView} as one of its own content
-     * items - i.e. whose {@link FolderPagedView} contains it - or null if it isn't currently
-     * shown inside another folder (a top-level, workspace/hotseat folder icon's ancestor chain
-     * never passes through a {@link FolderPagedView}, only {@link CellLayout}s that belong
-     * directly to the workspace or hotseat).
-     */
-    @Nullable
-    private static Folder findParentFolder(View folderIconView) {
-        for (ViewParent p = folderIconView.getParent(); p != null; p = p.getParent()) {
-            if (p instanceof FolderPagedView) {
-                return ((FolderPagedView) p).getFolder();
-            }
-        }
-        return null;
-    }
-
-    /**
      * Nested-folder counterpart of {@link #replaceFolderWithFinalItem}. A nested folder isn't
      * backed by a CellLayout position of its own - it's just an entry, at some rank, in its
      * parent folder's contents - so collapsing it down to its last item means editing that list
@@ -175,6 +170,11 @@ public class LauncherDelegate {
             int rank = parentInfo.getContents().indexOf(info);
 
             ItemInfo finalItem = folder.getItemCount() == 1 ? info.getContents().remove(0) : null;
+
+            Log.d(TAG, "replaceNestedFolderWithFinalItem: folder=" + System.identityHashCode(folder)
+                    + " parentFolder=" + System.identityHashCode(parentFolder)
+                    + " rank=" + rank + " finalItem=" + finalItem
+                    + " parentInfo.contents.size()=" + parentInfo.getContents().size());
 
             if (finalItem != null) {
                 // Add the replacement before removing the folder, so the parent's own item

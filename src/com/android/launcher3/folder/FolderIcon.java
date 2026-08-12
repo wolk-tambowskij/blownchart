@@ -139,13 +139,13 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     private float mDotScale;
     private Animator mDotScaleAnim;
 
-    // Small static badge marking a folder that has a nested subfolder among its contents (app
-    // drawer only, one level deep) - lazily inflated since most folders never need it.
-    private Drawable mNestedFolderBadge;
-
     private Rect mTouchArea = new Rect();
 
     private float mScaleForReorderBounce = 1f;
+
+    // Small static badge marking a folder that has a nested subfolder among its contents (app
+    // drawer only, one level deep) - lazily created, cached for the life of this icon view.
+    private Drawable mNestedFolderBadge;
 
     private static final Property<FolderIcon, Float> DOT_SCALE_PROPERTY
             = new Property<FolderIcon, Float>(Float.TYPE, "dotScale") {
@@ -502,7 +502,10 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         CharSequence newTitle = nameInfos.getLabels()[0];
         FromState fromState = mInfo.getFromLabelState();
 
-        mInfo.setTitle(newTitle, mFolder.mLauncherDelegate.getModelWriter());
+        // App-drawer folders aren't tracked in the real LauncherModel - their ids come from a
+        // separate database and can coincidentally collide with a real item's id, so never pass
+        // one to ModelWriter (setTitle() is null-safe and just skips the DB write).
+        mInfo.setTitle(newTitle, isInAppDrawer() ? null : mFolder.mLauncherDelegate.getModelWriter());
         onTitleChanged(mInfo.title);
         mFolder.getFolderName().setText(mInfo.title);
 
@@ -673,13 +676,12 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     }
 
     /**
-     * Draws a small static folder glyph straddling the bottom-right edge of the preview when
-     * this folder contains a nested subfolder (app drawer only, one level deep) - a quick visual
-     * cue that there's more to open here, distinct from the notification dot's own corner.
-     * Centered ON the (inset) edge, rather than tucked entirely inside it, so the background's
-     * own border passes through roughly the middle of the badge instead of running along its
-     * edge, where a solid-colored badge would otherwise be hard to tell apart from the border
-     * itself.
+     * Draws a small static folder glyph straddling the bottom-right edge of the preview when this
+     * folder contains a nested subfolder (app drawer only, one level deep) - a quick visual cue
+     * that there's more to open here, distinct from the notification dot's own corner. Centered
+     * ON the (inset) edge, rather than tucked entirely inside it, so the background's own border
+     * passes through roughly the middle of the badge instead of running along its edge, where a
+     * solid-colored badge would otherwise be hard to tell apart from the border itself.
      */
     private void drawNestedFolderBadge(Canvas canvas) {
         boolean hasNestedFolder = mInfo.getContents().stream().anyMatch(item -> item instanceof FolderInfo);
@@ -751,20 +753,21 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
      * Returns the list of items which should be visible in the preview
      */
     public List<ItemInfo> getPreviewItemsOnPage(int page) {
-        // A nested subfolder (one level of folder-in-folder, app drawer only) has no static
-        // preview drawable of its own - PreviewItemManager#setDrawable would crash on the bare
-        // FolderInfo. Rather than omit it from the preview, pull its own direct app contents in
-        // instead, so the parent's closed-icon preview shows real icons "from inside" the
-        // subfolder. Safe to flatten just one level: app-drawer folders only ever nest
-        // AppInfo-only subfolders, never a subfolder containing another subfolder. The corner
-        // badge (see drawNestedFolderBadge()) is the separate visual cue that a subfolder is
+        // A nested subfolder (one level of folder-in-folder, app drawer or home screen) has no
+        // static preview drawable of its own - PreviewItemManager#setDrawable would crash on the
+        // bare FolderInfo. Rather than omit it from the preview, pull its own direct app contents
+        // in instead, so the parent's closed-icon preview shows real icons "from inside" the
+        // subfolder. Safe to flatten just one level: nesting is enforced to exactly one level on
+        // both the app drawer (see FolderDao#getNestableFoldersFlow) and the home screen (see
+        // FolderIcon#willAcceptItem), so a subfolder never itself contains another subfolder. The
+        // small corner badge (see dispatchDraw) is the separate visual cue that a subfolder is
         // present.
         List<ItemInfo> contents = mInfo.getContents().stream()
                 .flatMap(item -> item instanceof FolderInfo
                         ? ((FolderInfo) item).getContents().stream()
                         : Stream.of(item))
                 .collect(Collectors.toList());
-        return mPreviewVerifier.setFolderInfo(mInfo).previewItemsForPage(page, contents);
+        return mPreviewVerifier.setContentSize(contents.size()).previewItemsForPage(page, contents);
     }
 
     @Override

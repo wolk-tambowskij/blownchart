@@ -61,7 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-import app.lawnchair.preferences.PreferenceManager;
+import app.blownchart.preferences.PreferenceManager;
 
 /**
  * Manages the drawing and animations of {@link PreviewItemDrawingParams} for a
@@ -194,7 +194,7 @@ public class PreviewItemManager {
             mIcon.mBackground.setup(mIcon.getContext(), mIcon.mActivity, mIcon, mTotalWidth,
                     mIcon.getPaddingTop());
             mIcon.mPreviewLayoutRule.init(mIcon.mBackground.previewSize, mIntrinsicIconSize,
-                    Utilities.isRtl(mIcon.getResources()));
+                    Utilities.isRtl(mIcon.getResources()), mContext);
 
             updatePreviewItems(false);
         }
