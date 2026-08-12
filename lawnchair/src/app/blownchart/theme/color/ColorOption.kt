@@ -65,7 +65,7 @@ sealed class ColorOption {
 
         override val colorPreferenceEntry = ColorPreferenceEntry<ColorOption>(
             this,
-            { stringResource(id = R.string.managed_by_lawnchair) },
+            { stringResource(id = R.string.managed_by_blownchart) },
             { 0 },
         )
 

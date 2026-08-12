@@ -62,7 +62,7 @@
             android:autoRemoveFromRecents="true"
             android:exported="true"
             android:label="@string/settings_button_text"
-            android:theme="@style/Theme.Lawnchair"
+            android:theme="@style/Theme.BlownChart"
             android:windowSoftInputMode="adjustResize"
             android:enableOnBackInvokedCallback="true">
             <intent-filter android:priority="1">
@@ -88,7 +88,7 @@
             android:autoRemoveFromRecents="true"
             android:excludeFromRecents="true"
             android:exported="false"
-            android:theme="@style/Theme.Lawnchair"
+            android:theme="@style/Theme.BlownChart"
             android:enableOnBackInvokedCallback="true" />
 
         <receiver

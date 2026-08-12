@@ -9,7 +9,7 @@ enum class ColorMode(
     @StringRes val labelResourceId: Int,
 ) {
     AUTO(
-        labelResourceId = R.string.managed_by_lawnchair,
+        labelResourceId = R.string.managed_by_blownchart,
     ),
     LIGHT(
         labelResourceId = R.string.color_light,

@@ -58,7 +58,7 @@ data class BugReport(
             }
             type = "text/plain"
         }
-        val chooser = Intent.createChooser(sendIntent, context.getText(R.string.lawnchair_bug_report))
+        val chooser = Intent.createChooser(sendIntent, context.getText(R.string.blownchart_bug_report))
         if (sendIntent.clipData != null) {
             chooser.clipData = sendIntent.clipData
             chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

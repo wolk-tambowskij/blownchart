@@ -63,7 +63,7 @@ class CreateBackupViewModel(
             val context = app.createConfigurationContext(config)
 
             val idp = LauncherAppState.getIDP(context)
-            val themedContext = ContextThemeWrapper(context, R.style.Theme_Lawnchair)
+            val themedContext = ContextThemeWrapper(context, R.style.Theme_BlownChart)
             val previewView = LauncherPreviewView(
                 context = themedContext,
                 idp = idp,

@@ -26,7 +26,7 @@
     <dimen name="noqsb_hotseat_bottom_non_tall_padding">0dp</dimen>
     <dimen name="noqsb_hotseat_extra_vertical_size">34dp</dimen>
 
-    <dimen name="lawnchair_dialog_corner_radius">24dp</dimen>
+    <dimen name="blownchart_dialog_corner_radius">24dp</dimen>
 
     <!-- qsb -->
     <dimen name="all_apps_search_bar_bottom_padding">36dp</dimen>

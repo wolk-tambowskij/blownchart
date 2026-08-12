@@ -34,7 +34,7 @@ sealed class SmartspaceMode(
 }
 
 object BlownChartSmartspace : SmartspaceMode(
-    nameResourceId = R.string.smartspace_mode_lawnchair,
+    nameResourceId = R.string.smartspace_mode_blownchart,
     layoutResourceId = R.layout.smartspace_container,
 ) {
     override fun toString() = "lawnchair"

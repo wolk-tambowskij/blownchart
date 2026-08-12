@@ -56,13 +56,13 @@ class PreferenceViewModel(private val app: Application) :
                     CustomAdaptiveIconDrawable.wrapNonNull(info.loadIcon(pm)),
                 )
             }
-        val lawnchairIcon = CustomAdaptiveIconDrawable.wrapNonNull(
+        val blownChartIcon = CustomAdaptiveIconDrawable.wrapNonNull(
             ContextCompat.getDrawable(app, R.drawable.ic_launcher_home)!!,
         )
         val defaultIconPack = IconPackInfo(
             name = app.getString(R.string.system_icons),
             packageName = "",
-            icon = lawnchairIcon,
+            icon = blownChartIcon,
         )
         val withSystemIcons = listOf(defaultIconPack) + iconPacks.sortedBy { it.name }
         emit(withSystemIcons)
@@ -82,14 +82,14 @@ class PreferenceViewModel(private val app: Application) :
                     CustomAdaptiveIconDrawable.wrapNonNull(info.loadIcon(pm)),
                 )
             }
-        val lawnchairIcon = CustomAdaptiveIconDrawable.wrapNonNull(
+        val blownChartIcon = CustomAdaptiveIconDrawable.wrapNonNull(
             ContextCompat.getDrawable(app, R.drawable.ic_launcher_home)!!,
         )
         var defaultIconPack = listOf(
             IconPackInfo(
                 name = app.getString(R.string.system_icons),
                 packageName = "",
-                icon = lawnchairIcon,
+                icon = blownChartIcon,
             ),
         )
         if (app.packageManager.getPackageVersionCode(LAWNICONS_PACKAGE_NAME) in 1..3) {

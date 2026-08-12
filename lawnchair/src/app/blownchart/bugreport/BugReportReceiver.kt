@@ -30,7 +30,7 @@ class BugReportReceiver : BroadcastReceiver() {
     }
 
     private fun copyReport(context: Context, report: BugReport) {
-        val clipData = ClipData.newPlainText(context.getString(R.string.lawnchair_bug_report), report.link ?: report.contents)
+        val clipData = ClipData.newPlainText(context.getString(R.string.blownchart_bug_report), report.link ?: report.contents)
         context.requireSystemService<ClipboardManager>().setPrimaryClip(clipData)
         Toast.makeText(context, R.string.copied_toast, Toast.LENGTH_LONG).show()
     }

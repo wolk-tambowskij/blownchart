@@ -53,7 +53,7 @@
     <string name="time_weeks_ago">%dw</string>
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
-    <string name="managed_by_lawnchair">Управляется BlownChart</string>
+    <string name="managed_by_blownchart">Управляется BlownChart</string>
     <string name="smartspace_preferences">Настройки</string>
     <string name="settings_button_text">Настройки лаунчера</string>
     <string name="system_settings">Системные настройки</string>
@@ -384,7 +384,7 @@
     <string name="recents_screen_a11y_hint">open the Recents screen</string>
     <string name="generic_a11y_hint">To %1$s, turn on the BlownChart accessibility service. Tap \"Open settings\", select \"BlownChart\" and turn on \"Use BlownChart.\"</string>
     <string name="generic_a11y_disclaimer">BlownChart uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, BlownChart is not configured for that functionality and receives no events.</string>
-    <string name="lawnchair_bug_report">Отчет об ошибках BlownChart</string>
+    <string name="blownchart_bug_report">Отчет об ошибках BlownChart</string>
     <string name="crash_report_notif_title">%1$s - произошел сбой</string>
     <string name="action_upload_crash_report">Отправить лог ошибки</string>
     <string name="action_upload_error">Отправка не удалась</string>

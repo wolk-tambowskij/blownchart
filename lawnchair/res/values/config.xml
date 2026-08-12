@@ -55,7 +55,7 @@
         <item>com.google.android.launcher/.StubApp</item>
         <!-- Action Services -->
         <item>com.google.android.as/com.google.android.apps.miphone.aiai.allapps.main.MainDummyActivity</item>
-        <!-- Lawnchair -->
+        <!-- BlownChart -->
         <item>@string/launcher_component</item>
     </string-array>
 

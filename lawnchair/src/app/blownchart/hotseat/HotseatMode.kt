@@ -31,7 +31,7 @@ sealed class HotseatMode(
 }
 
 object BlownChartHotseat : HotseatMode(
-    nameResourceId = R.string.hotseat_mode_lawnchair,
+    nameResourceId = R.string.hotseat_mode_blownchart,
     layoutResourceId = R.layout.search_container_hotseat,
 ) {
     override fun toString() = "lawnchair"

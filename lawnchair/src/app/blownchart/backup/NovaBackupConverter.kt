@@ -353,7 +353,7 @@ class NovaBackupConverter(
                 }
 
                 val title = getStringOrNull(cursor, NOVA_COL_TITLE)
-                /* TODO: Lawnchair folder synchronization support
+                /* TODO: BlownChart folder synchronization support
                  *        For nova parity:
                  *           Sync folder contents from allapps to workspace, or workspace to allapps
                  *        ImplNote:

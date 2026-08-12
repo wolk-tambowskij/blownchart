@@ -5,7 +5,7 @@ import app.blownchart.ui.preferences.destinations.SearchRoute
 import kotlinx.serialization.Serializable
 
 /**
- * Represents a route in the Lawnchair preferences navigation graph.
+ * Represents a route in the BlownChart preferences navigation graph.
  *
  * This sealed interface is the base for all navigation destinations within the preferences.
  * Each implementing object or data class defines a specific screen or action.

@@ -227,7 +227,7 @@ fun AppDrawerFoldersPreference(
             viewModel.updateFolderOrder(it)
         },
         onExportFolders = {
-            val fileName = "lawnchair_folders_${SimpleDateFormat.getDateTimeInstance().format(Date())}.json"
+            val fileName = "blownchart_folders_${SimpleDateFormat.getDateTimeInstance().format(Date())}.json"
             Intent(Intent.ACTION_CREATE_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .setType("application/json")

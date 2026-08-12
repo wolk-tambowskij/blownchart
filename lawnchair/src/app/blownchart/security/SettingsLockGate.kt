@@ -25,7 +25,7 @@ import com.patrykmichalik.opto.core.firstBlocking
 import com.patrykmichalik.opto.core.setBlocking
 
 /**
- * Whether Lawnchair's own settings and any exit into system Settings require the settings-lock
+ * Whether BlownChart's own settings and any exit into system Settings require the settings-lock
  * PIN (or biometric) to proceed, plus the PIN storage/validation logic backing that gate. See
  * [SettingsLockUnlockActivity] for the actual unlock UI.
  */
