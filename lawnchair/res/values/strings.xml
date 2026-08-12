@@ -538,6 +538,7 @@
     <string name="about_change_18">Confirmation dialog before deleting a folder, warning if it contains nested folders</string>
     <string name="about_change_19">Optional: back up the lock screen\'s wallpaper independently of the home screen one, with a live preview next to the home wallpaper on the backup and restore screens</string>
     <string name="about_change_20">Changing the icon shape now updates folder icons immediately, instead of the old shape lingering on them until the app was restarted</string>
+    <string name="about_change_21">A folder in the app drawer (including one with a nested subfolder) can now be dragged straight onto the home screen, creating a real copy there with all its apps and its name - the app drawer\'s own folder is left untouched</string>
     <string name="about_privacy_note">All settings, folder data, and the optional settings PIN are stored locally on this device. This fork does not add analytics or telemetry beyond what upstream Lawnchair already includes; see Lawnchair\'s own privacy policy below for the inherited baseline.</string>
 
     <string name="about_recommendations_heading">Recommendations for reliability</string>

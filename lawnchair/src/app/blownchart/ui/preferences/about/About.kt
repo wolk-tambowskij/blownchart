@@ -237,6 +237,7 @@ fun About(
                     R.string.about_change_18,
                     R.string.about_change_19,
                     R.string.about_change_20,
+                    R.string.about_change_21,
                 ).forEach { changeRes ->
                     Row(modifier = Modifier.padding(vertical = 4.dp)) {
                         Text(text = "• ", style = MaterialTheme.typography.bodyMedium)
