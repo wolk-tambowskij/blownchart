@@ -1633,10 +1633,35 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         int centerY = sTempRect.centerY();
         int centeredLeft = centerX - width / 2;
         int centeredTop = centerY - height / 2;
+        int left = centeredLeft;
+        int top = centeredTop;
 
-        sTempRect.set(mActivityContext.getFolderBoundingBox());
-        int left = Utilities.boundToRange(centeredLeft, sTempRect.left, sTempRect.right - width);
-        int top = Utilities.boundToRange(centeredTop, sTempRect.top, sTempRect.bottom - height);
+        Rect pageBounds = mActivityContext.getFolderBoundingBox();
+        Folder openParent = isNested() ? findParentFolder() : null;
+        if (openParent != null) {
+            // A nested folder's own icon sits inside its parent's already-open window, so
+            // centering on it the way a top-level folder centers on its home-screen/drawer icon
+            // would bury most of the parent's own visible icons under the child's window.
+            // Instead, offset the child folder to sit just outside the parent's window, on
+            // whichever side has the most room within the page bounding box - the same one the
+            // clamp below already keeps every open folder inside - so the parent stays visible
+            // around the child instead of needing a guessed-at safe overlap margin.
+            Rect parentRect = new Rect();
+            parent.getDescendantRectRelativeToSelf(openParent, parentRect);
+            int spaceLeft = parentRect.left - pageBounds.left;
+            int spaceRight = pageBounds.right - parentRect.right;
+            int spaceTop = parentRect.top - pageBounds.top;
+            int spaceBottom = pageBounds.bottom - parentRect.bottom;
+            if (Math.max(spaceLeft, spaceRight) >= Math.max(spaceTop, spaceBottom)) {
+                left = spaceRight >= spaceLeft ? parentRect.right : parentRect.left - width;
+            } else {
+                top = spaceBottom >= spaceTop ? parentRect.bottom : parentRect.top - height;
+            }
+        }
+
+        sTempRect.set(pageBounds);
+        left = Utilities.boundToRange(left, sTempRect.left, sTempRect.right - width);
+        top = Utilities.boundToRange(top, sTempRect.top, sTempRect.bottom - height);
         int[] inOutPosition = new int[]{left, top};
         mActivityContext.updateOpenFolderPosition(inOutPosition, sTempRect, width, height);
         left = inOutPosition[0];
