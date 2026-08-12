@@ -340,8 +340,11 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         addItem(destInfo);
         // This will animate the first item from it's position as an icon into its
         // position as the first item in the preview
-        mPreviewItemManager.createFirstItemAnimation(false /* reverse */, null)
-                .start();
+        FolderPreviewItemAnim createAnim = mPreviewItemManager.createFirstItemAnimation(
+                false /* reverse */, null);
+        if (createAnim != null) {
+            createAnim.start();
+        }
 
         // This will animate the dragView (srcView) into the new folder
         onDrop(srcInfo, d, dstRect, scaleRelativeToDragLayer, 1,
@@ -350,8 +353,17 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
 
     public void performDestroyAnimation(Runnable onCompleteRunnable) {
         // This will animate the final item in the preview to be full size.
-        mPreviewItemManager.createFirstItemAnimation(true /* reverse */, onCompleteRunnable)
-                .start();
+        FolderPreviewItemAnim destroyAnim = mPreviewItemManager.createFirstItemAnimation(
+                true /* reverse */, onCompleteRunnable);
+        if (destroyAnim != null) {
+            destroyAnim.start();
+        } else {
+            // No preview item to animate from - can happen for a nested folder's own icon
+            // right after the drag that collapsed it down to its last item, before its
+            // preview params catch up with the new content count. Skip straight to the
+            // completion callback instead of crashing on an empty preview list.
+            onCompleteRunnable.run();
+        }
     }
 
     public void onDragExit() {

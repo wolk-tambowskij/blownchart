@@ -135,6 +135,14 @@ public class PreviewItemManager {
      */
     public FolderPreviewItemAnim createFirstItemAnimation(final boolean reverse,
             final Runnable onCompleteRunnable) {
+        if (mFirstPageParams.isEmpty()) {
+            // Can happen for a nested folder's own icon: its preview params mirror its own
+            // FolderInfo's content count, which can still be mid-update (e.g. right after the
+            // drag that collapsed it down to its last item) when this is called - nothing to
+            // animate from/to in that case. Null tells the caller to skip the animation instead
+            // of indexing into an empty list.
+            return null;
+        }
         return reverse
                 ? new FolderPreviewItemAnim(this, mFirstPageParams.get(0), 0, 2, -1, -1,
                         FINAL_ITEM_ANIMATION_DURATION, onCompleteRunnable)
