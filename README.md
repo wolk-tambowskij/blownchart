@@ -79,6 +79,10 @@ Folders (app drawer and home screen):
   icon), including the full path for an app inside a nested subfolder.
 - Confirmation dialog before deleting a folder, warning if it contains
   nested folders.
+- A folder in the app drawer (including one with a nested subfolder) can
+  be dragged straight onto the home screen, creating a real copy there
+  with all its apps and its name — the app drawer's own folder is left
+  untouched.
 
 Privacy and locking:
 
@@ -279,6 +283,10 @@ BlownChart появился из-за того, что на простое же�
   полный путь.
 - Диалог подтверждения перед удалением папки, с предупреждением, если
   внутри есть вложенные папки.
+- Папку в меню приложений (в том числе с вложенной подпапкой) теперь
+  можно перетащить прямо на домашний экран — там появится настоящая
+  копия со всеми приложениями и названием, а сама папка в меню
+  приложений останется без изменений.
 
 Приватность и блокировка:
 
