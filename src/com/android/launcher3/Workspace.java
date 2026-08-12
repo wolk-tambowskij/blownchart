@@ -3137,6 +3137,19 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 mTargetCell = cellLayout.performReorder((int) mDragViewVisualCenter[0],
                         (int) mDragViewVisualCenter[1], minSpanX, minSpanY, info.spanX, info.spanY,
                         null, mTargetCell, resultSpan, CellLayout.MODE_ON_DROP_EXTERNAL);
+                if (mTargetCell[0] < 0 || mTargetCell[1] < 0) {
+                    // performReorder can fail to resolve a cell here even though this drag was
+                    // already accepted (Workspace#acceptDrop ran its own successful resolution
+                    // earlier) if the workspace's layout state changed in between - e.g. a still-
+                    // open source folder finishing an unrelated close/rearrange. acceptDrop()
+                    // already promised the drag source a successful placement by returning true,
+                    // so fall back to the same "just find any vacant cell" resolution used below
+                    // for the no-touch-position case instead of leaving mTargetCell invalid -
+                    // silently placing nothing here would break that promise for whatever's
+                    // watching the drag's outcome (e.g. Folder#onDropCompleted's
+                    // collapse-to-last-item logic).
+                    cellLayout.findCellForSpan(mTargetCell, minSpanX, minSpanY);
+                }
 
                 if (resultSpan[0] != item.spanX || resultSpan[1] != item.spanY) {
                     updateWidgetSize = true;
@@ -3208,6 +3221,17 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                         (int) mDragViewVisualCenter[1], 1, 1, 1, 1,
                         null, mTargetCell, null, CellLayout.MODE_ON_DROP_EXTERNAL);
             } else {
+                cellLayout.findCellForSpan(mTargetCell, 1, 1);
+            }
+            if (mTargetCell[0] < 0 || mTargetCell[1] < 0) {
+                // As above: this drag was already accepted (Workspace#acceptDrop ran its own
+                // successful resolution earlier), so a resolution failure here - e.g. from the
+                // workspace's layout state changing in between, such as a still-open source
+                // folder finishing an unrelated close/rearrange - must still end in a real
+                // placement rather than feeding negative coordinates into addOrMoveItemInDatabase
+                // / addInScreen / animateViewIntoPosition below (the original crash this guards
+                // against). Fall back to the same "just find any vacant cell" resolution used
+                // above for the no-touch-position case.
                 cellLayout.findCellForSpan(mTargetCell, 1, 1);
             }
             // Add the item to DB before adding to screen ensures that the container and
