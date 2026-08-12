@@ -91,6 +91,7 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.accessibility.AccessibleDragListenerAdapter;
 import com.android.launcher3.accessibility.FolderAccessibilityHelper;
 import com.android.launcher3.anim.KeyboardInsetAnimationCallback;
+import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dragndrop.DragController;
@@ -1164,6 +1165,30 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     }
 
     /**
+     * True if {@param visualCenter} (in the same padding-adjusted, content-relative coordinate
+     * space {@link #getTargetRank} computes its own rank in) is still within the item currently
+     * at {@param rank}'s own folder-creation radius - the same magnetic tolerance
+     * {@link CellLayout#getFolderCreationRadius} already gives the equivalent home-screen
+     * drag-onto-another-icon gesture. This folder's own grid pages are themselves CellLayouts
+     * (see {@link FolderPagedView#getCurrentCellLayout}), so the same computation applies as-is.
+     */
+    private boolean isWithinMergeRadius(int rank, float[] visualCenter) {
+        ArrayList<View> views = getIconsInReadingOrder();
+        if (rank < 0 || rank >= views.size()) {
+            return false;
+        }
+        CellLayout cellLayout = mContent.getCurrentCellLayout();
+        if (cellLayout == null) {
+            return false;
+        }
+        CellLayoutLayoutParams lp = (CellLayoutLayoutParams) views.get(rank).getLayoutParams();
+        int[] targetCell = {lp.getCellX(), lp.getCellY()};
+        float distance = cellLayout.getDistanceFromWorkspaceCellVisualCenter(
+                visualCenter[0] - getPaddingLeft(), visualCenter[1] - getPaddingTop(), targetCell);
+        return distance <= cellLayout.getFolderCreationRadius(targetCell);
+    }
+
+    /**
      * Returns the nested-folder icon currently occupying {@param rank} in this folder's own
      * content, if any, and if it's willing to accept {@param dragInfo} - i.e. the drag would
      * land inside that subfolder rather than being reordered next to it. Null while dragging the
@@ -1305,7 +1330,22 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             return;
         }
         final float[] r = new float[2];
-        mTargetRank = getTargetRank(d, r);
+        int candidateRank = getTargetRank(d, r);
+        // If a subfolder icon or merge target is already locked in, keep it locked as long as
+        // the touch is still within its own folder-creation radius, instead of immediately
+        // losing it to a reorder the moment findNearestArea's nearest-rank computation flips to
+        // a neighboring cell from the slightest finger movement near a cell boundary. The
+        // workspace's own equivalent gesture (drag one icon onto another to create/merge into a
+        // folder) already gets this same magnetic tolerance via CellLayout#getFolderCreationRadius;
+        // this folder's own grid is backed by the same CellLayout class, so reuse it directly
+        // rather than reordering-away a target the user is still visibly hovering.
+        if ((mDragOverFolderIcon != null || mDragOverMergeTarget != null)
+                && candidateRank != mTargetRank
+                && isWithinMergeRadius(mTargetRank, r)) {
+            // Keep mTargetRank as-is.
+        } else {
+            mTargetRank = candidateRank;
+        }
 
         FolderIcon hoveredFolderIcon = getFolderIconAtRank(mTargetRank, d.dragInfo);
         if (hoveredFolderIcon != mDragOverFolderIcon) {
