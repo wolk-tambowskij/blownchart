@@ -1155,18 +1155,34 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     }
 
     /**
+     * True if {@param dragSource} is a nested folder currently shown as one of this folder's own
+     * content items - i.e. the drag is an item leaving its own nested subfolder back out into
+     * this, its immediate parent. Returning to its own parent should be able to land as a plain
+     * sibling (the {@link #onDrop} fallback below already handles that correctly); it shouldn't
+     * be re-offered a merge into yet another brand-new subfolder just because it happens to be
+     * hovering an existing sibling's rank on the way out.
+     */
+    private boolean isDragSourceOwnNestedChild(DragSource dragSource) {
+        return dragSource instanceof Folder
+                && getIconsInReadingOrder().contains(((Folder) dragSource).mFolderIcon);
+    }
+
+    /**
      * Returns the plain sibling item (app/shortcut, not a subfolder) currently occupying
      * {@param rank} in this folder's own content, if dropping {@param dragInfo} onto it right now
      * would wrap the two of them in a brand-new nested folder - the in-folder equivalent of
      * dragging one home-screen icon onto another. Null while this folder is itself already
-     * nested (that would make a second level), while either item can't go in a folder at all, or
-     * while hovering the drag's own origin rank, an empty cell, or an existing subfolder icon
-     * (handled by {@link #getFolderIconAtRank} instead).
+     * nested (that would make a second level), while either item can't go in a folder at all,
+     * while the drag is an item returning to this, its own immediate parent, from one of this
+     * folder's own nested subfolders (see {@link #isDragSourceOwnNestedChild}), or while hovering
+     * the drag's own origin rank, an empty cell, or an existing subfolder icon (handled by
+     * {@link #getFolderIconAtRank} instead).
      */
     @Nullable
-    private View getMergeTargetAtRank(int rank, ItemInfo dragInfo) {
+    private View getMergeTargetAtRank(int rank, ItemInfo dragInfo, DragSource dragSource) {
         if (isNested() || dragInfo instanceof FolderInfo
-                || !Folder.willAcceptItemType(dragInfo.itemType)) {
+                || !Folder.willAcceptItemType(dragInfo.itemType)
+                || isDragSourceOwnNestedChild(dragSource)) {
             return null;
         }
         ArrayList<View> views = getIconsInReadingOrder();
@@ -1263,7 +1279,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             return;
         }
 
-        mDragOverMergeTarget = getMergeTargetAtRank(mTargetRank, d.dragInfo);
+        mDragOverMergeTarget = getMergeTargetAtRank(mTargetRank, d.dragInfo, d.dragSource);
         if (mDragOverMergeTarget != null) {
             // Hovering a plain sibling item: dropping now would wrap it and the dragged item
             // in a new subfolder, so don't reorder this folder's contents around it either.
@@ -1653,7 +1669,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
         View mergeTarget = mDragOverMergeTarget;
         if (mergeTarget == null) {
-            mergeTarget = getMergeTargetAtRank(getTargetRank(d, null), d.dragInfo);
+            mergeTarget = getMergeTargetAtRank(getTargetRank(d, null), d.dragInfo, d.dragSource);
         }
         if (mergeTarget != null) {
             // Dropping onto a plain sibling item: wrap the two of them in a brand-new nested
