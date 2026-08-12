@@ -21,6 +21,8 @@ package com.android.launcher3.folder;
 import static android.text.TextUtils.isEmpty;
 
 import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT;
@@ -62,7 +64,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewDebug;
-import android.view.ViewParent;
 import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.animation.AnimationUtils;
@@ -1118,15 +1119,28 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     }
 
     /**
-     * True if this folder is itself shown as a nested-subfolder icon inside another,
-     * already-open folder - i.e. {@link #findParentFolder} would return non-null. See
-     * {@link #isNested()}, whose parent-chain walk this mirrors, for why that's the signal used.
+     * Finds the live, currently-open {@link Folder} that owns this one as a nested subfolder -
+     * i.e. the one whose own content includes this folder's {@link FolderInfo} - or null if this
+     * folder isn't nested (see {@link #isNested()}), or its parent isn't currently open.
+     *
+     * <p>Looked up directly from the data model ({@link #mInfo}'s own container field) among
+     * {@link AbstractFloatingView}'s own registry of open views (the DragLayer's direct children
+     * - the same list {@link #getOpenView} draws from), rather than by walking this folder's own
+     * icon view's parent chain: the view hierarchy can lag behind the data model - e.g. still
+     * nested inside a since-destroyed folder's now-orphaned content view - which is exactly what
+     * let an already-deleted folder keep getting resolved as a different, still-live folder's
+     * parent during real-device testing of the drag-out/collapse flow, corrupting both.
      */
     @Nullable
-    private Folder findParentFolder() {
-        for (ViewParent p = mFolderIcon.getParent(); p != null; p = p.getParent()) {
-            if (p instanceof FolderPagedView) {
-                return ((FolderPagedView) p).getFolder();
+    Folder findParentFolder() {
+        if (!isNested()) {
+            return null;
+        }
+        BaseDragLayer dragLayer = mActivityContext.getDragLayer();
+        for (int i = dragLayer.getChildCount() - 1; i >= 0; i--) {
+            View child = dragLayer.getChildAt(i);
+            if (child instanceof Folder otherFolder && otherFolder.mInfo.id == mInfo.container) {
+                return otherFolder;
             }
         }
         return null;
@@ -1176,17 +1190,16 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     }
 
     /**
-     * True if this folder is itself shown as a nested-subfolder icon inside another, already-open
-     * folder - i.e. one level of nesting deep already, same signal
-     * {@link com.android.launcher3.folder.LauncherDelegate#findParentFolder} uses.
+     * True if this folder is itself nested one level inside another folder - derived from the
+     * data model (this folder's own {@link ItemInfo#container}) rather than the current view
+     * hierarchy: a top-level, workspace/hotseat folder's container is
+     * {@link com.android.launcher3.LauncherSettings.Favorites#CONTAINER_DESKTOP} or
+     * {@code CONTAINER_HOTSEAT}; a nested folder's is whatever other collection's id holds it,
+     * regardless of whether that parent happens to currently be open (see
+     * {@link #findParentFolder()} for when the *open* parent instance is also needed).
      */
     private boolean isNested() {
-        for (ViewParent p = mFolderIcon.getParent(); p != null; p = p.getParent()) {
-            if (p instanceof FolderPagedView) {
-                return true;
-            }
-        }
-        return false;
+        return mInfo.container != CONTAINER_DESKTOP && mInfo.container != CONTAINER_HOTSEAT;
     }
 
     /**
@@ -1198,8 +1211,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
      * hovering an existing sibling's rank on the way out.
      */
     private boolean isDragSourceOwnNestedChild(DragSource dragSource) {
-        return dragSource instanceof Folder
-                && getIconsInReadingOrder().contains(((Folder) dragSource).mFolderIcon);
+        return dragSource instanceof Folder sourceFolder && sourceFolder.mInfo.container == mInfo.id;
     }
 
     /**

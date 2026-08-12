@@ -21,7 +21,6 @@ import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewParent;
 
 import androidx.annotation.Nullable;
 
@@ -82,7 +81,7 @@ public class LauncherDelegate {
     }
 
     boolean replaceFolderWithFinalItem(Folder folder) {
-        Folder parentFolder = findParentFolder(folder.mFolderIcon);
+        Folder parentFolder = folder.findParentFolder();
         // Diagnostic: which Folder instance is being collapsed, whether it resolved to a nested
         // parent or the top-level path, and how many items each side currently has - added while
         // chasing reports of the *parent* folder disappearing along with its contents during a
@@ -152,23 +151,6 @@ public class LauncherDelegate {
             onCompleteRunnable.run();
         }
         return true;
-    }
-
-    /**
-     * Finds the {@link Folder} that owns {@param folderIconView} as one of its own content
-     * items - i.e. whose {@link FolderPagedView} contains it - or null if it isn't currently
-     * shown inside another folder (a top-level, workspace/hotseat folder icon's ancestor chain
-     * never passes through a {@link FolderPagedView}, only {@link CellLayout}s that belong
-     * directly to the workspace or hotseat).
-     */
-    @Nullable
-    private static Folder findParentFolder(View folderIconView) {
-        for (ViewParent p = folderIconView.getParent(); p != null; p = p.getParent()) {
-            if (p instanceof FolderPagedView) {
-                return ((FolderPagedView) p).getFolder();
-            }
-        }
-        return null;
     }
 
     /**
