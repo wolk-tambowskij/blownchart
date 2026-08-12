@@ -18,6 +18,7 @@ package com.android.launcher3.folder;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_FOLDER_CONVERTED_TO_ICON;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
@@ -45,6 +46,8 @@ import java.util.function.Consumer;
  * Wrapper around Launcher methods to allow folders in non-launcher context
  */
 public class LauncherDelegate {
+
+    private static final String TAG = "LauncherDelegate";
 
     private final Launcher mLauncher;
 
@@ -80,6 +83,16 @@ public class LauncherDelegate {
 
     boolean replaceFolderWithFinalItem(Folder folder) {
         Folder parentFolder = findParentFolder(folder.mFolderIcon);
+        // Diagnostic: which Folder instance is being collapsed, whether it resolved to a nested
+        // parent or the top-level path, and how many items each side currently has - added while
+        // chasing reports of the *parent* folder disappearing along with its contents during a
+        // nested-folder drag-out, to see the actual object identities/counts involved instead of
+        // inferring them from a text description of the repro steps.
+        Log.d(TAG, "replaceFolderWithFinalItem: folder=" + System.identityHashCode(folder)
+                + " items=" + folder.getItemCount()
+                + " parentFolder=" + (parentFolder == null
+                        ? "null (top-level path)"
+                        : System.identityHashCode(parentFolder) + " items=" + parentFolder.getItemCount()));
         if (parentFolder != null) {
             return replaceNestedFolderWithFinalItem(folder, parentFolder);
         }
@@ -175,6 +188,11 @@ public class LauncherDelegate {
             int rank = parentInfo.getContents().indexOf(info);
 
             ItemInfo finalItem = folder.getItemCount() == 1 ? info.getContents().remove(0) : null;
+
+            Log.d(TAG, "replaceNestedFolderWithFinalItem: folder=" + System.identityHashCode(folder)
+                    + " parentFolder=" + System.identityHashCode(parentFolder)
+                    + " rank=" + rank + " finalItem=" + finalItem
+                    + " parentInfo.contents.size()=" + parentInfo.getContents().size());
 
             if (finalItem != null) {
                 // Add the replacement before removing the folder, so the parent's own item
