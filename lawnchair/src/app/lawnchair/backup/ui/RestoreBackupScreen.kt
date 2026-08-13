@@ -178,13 +178,13 @@ fun ColumnScope.RestoreBackupOptions(
                     )
                 }
             }
+            val lockWallpaper = backup.lockWallpaper
             DummyLauncherBox(
                 modifier = Modifier
                     .weight(1f)
                     .clip(MaterialTheme.shapes.large),
                 darkText = backup.info.previewDarkText,
             ) {
-                val lockWallpaper = backup.lockWallpaper
                 if (contents.hasFlag(LawnchairBackup.INCLUDE_LOCK_WALLPAPER) && lockWallpaper != null) {
                     Image(
                         bitmap = lockWallpaper.asImageBitmap(),

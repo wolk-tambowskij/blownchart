@@ -7,7 +7,14 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.graphics.drawable.toBitmap
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import app.lawnchair.LawnchairProto.BackupInfo
+import app.lawnchair.data.AppDatabase
+import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.util.hasFlag
 import app.lawnchair.util.scaleDownTo
 import app.lawnchair.util.scaleDownToDisplaySize
@@ -18,7 +25,6 @@ import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherFiles
 import com.android.launcher3.R
 import com.android.launcher3.model.DeviceGridState
-import com.android.launcher3.model.ModelDbController
 import com.android.launcher3.provider.RestoreDbTask
 import com.google.protobuf.Timestamp
 import java.io.File
@@ -32,6 +38,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlin.math.max
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 class LawnchairBackup(
@@ -65,15 +72,31 @@ class LawnchairBackup(
         val handlers = mutableMapOf<String, suspend (InputStream) -> Unit>()
         val contents = selectedContents and info.contents
         if (contents.hasFlag(INCLUDE_LAYOUT_AND_SETTINGS)) {
-            handlers.putAll(
-                getFiles(context, forRestore = true).mapValues { entry ->
-                    {
-                        val file = entry.value
-                        file.parentFile?.mkdirs()
-                        it.copyTo(file.outputStream())
+            getFiles(context, forRestore = true).forEach { (name, file) ->
+                handlers[name] = when (name) {
+                    // SharedPreferences/DataStore both cache a file's contents in memory once
+                    // anything in this process has read them - virtually guaranteed by the time
+                    // the user reaches this screen - and both blindly flush that (by then stale)
+                    // full in-memory copy back to disk on their next write from anywhere,
+                    // silently clobbering a raw byte-level restore of the same file before the
+                    // process even gets to restart. restoreSharedPreferencesFile/
+                    // restoreDataStoreFile replay the backup's entries through the same live,
+                    // cached instance every other reader in this process shares instead, so nothing
+                    // is left to disagree with. This is what dropped the custom home/drawer grid
+                    // size (stored via classic SharedPreferences) back to default on the first
+                    // restore pass.
+                    PREFS_FILE_NAME -> { input -> restoreSharedPreferencesFile(file, input) }
+
+                    PREFS_DATASTORE_FILE_NAME -> { input -> restoreDataStoreFile(file, input) }
+
+                    else -> {
+                        { input ->
+                            file.parentFile?.mkdirs()
+                            input.copyTo(file.outputStream())
+                        }
                     }
-                },
-            )
+                }
+            }
         }
         if (contents.hasFlag(INCLUDE_WALLPAPER)) {
             handlers[WALLPAPER_FILE_NAME] = {
@@ -93,12 +116,53 @@ class LawnchairBackup(
                 wallpaperManager.setBitmap(BitmapFactory.decodeStream(it), null, true, WallpaperManager.FLAG_LOCK)
             }
         }
-        context.getDatabasePath(LAUNCHER_DB_FILE_NAME).parentFile?.deleteRecursively()
-        DeviceGridState(info.gridState).writeToPrefs(context, true)
+        // Only clears out a stale restored.db (and its -wal/-shm/-journal sidecars) left over
+        // from a previous restore attempt - NOT the whole databases/ directory. That directory
+        // is also home to unrelated SQLite databases this process has open independently (e.g.
+        // the icon cache), and deleting it out from under them raced with a background write on
+        // one of those and crashed the whole process with SQLITE_READONLY_DBMOVED.
+        val restoredDbFile = context.getDatabasePath(RESTORED_DB_FILE_NAME)
+        restoredDbFile.parentFile?.listFiles()
+            ?.filter { it.name.startsWith(RESTORED_DB_FILE_NAME) }
+            ?.forEach { it.delete() }
+        // Same reasoning, for AppDatabase's own "preferences" db (Folders/FolderItems/
+        // IconOverride/Wallpaper) - it's WAL-mode, so a raw copy of just the main db file leaves
+        // this process's pre-restore -wal/-shm sidecars sitting next to the newly-restored file.
+        // On the next open, SQLite replays that stale WAL on top of it, silently reverting the
+        // just-restored folders back to whatever they were before restore. Deleting the sidecars
+        // (not the main file - that's about to be overwritten by the zip entry itself) forces a
+        // clean read of only what restore actually wrote.
+        if (contents.hasFlag(INCLUDE_LAYOUT_AND_SETTINGS)) {
+            val prefsDb = prefsDbFile(context)
+            prefsDb.parentFile?.listFiles()
+                ?.filter { it.name.startsWith(prefsDb.name) && it.name != prefsDb.name }
+                ?.forEach { it.delete() }
+        }
         readZip(handlers)
 
-        var dbController = ModelDbController(context)
-        RestoreDbTask.performRestore(context, dbController)
+        // Mirrors LauncherBackupAgent#onRestoreFinished(): mark the restore pending and let
+        // ModelDbController's normal DB-open path (RestoreDbTask#restoreIfNeeded, on the next
+        // cold start after restartLauncher()) do the actual restore, same as a real Android
+        // backup/restore. Calling RestoreDbTask#performRestore() directly here instead, on an
+        // ad-hoc ModelDbController while the app was still running, skipped the
+        // InvariantDeviceProfile reinit that only restoreIfNeeded() does - home-screen items
+        // silently dropped (grid-bound), while app-drawer contents and settings didn't (not
+        // grid-bound), until the same backup was restored a second time and that reinit had
+        // already happened as an ordinary side effect of the launcher running in between.
+        RestoreDbTask.setPending(context)
+
+        if (contents.hasFlag(INCLUDE_LAYOUT_AND_SETTINGS)) {
+            // Explicit safety net for grid size specifically, on top of the raw prefs-file replay
+            // above: that replay is only as correct as the *backup's* copy of the classic prefs
+            // XML file, and SharedPreferencesImpl's own apply() is asynchronous, so a backup made
+            // immediately after changing grid size in Settings can race a not-yet-flushed write
+            // and capture the previous value. info.gridState is captured into the backup's own
+            // protobuf at create() time via a separate, synchronous path, so writing it here -
+            // directly onto the live prefs instance, after the raw-file replay so it always wins -
+            // guarantees the grid size actually matches what create() saw, regardless of whether
+            // the raw prefs file happened to be fully flushed to disk at that moment.
+            DeviceGridState(info.gridState).writeToPrefs(context, true)
+        }
     }
 
     private suspend fun readZip(handlers: Map<String, suspend (InputStream) -> Unit>) {
@@ -119,11 +183,92 @@ class LawnchairBackup(
         }
     }
 
+    /**
+     * Restores a classic SharedPreferences-backed backup entry (destined for [destFile]) by
+     * staging its bytes under a name never before touched this process, reading that back as its
+     * own fresh SharedPreferences instance - guaranteed to reflect the file on disk, since
+     * nothing has it cached yet - and replaying every entry onto the real instance through its
+     * own Editor. A raw byte copy onto destFile wouldn't do: SharedPreferencesImpl caches a
+     * file's contents in memory the first time anything in this process reads it (virtually
+     * certain just from the Settings UI being open), and always flushes that full in-memory copy
+     * back to disk on its next write from anywhere, clobbering the raw-copied restore before the
+     * process even gets a chance to restart.
+     */
+    private suspend fun restoreSharedPreferencesFile(destFile: File, sourceStream: InputStream) {
+        destFile.parentFile?.mkdirs()
+        val stagingName = "restore_staging_${destFile.nameWithoutExtension}_${System.nanoTime()}"
+        val stagingFile = File(destFile.parentFile, "$stagingName.xml")
+        sourceStream.copyTo(stagingFile.outputStream())
+        try {
+            val staged = context.getSharedPreferences(stagingName, Context.MODE_PRIVATE)
+            context.getSharedPreferences(LauncherFiles.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply {
+                    staged.all.forEach { (key, value) ->
+                        when (value) {
+                            is Boolean -> putBoolean(key, value)
+
+                            is Int -> putInt(key, value)
+
+                            is Long -> putLong(key, value)
+
+                            is Float -> putFloat(key, value)
+
+                            is String -> putString(key, value)
+
+                            is Set<*> ->
+                                @Suppress("UNCHECKED_CAST")
+                                putStringSet(key, value as Set<String>)
+                        }
+                    }
+                }
+                .apply()
+        } finally {
+            context.deleteSharedPreferences(stagingName)
+        }
+    }
+
+    /**
+     * Same staging trick as [restoreSharedPreferencesFile] and for the same reason, but DataStore
+     * additionally throws if two DataStore instances for the same file are ever alive at once in
+     * a process - so the real file's edit has to go through PreferenceManager2's own singleton
+     * instance rather than a second ad-hoc one pointed at [destFile] directly.
+     */
+    private suspend fun restoreDataStoreFile(destFile: File, sourceStream: InputStream) {
+        destFile.parentFile?.mkdirs()
+        // PreferenceDataStoreFactory.create() requires the file name to end with the
+        // "preferences_pb" extension - the timestamp has to go before it, not after, or this
+        // throws IllegalStateException before ever reading the staged bytes back.
+        val stagingFile = File(destFile.parentFile, "restore_staging_${System.nanoTime()}.preferences_pb")
+        sourceStream.copyTo(stagingFile.outputStream())
+        try {
+            val stagedPrefs = PreferenceDataStoreFactory.create { stagingFile }.data.first()
+            PreferenceManager2.getInstance(context).preferencesDataStore.edit { prefs ->
+                prefs.clear()
+                stagedPrefs.asMap().forEach { (key, value) ->
+                    @Suppress("UNCHECKED_CAST")
+                    prefs[key as Preferences.Key<Any>] = value
+                }
+            }
+        } finally {
+            stagingFile.delete()
+        }
+    }
+
     companion object {
         private const val BACKUP_VERSION = 1
         private const val PREFS_FILE_NAME = "${LauncherFiles.SHARED_PREFERENCES_KEY}.xml"
         private const val PREFS_DB_FILE_NAME = "preferences"
         private const val PREFS_DATASTORE_FILE_NAME = "preferences.preferences_pb"
+
+        // Same key names as PreferenceManager2's settingsLockEnabled/settingsLockPinHash/
+        // settingsLockBiometricEnabled - redefined here (rather than imported) since
+        // PreferenceManager2 only exposes its opto Preference wrappers, not the raw DataStore
+        // keys these need to redact a settings-lock-free copy of the DataStore file for backup.
+        private val SETTINGS_LOCK_ENABLED_KEY = booleanPreferencesKey("settings_lock_enabled")
+        private val SETTINGS_LOCK_PIN_HASH_KEY = stringPreferencesKey("settings_lock_pin_hash")
+        private val SETTINGS_LOCK_BIOMETRIC_ENABLED_KEY = booleanPreferencesKey("settings_lock_biometric_enabled")
 
         const val INFO_FILE_NAME = "info.pb"
         const val WALLPAPER_FILE_NAME = "wallpaper.png"
@@ -179,6 +324,12 @@ class LawnchairBackup(
 
             val pfd = context.contentResolver.openFileDescriptor(fileUri, "w")!!
             withContext(Dispatchers.IO) {
+                // The "preferences" Room db is WAL-mode; flush it to the main db file first so
+                // the raw file copy below can't miss folder/icon-override/wallpaper writes
+                // still sitting in the -wal file. checkpointSync() blocks the calling thread,
+                // so it must run here (Dispatchers.IO), not on whatever thread called create().
+                AppDatabase.INSTANCE.get(context).checkpointSync()
+
                 pfd.use {
                     ZipOutputStream(FileOutputStream(pfd.fileDescriptor).buffered()).use { out ->
                         out.putNextEntry(ZipEntry(INFO_FILE_NAME))
@@ -213,11 +364,39 @@ class LawnchairBackup(
 
                         getFiles(context, forRestore = false).entries.forEach {
                             if (!it.value.exists()) return@forEach
-                            out.putNextEntry(ZipEntry(it.key))
-                            it.value.inputStream().copyTo(out)
+                            if (it.key == PREFS_DATASTORE_FILE_NAME) {
+                                writeRedactedDataStoreEntry(context, it.value, out)
+                            } else {
+                                out.putNextEntry(ZipEntry(it.key))
+                                it.value.inputStream().copyTo(out)
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        /**
+         * Writes [sourceDataStoreFile] into [out] as [PREFS_DATASTORE_FILE_NAME], with the
+         * settings-lock PIN hash and its toggles stripped out first. The settings lock is
+         * deliberately excluded from every backup path: restoring onto a new device should come
+         * up unlocked, with the PIN set up again by hand, not silently carrying over the old
+         * device's PIN hash and enabled state.
+         */
+        private suspend fun writeRedactedDataStoreEntry(context: Context, sourceDataStoreFile: File, out: ZipOutputStream) {
+            val redactedFile = File(context.cacheDir, "backup_$PREFS_DATASTORE_FILE_NAME")
+            sourceDataStoreFile.copyTo(redactedFile, overwrite = true)
+            try {
+                val redactedStore = PreferenceDataStoreFactory.create { redactedFile }
+                redactedStore.edit { prefs ->
+                    prefs.remove(SETTINGS_LOCK_ENABLED_KEY)
+                    prefs.remove(SETTINGS_LOCK_PIN_HASH_KEY)
+                    prefs.remove(SETTINGS_LOCK_BIOMETRIC_ENABLED_KEY)
+                }
+                out.putNextEntry(ZipEntry(PREFS_DATASTORE_FILE_NAME))
+                redactedFile.inputStream().copyTo(out)
+            } finally {
+                redactedFile.delete()
             }
         }
 
