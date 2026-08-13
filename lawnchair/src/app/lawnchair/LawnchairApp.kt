@@ -57,9 +57,6 @@ class LawnchairApp : Application() {
     private val compatible = Build.VERSION.SDK_INT in BuildConfig.QUICKSTEP_MIN_SDK..BuildConfig.QUICKSTEP_MAX_SDK
     private val isRecentsComponent: Boolean by unsafeLazy { checkRecentsComponent() }
     private val recentsEnabled: Boolean get() = compatible && isRecentsComponent
-    private val isAtleastT = Utilities.ATLEAST_T
-    internal var accessibilityService: LawnchairAccessibilityService? = null
-    val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
     /**
      * The component the OS actually invokes for the system Recents/Overview screen, read from
@@ -73,6 +70,8 @@ class LawnchairApp : Application() {
         if (resId == 0) return@lazy null
         ComponentName.unflattenFromString(resources.getString(resId))
     }
+    private val isAtleastT = Utilities.ATLEAST_T
+    internal var accessibilityService: LawnchairAccessibilityService? = null
 
     /**
      * Timestamp ([android.os.SystemClock.elapsedRealtime]) of the last time this app itself
@@ -86,6 +85,7 @@ class LawnchairApp : Application() {
      * matter which path caused it.
      */
     var lastRecentsSelfTriggerAtMs: Long = 0L
+    val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
     override fun onCreate() {
         super.onCreate()
@@ -212,16 +212,9 @@ class LawnchairApp : Application() {
     }
 
     private fun checkRecentsComponent(): Boolean {
-        @SuppressLint("DiscouragedApi")
-        val resId = resources.getIdentifier("config_recentsComponentName", "string", "android")
-        if (resId == 0) {
-            Log.d(TAG, "config_recentsComponentName not found, disabling recents")
-            return false
-        }
-
-        val recentsComponent = ComponentName.unflattenFromString(resources.getString(resId))
+        val recentsComponent = systemRecentsComponentName
         if (recentsComponent == null) {
-            Log.d(TAG, "config_recentsComponentName is empty, disabling recents")
+            Log.d(TAG, "config_recentsComponentName not found or empty, disabling recents")
             return false
         }
 
@@ -261,6 +254,19 @@ class LawnchairApp : Application() {
 
         @JvmStatic
         val isRecentsEnabled: Boolean get() = instance.recentsEnabled
+
+        /**
+         * Whether this OS version is within Quickstep's supported SDK range at all - independent
+         * of whether this launcher happens to already be the system's registered Recents
+         * provider (that's [isRecentsEnabled]). Gates whether Quickstep settings are reachable at
+         * all: on a device where a broken vendor firmware has hijacked
+         * `config_recentsComponentName`, [isRecentsEnabled] is false precisely because this
+         * launcher *isn't* the active provider - gating the whole settings screen on it would
+         * make the workaround for that exact situation (recents button/gesture interception)
+         * unreachable on the real hardware it exists for.
+         */
+        @JvmStatic
+        val isQuickstepCompatible: Boolean get() = instance.compatible
 
         @JvmStatic
         val isAtleastT: Boolean get() = instance.isAtleastT
