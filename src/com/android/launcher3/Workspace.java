@@ -3266,6 +3266,18 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
             addInScreen(view, container, screenId, mTargetCell[0], mTargetCell[1],
                     info.spanX, info.spanY);
+            if (view.getParent() == null) {
+                // addInScreen can silently fail to attach the view (unknown screenId, or no
+                // room left in the target CellLayout by the time it runs) even with a valid
+                // mTargetCell - the guard above only covers cell resolution, not this. Bail out
+                // the same way instead of proceeding into onDropChild()/animateViewIntoPosition()
+                // below, both of which assume the view is already attached to a parent and NPE
+                // otherwise.
+                mLauncher.getModelWriter().deleteItemFromDatabase(info,
+                        "view failed to attach to CellLayout after drop");
+                d.deferDragViewCleanupPostAnimation = false;
+                return;
+            }
             cellLayout.onDropChild(view);
             cellLayout.getShortcutsAndWidgets().measureChild(view);
 
