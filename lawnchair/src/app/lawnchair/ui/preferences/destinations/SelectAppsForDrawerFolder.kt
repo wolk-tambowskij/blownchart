@@ -3,25 +3,28 @@ package app.lawnchair.ui.preferences.destinations
 import android.content.Context
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,20 +37,26 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.data.folder.model.FolderViewModel
+import app.lawnchair.preferences.getAdapter
+import app.lawnchair.preferences2.preferenceManager2
+import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.AppItem
 import app.lawnchair.ui.preferences.components.AppItemPlaceholder
+import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
+import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
-import app.lawnchair.ui.preferences.components.reorderable.PositionalListItem
-import app.lawnchair.ui.preferences.components.reorderable.PositionalMapper
-import app.lawnchair.ui.preferences.components.reorderable.PositionalOrderMenu
-import app.lawnchair.ui.preferences.components.reorderable.PositionalReorderer
+import app.lawnchair.ui.preferences.components.reorderable.ReorderableDragHandle
+import app.lawnchair.ui.preferences.components.reorderable.ReorderablePreferenceGroup
 import app.lawnchair.util.App
 import app.lawnchair.util.appsState
 import com.android.launcher3.R
+import com.android.launcher3.model.data.AppInfo
+import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.util.ComponentKey
+import java.util.Locale
 
 @Composable
 fun SelectAppsForDrawerFolder(
@@ -62,36 +71,69 @@ fun SelectAppsForDrawerFolder(
     }
 
     val context = LocalContext.current
-    val apps by appsState()
+    val allApps by appsState()
+    val hiddenApps by preferenceManager2().hiddenApps.getAdapter().state
+    // Apps the user has hidden (including the launcher's own entry, hidden by default) shouldn't
+    // clutter the folder picker - they're still reachable elsewhere (e.g. an existing folder that
+    // already contains one keeps showing it via selectedIds, untouched by this filter).
+    val apps = remember(allApps, hiddenApps) { allApps.filter { !hiddenApps.contains(it.key.toString()) } }
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val folderInfo by viewModel.folderInfo.collectAsStateWithLifecycle()
 
     var allFolderPackages by remember { mutableStateOf(emptySet<String>()) }
     var filterNonUniqueItems by remember { mutableStateOf(true) }
+    var hasChanges by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    val manualOrder by preferenceManager2().folderManualOrder.getAdapter().state
 
-    val activeIds = remember(folderInfo) {
-        folderInfo?.getContents()?.map { ComponentKey(it.targetComponent, it.user).toString() } ?: emptyList()
-    }
-
-    val (positionalItems, activeCount) = remember(apps, activeIds, filterNonUniqueItems, allFolderPackages, searchQuery) {
-        val filtered = apps.filter { app ->
-            (
-                !filterNonUniqueItems ||
-                    !allFolderPackages.contains(app.key.componentName.packageName) ||
-                    activeIds.contains(app.key.toString())
-                ) &&
-                app.label.contains(searchQuery, ignoreCase = true)
-        }
-        PositionalMapper.prepareCategorizedItems(
-            allItems = filtered,
-            enabledIds = activeIds,
-            idSelector = { it.key.toString() },
+    var selectedIds by remember(folderInfo) {
+        mutableStateOf(
+            folderInfo?.getContents()
+                ?.filterIsInstance<AppInfo>()
+                ?.map { ComponentKey(it.targetComponent, it.user).toString() }
+                ?.toSet()
+                ?: emptySet(),
         )
     }
 
-    LaunchedEffect(folders) {
-        allFolderPackages = folders.flatMap { it.getContents() }
+    // The folder's nested subfolder, if it has one. It always renders as its own block before
+    // every app (see FolderService.mapToFolderInfo()) and isn't itself reorderable from here -
+    // its position relative to the apps below is fixed, only shown here for context.
+    val nestedSubfolder = folderInfo?.getContents()?.filterIsInstance<FolderInfo>()?.firstOrNull()
+
+    // Ordered view of the selected apps, for manual-order dragging. Seeded once from the
+    // folder's current (already rank-ordered, see FolderService) contents, then maintained by
+    // hand as checkboxes toggle - re-deriving it from folderInfo on every change would pick up
+    // FolderViewModel's alphabetically-rebuilt local state and undo any in-progress drag.
+    var selectedOrder by remember(folderInfoId) { mutableStateOf<List<App>>(emptyList()) }
+    var orderInitialized by remember(folderInfoId) { mutableStateOf(false) }
+    var hasOrderChanges by remember { mutableStateOf(false) }
+
+    LaunchedEffect(folderInfo, apps) {
+        val info = folderInfo
+        if (!orderInitialized && info != null && apps.isNotEmpty()) {
+            selectedOrder = info.getContents().filterIsInstance<AppInfo>().mapNotNull { itemInfo ->
+                val key = ComponentKey(itemInfo.targetComponent, itemInfo.user).toString()
+                apps.find { it.key.toString() == key }
+            }
+            orderInitialized = true
+        }
+    }
+
+    // Excludes the folder being edited: its own membership is already tracked via selectedIds,
+    // which updates synchronously on toggle. Including it here too would leave allFolderPackages
+    // briefly stale (it only catches up once the DB write round-trips through the folders flow),
+    // causing a just-toggled item to flicker out and back in. Walks into nested subfolders too -
+    // folders only ever surfaces top-level entries, so a subfolder's own apps live inside its
+    // parent's getContents() as a nested FolderInfo, not as a top-level entry of their own; without
+    // recursing into it, apps already assigned to a subfolder looked unassigned everywhere else.
+    // The exclusion also has to apply at every nesting depth, not just the top level: editing a
+    // subfolder means folderInfoId never matches a top-level id, so it'd otherwise still be found
+    // (and double-counted) while recursing into its own parent's contents.
+    LaunchedEffect(folders, folderInfoId) {
+        allFolderPackages = folders
+            .filter { it.id != folderInfoId }
+            .flatMap { it.collectAppInfos(excludeFolderId = folderInfoId) }
             .mapNotNull { it.targetPackage }
             .toSet()
     }
@@ -100,44 +142,102 @@ fun SelectAppsForDrawerFolder(
         viewModel.setFolderInfo(folderInfoId, false)
     }
 
+    // Applying every toggle to the grid immediately would mean a full launcher model reload
+    // per checkbox tap; instead apply them all once, when the user actually leaves this screen.
+    // The manual item order is likewise only written once here, not per drag settle.
+    DisposableEffect(Unit) {
+        onDispose {
+            if (hasOrderChanges) {
+                viewModel.updateFolderItemOrder(folderInfoId, selectedOrder.map { it.key.toString() })
+            }
+            if (hasChanges || hasOrderChanges) viewModel.onFolderEditingFinished()
+        }
+    }
+
+    // Apps are already sorted alphabetically by appsState(); folder membership is a filter/toggle
+    // only, not a manual order, so the displayed order never changes when items are (de)selected.
+    // In manual-order mode, already-selected apps are dropped from this list entirely - they're
+    // shown (and removable) in the "Folder contents" group above instead, via +/- buttons rather
+    // than a checkbox; in automatic-sort mode this stays the single list of everything, toggled
+    // by checkbox.
+    val displayedApps = remember(apps, filterNonUniqueItems, allFolderPackages, selectedIds, searchQuery, manualOrder) {
+        apps.filter { app ->
+            (!manualOrder || !selectedIds.contains(app.key.toString())) &&
+                (
+                    !filterNonUniqueItems ||
+                        !allFolderPackages.contains(app.key.componentName.packageName) ||
+                        selectedIds.contains(app.key.toString())
+                    ) &&
+                app.label.contains(searchQuery, ignoreCase = true)
+        }
+    }
+
+    fun persistSelection(newSelectedIds: Set<String>) {
+        selectedIds = newSelectedIds
+        hasChanges = true
+        // Keep the drag-order list in sync: drop deselected apps, append newly selected ones at
+        // the end (their position can be dragged into place afterward).
+        selectedOrder = selectedOrder.filter { newSelectedIds.contains(it.key.toString()) } +
+            apps.filter { app ->
+                newSelectedIds.contains(app.key.toString()) &&
+                    selectedOrder.none { it.key.toString() == app.key.toString() }
+            }
+        val newSelection = newSelectedIds.mapNotNull { keyString ->
+            apps.find { it.key.toString() == keyString }?.toAppInfo(context)
+        }
+        viewModel.updateFolderItems(folderInfoId, folderInfo?.title.toString(), newSelection)
+    }
+
     val loading = folderInfo == null && apps.isEmpty()
 
     PreferenceScaffold(
         label = if (loading) {
             stringResource(R.string.loading)
         } else {
-            stringResource(R.string.x_with_y_count, folderInfo?.title.toString(), activeCount)
+            stringResource(R.string.x_with_y_count, folderInfo?.title.toString(), selectedIds.size)
         },
         modifier = modifier,
         actions = {
             if (!loading) {
-                PositionalOrderMenu(
-                    items = positionalItems,
-                    activeCount = activeCount,
-                    onUpdate = { newList, newCount ->
-                        val sorted = PositionalMapper.sortInactiveItems(newList, newCount) { it.label }
-                        updateViewModel(sorted, newCount, apps, context, viewModel, folderInfoId, folderInfo?.title.toString())
-                    },
-                    additionalContent = { hideMenu ->
-                        DropdownMenuItem(
-                            onClick = {
-                                filterNonUniqueItems = !filterNonUniqueItems
-                                hideMenu()
-                            },
-                            trailingIcon = {
-                                if (filterNonUniqueItems) Icon(Icons.Rounded.Check, null)
-                            },
-                            text = { Text(stringResource(R.string.folders_filter_duplicates)) },
-                        )
-                    },
-                )
+                OverflowMenu {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.inverse_selection)) },
+                        onClick = {
+                            // Invert selection within the currently displayed (filtered) apps only;
+                            // selections outside the current filter are left untouched.
+                            val displayedIds = displayedApps.map { it.key.toString() }.toSet()
+                            persistSelection((selectedIds - displayedIds) + (displayedIds - selectedIds))
+                            hideMenu()
+                        },
+                    )
+                    val allSelected = displayedApps.isNotEmpty() && displayedApps.all { selectedIds.contains(it.key.toString()) }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(if (allSelected) R.string.deselect_all else R.string.select_all)) },
+                        onClick = {
+                            val displayedIds = displayedApps.map { it.key.toString() }.toSet()
+                            persistSelection(if (allSelected) selectedIds - displayedIds else selectedIds + displayedIds)
+                            hideMenu()
+                        },
+                    )
+                    PreferenceDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    DropdownMenuItem(
+                        onClick = {
+                            filterNonUniqueItems = !filterNonUniqueItems
+                            hideMenu()
+                        },
+                        trailingIcon = {
+                            if (filterNonUniqueItems) Icon(Icons.Rounded.Check, null)
+                        },
+                        text = { Text(stringResource(R.string.folders_filter_duplicates)) },
+                    )
+                }
             }
         },
         isExpandedScreen = LocalIsExpandedScreen.current,
-    ) {
+    ) { contentPadding ->
         Crossfade(targetState = loading, label = "") { isLoading ->
             if (isLoading) {
-                PreferenceLazyColumn(it, enabled = false, state = rememberLazyListState()) {
+                PreferenceLazyColumn(contentPadding, enabled = false, state = rememberLazyListState()) {
                     preferenceGroupItems(
                         count = 20,
                         isFirstChild = true,
@@ -149,86 +249,126 @@ fun SelectAppsForDrawerFolder(
                     }
                 }
             } else {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        placeholder = { Text(stringResource(R.string.all_apps_search_bar_hint)) },
-                        leadingIcon = { Icon(Icons.Rounded.Search, null) },
-                        trailingIcon = if (searchQuery.isNotEmpty()) {
-                            {
-                                IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Rounded.Clear, null)
+                PreferenceLazyColumn(contentPadding, state = rememberLazyListState()) {
+                    item {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            placeholder = { Text(stringResource(R.string.all_apps_search_bar_hint)) },
+                            leadingIcon = { Icon(Icons.Rounded.Search, null) },
+                            trailingIcon = if (searchQuery.isNotEmpty()) {
+                                {
+                                    IconButton(onClick = { searchQuery = "" }) {
+                                        Icon(Icons.Rounded.Clear, null)
+                                    }
                                 }
+                            } else {
+                                null
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(32.dp),
+                        )
+                    }
+                    if (nestedSubfolder != null) {
+                        item {
+                            // Informational only - always sorts before every app (see
+                            // FolderService.mapToFolderInfo()), not draggable from here. Manage
+                            // its own position or contents from the folder list instead.
+                            PreferenceTemplate(
+                                title = { Text(nestedSubfolder.title.toString()) },
+                                startWidget = {
+                                    Icon(Icons.Rounded.Folder, contentDescription = null, modifier = Modifier.size(30.dp))
+                                },
+                                verticalPadding = 12.dp,
+                            )
+                        }
+                    }
+                    if (manualOrder && selectedOrder.isNotEmpty()) {
+                        item {
+                            ReorderablePreferenceGroup(
+                                label = stringResource(R.string.folder_contents_heading),
+                                items = selectedOrder,
+                                defaultList = remember(selectedOrder) {
+                                    selectedOrder.sortedBy { it.label.lowercase(Locale.getDefault()) }
+                                },
+                                onOrderChange = {
+                                    selectedOrder = it
+                                    hasOrderChanges = true
+                                },
+                            ) { app, _, _, onDraggingChange ->
+                                AppItem(
+                                    app = app,
+                                    onClick = {},
+                                    widget = {
+                                        ReorderableDragHandle(
+                                            scope = this,
+                                            onDragStop = { onDraggingChange(false) },
+                                        )
+                                    },
+                                    endWidget = {
+                                        IconButton(onClick = { persistSelection(selectedIds - app.key.toString()) }) {
+                                            Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.delete_label))
+                                        }
+                                    },
+                                )
                             }
+                        }
+                    }
+                    preferenceGroupItems(
+                        items = displayedApps,
+                        heading = if (manualOrder && selectedOrder.isNotEmpty()) {
+                            { stringResource(R.string.add_apps) }
                         } else {
                             null
                         },
-                        singleLine = true,
-                        shape = RoundedCornerShape(32.dp),
-                    )
-                    PositionalAppListPreference(
-                        items = positionalItems,
-                        activeCount = activeCount,
-                        onOrderChange = { newList, newCount ->
-                            val sorted = PositionalMapper.sortInactiveItems(newList, newCount) { it.label }
-                            updateViewModel(sorted, newCount, apps, context, viewModel, folderInfoId, folderInfo?.title.toString())
-                        },
-                        contentPadding = it,
-                        modifier = Modifier.weight(1f),
-                    )
+                        isFirstChild = !(manualOrder && selectedOrder.isNotEmpty()),
+                        dividerStartIndent = 40.dp,
+                    ) { _, app ->
+                        if (manualOrder) {
+                            AppItem(
+                                app = app,
+                                onClick = { toggledApp: App ->
+                                    persistSelection(selectedIds + toggledApp.key.toString())
+                                },
+                                widget = {
+                                    Icon(Icons.Rounded.Add, contentDescription = null)
+                                },
+                            )
+                        } else {
+                            val isSelected = selectedIds.contains(app.key.toString())
+                            AppItem(
+                                app = app,
+                                onClick = { toggledApp: App ->
+                                    val key = toggledApp.key.toString()
+                                    persistSelection(if (isSelected) selectedIds - key else selectedIds + key)
+                                },
+                                endWidget = {
+                                    Checkbox(checked = isSelected, onCheckedChange = null)
+                                },
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-private fun PositionalAppListPreference(
-    items: List<PositionalListItem<App>>,
-    activeCount: Int,
-    onOrderChange: (newList: List<PositionalListItem<App>>, newEnabledCount: Int) -> Unit,
-    contentPadding: PaddingValues,
-    modifier: Modifier = Modifier,
-) {
-    PositionalReorderer(
-        items = items,
-        activeCount = activeCount,
-        onOrderChange = onOrderChange,
-        itemContent = { app, dragHandle, toggle ->
-            AppItem(
-                app = app,
-                onClick = {},
-                widget = dragHandle,
-                endWidget = toggle,
-            )
-        },
-        labelSelector = { it.label },
-        contentPadding = contentPadding,
-        modifier = modifier,
-    )
-}
-
-private fun updateViewModel(
-    newList: List<PositionalListItem<App>>,
-    newCount: Int,
-    apps: List<App>,
-    context: Context,
-    viewModel: FolderViewModel,
-    folderId: Int,
-    title: String,
-) {
-    val activePackageNames = PositionalMapper.getEnabledKeys(newList, newCount).toSet()
-
-    val newSelection = activePackageNames.mapNotNull { keyString ->
-        val app = apps.find { it.key.toString() == keyString }
-        app?.toAppInfo(context)?.apply {
-            rank = activePackageNames.indexOf(keyString)
-        }
+/**
+ * This folder's own apps plus, recursively, every app inside a nested subfolder - unlike
+ * [FolderInfo.getContents], which stops at one level (a nested subfolder appears there as a
+ * single [FolderInfo] item, not flattened). [excludeFolderId] skips descending into (and thus
+ * counting apps from) one specific folder, wherever it's nested - needed since the folder
+ * currently being edited by [SelectAppsForDrawerFolder] can itself be a subfolder, which would
+ * otherwise be found again while walking its own parent's contents.
+ */
+private fun FolderInfo.collectAppInfos(excludeFolderId: Int?): List<AppInfo> = getContents().flatMap { item ->
+    when {
+        item is AppInfo -> listOf(item)
+        item is FolderInfo && item.id != excludeFolderId -> item.collectAppInfos(excludeFolderId)
+        else -> emptyList()
     }
-
-    viewModel.updateFolderItems(folderId, title, newSelection)
 }
