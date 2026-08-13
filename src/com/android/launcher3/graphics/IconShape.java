@@ -25,6 +25,7 @@ import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -71,27 +72,25 @@ public final class IconShape implements SafeCloseable {
     }
 
     /**
-     * Initializes the shape used for folder backgrounds and icon reveal animations to the
-     * user's exact configured icon shape.
+     * Picks the folder background's shape to exactly match the currently selected icon shape
+     * preference, via {@link AdaptiveIconShape}.
      *
-     * This used to approximate the configured shape by picking whichever of a handful of
-     * generic presets (Circle/RoundedSquare/TearDrop/Squircle, defined in
-     * R.xml.folder_shapes) had the smallest area of divergence from the OS's own adaptive
-     * icon mask - which could both miss shapes entirely and mismatch others (e.g. Diamond
-     * rendering as a plain square), and made Lawnchair's own Cookie/Arch/System shapes
-     * render as a circle in folder backgrounds specifically (their placeholder corner
-     * values made IconShape#addShape's isCircle check misfire). AdaptiveIconShape already
-     * wraps the exact user-selected shape from Lawnchair's own icon-shape preference, so
-     * there is nothing to approximate.
+     * <p>Stock AOSP has no such preference to read - it only ever sees whatever adaptive-icon
+     * mask the OEM/system provides, so it has to approximate that arbitrary mask against a small
+     * set of hardcoded candidate shapes and pick whichever one overlaps it most. Lawnchair always
+     * knows the exact selected shape - including presets that heuristic never candidated for
+     * (e.g. Diamond/Sammy, Cylinder) - so approximating it here just meant the folder background
+     * could end up a visibly different shape than the icons inside it.
      */
     public void pickBestShape(Context context) {
-        mDelegate = new AdaptiveIconShape(context);
-
         // Pick any large size
         final int size = 200;
+
         AdaptiveIconDrawable drawable = new CustomAdaptiveIconDrawable(
                 new ColorDrawable(Color.BLACK), new ColorDrawable(Color.BLACK));
         drawable.setBounds(0, 0, size, size);
+
+        mDelegate = new AdaptiveIconShape(context);
 
         // Initialize shape properties
         mNormalizationScale = IconNormalizer.normalizeAdaptiveIcon(drawable, size, null);
@@ -166,6 +165,7 @@ public final class IconShape implements SafeCloseable {
     public static final class AdaptiveIconShape extends PathShape {
 
         private final app.lawnchair.icons.shape.IconShape mIconShape;
+        private final Matrix mMatrix = new Matrix();
 
         public AdaptiveIconShape(Context context) {
             PreferenceManager2 preferenceManager2 = PreferenceManager2.getInstance(context);
@@ -174,7 +174,18 @@ public final class IconShape implements SafeCloseable {
 
         @Override
         public void addToPath(Path path, float offsetX, float offsetY, float radius) {
-            mIconShape.addShape(path, offsetX, offsetY, radius);
+            // getMaskPath() (already used elsewhere, e.g. for the app icons themselves) is
+            // always drawn correctly for every shape preset in a fixed 100x100 box - unlike
+            // addShape(), which some presets (the custom-path ones: 4/7-sided cookie, Arch) draw
+            // wrong because it takes a shortcut for a corner-value combination they only use as
+            // a placeholder, mistaking them for a plain circle.
+            Path maskPath = mIconShape.getMaskPath();
+            float size = radius * 2;
+            mMatrix.reset();
+            mMatrix.setScale(size / 100f, size / 100f);
+            mMatrix.postTranslate(offsetX, offsetY);
+            maskPath.transform(mMatrix);
+            path.addPath(maskPath);
         }
 
         @Override
