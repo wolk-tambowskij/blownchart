@@ -59,13 +59,43 @@ class BlownChartAccessibilityService : AccessibilityService() {
     private data class TrackedCandidate(val label: String, var sawInRecents: Boolean)
 
     override fun onServiceConnected() {
-        // Watches TYPE_WINDOWS_CHANGED, unrestricted by package (nav bar layout changes aren't
-        // tied to any single package) - see updateOverlay() below for why.
         Log.i(TAG, "onServiceConnected")
+        applyServiceInfo(trackingRecentsContent = false)
+        blownChartApp.accessibilityService = this
+        updateOverlay()
+    }
+
+    /**
+     * TYPE_WINDOW_CONTENT_CHANGED fires for essentially any UI content change in any app,
+     * system-wide - by far the most expensive event type an AccessibilityService can subscribe
+     * to, since the OS has to construct and IPC-deliver one for every qualifying change before
+     * onAccessibilityEvent() below ever gets a chance to filter it down to just the Recents
+     * provider's own package. It's only ever needed while actively watching for a card being
+     * swiped away right after a real bounceToRecents() call (see checkTrackedAppStillInRecents's
+     * doc) - not for the rest of this service's lifetime, which is what keeping it permanently
+     * registered would otherwise cost. TYPE_WINDOWS_CHANGED (window add/remove/bounds-change,
+     * used for the nav-bar overlay) is comparatively rare and stays registered unconditionally.
+     *
+     * packageNames stays null throughout, even while [trackingRecentsContent]: TYPE_WINDOWS_CHANGED
+     * needs to stay unrestricted by package (nav bar layout changes aren't reliably tied to any
+     * single package across firmwares - see updateOverlay() below), and packageNames is a single
+     * filter applied to every registered event type together, not separable per type.
+     */
+    private fun applyServiceInfo(trackingRecentsContent: Boolean) {
+        val desiredEventTypes = if (trackingRecentsContent) {
+            AccessibilityEvent.TYPE_WINDOWS_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+        } else {
+            AccessibilityEvent.TYPE_WINDOWS_CHANGED
+        }
+        if (serviceInfo?.eventTypes == desiredEventTypes) return
         serviceInfo = AccessibilityServiceInfo().apply {
-            eventTypes = AccessibilityEvent.TYPE_WINDOWS_CHANGED or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+            eventTypes = desiredEventTypes
             packageNames = null
-            notificationTimeout = 0
+            // Lets the OS coalesce a burst of same-type events (e.g. a scroll, or several cards
+            // animating away at once) into fewer actual IPC deliveries instead of one each -
+            // debouncedUpdateOverlay/debouncedCheckTrackedAppStillInRecents below already delay
+            // acting on them further, so this doesn't add any user-visible latency.
+            notificationTimeout = NOTIFICATION_TIMEOUT_MS
             // FLAG_RETRIEVE_INTERACTIVE_WINDOWS: needed for getWindows() below to actually return
             // the navigation bar's window/content instead of nothing. FLAG_REPORT_VIEW_IDS: needed
             // for findAccessibilityNodeInfosByViewId() below to have anything to match against -
@@ -75,8 +105,15 @@ class BlownChartAccessibilityService : AccessibilityService() {
                 AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
                 AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
         }
-        blownChartApp.accessibilityService = this
-        updateOverlay()
+    }
+
+    private val stopTrackingRecentsContent = Runnable { applyServiceInfo(trackingRecentsContent = false) }
+
+    /** Re-arms the bounded TYPE_WINDOW_CONTENT_CHANGED subscription window - see [applyServiceInfo]. */
+    private fun startTrackingRecentsContent() {
+        applyServiceInfo(trackingRecentsContent = true)
+        handler.removeCallbacks(stopTrackingRecentsContent)
+        handler.postDelayed(stopTrackingRecentsContent, RECENTS_CONTENT_TRACKING_WINDOW_MS)
     }
 
     override fun onDestroy() {
@@ -317,6 +354,7 @@ class BlownChartAccessibilityService : AccessibilityService() {
             }
             trackedCandidates[pkg] = TrackedCandidate(label = label, sawInRecents = false)
         }
+        startTrackingRecentsContent()
     }
 
     /**
@@ -456,6 +494,17 @@ class BlownChartAccessibilityService : AccessibilityService() {
         // Debounces checkTrackedAppStillInRecents() against bursts of content-changed events
         // fired while a card's dismiss/removal animation plays out.
         private const val RECENTS_CONTENT_CHECK_DEBOUNCE_MS = 200L
+
+        // How long after a bounceToRecents() call to keep the (expensive, system-wide)
+        // TYPE_WINDOW_CONTENT_CHANGED subscription active - see applyServiceInfo(). Generous
+        // enough to cover a deliberate multi-card cleanup, not so long that the subscription
+        // stays live for any meaningful fraction of normal usage between button presses.
+        private const val RECENTS_CONTENT_TRACKING_WINDOW_MS = 60_000L
+
+        // Lets the OS batch a burst of same-type events into fewer deliveries - see
+        // applyServiceInfo(). Small relative to the debounce windows above, which already add
+        // their own delay on top, so this doesn't introduce any noticeable extra latency.
+        private const val NOTIFICATION_TIMEOUT_MS = 100L
 
         // How many of the most-recent candidate apps to track presence for, so that "clear all"
         // (which can drop several/all cards in one go) is recognized as clearing all of them,
