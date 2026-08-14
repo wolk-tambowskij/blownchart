@@ -12,6 +12,7 @@
         style="@style/BaseIcon"
         android:layout_width="@dimen/search_row_icon_size"
         android:layout_height="@dimen/search_row_icon_size"
+        android:layout_gravity="center_vertical"
         android:layout_margin="@dimen/search_result_padding"
         android:drawableTint="?android:textColorPrimary"
         android:ellipsize="end"
