@@ -51,6 +51,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pageindicators.PageIndicatorDots;
+import com.android.launcher3.touch.ItemLongClickListener;
 import com.android.launcher3.util.LauncherBindableItemsContainer.ItemOperator;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.util.ViewCache;
@@ -254,6 +255,40 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         icon.setOnClickListener(mFolder.mActivityContext.getItemOnClickListener());
         icon.setOnLongClickListener(mFolder);
         icon.setOnFocusChangeListener(mFocusIndicatorHelper);
+
+        if (item instanceof FolderInfo subFolderInfo && mFolder.isInAppDrawer()) {
+            // A nested subfolder inside an app-drawer folder can't go through Folder#startDrag
+            // (see Folder#onLongClick's own guard against it just above - it crashes, since this
+            // isn't a real model item) but dragging it out to the home screen is exactly what
+            // Workspace#dropDrawerFolderExternal already exists to materialize, the same as a
+            // top-level drawer folder. Reuses the identical mechanism a top-level drawer folder's
+            // own long-click uses (ItemLongClickListener.INSTANCE_ALL_APPS ->
+            // Workspace#beginDragShared) instead of Folder's own in-folder drag machinery.
+            icon.setOnLongClickListener(v -> {
+                // subFolderInfo.id is this subfolder's real app-drawer database row id (needed
+                // elsewhere - e.g. un-nesting it via the Settings folder list - while it's just
+                // sitting here open), which is exactly what
+                // Workspace#isUnmaterializedFolderDrag checks against to route a dropped
+                // FolderInfo through materialization instead of treating it as an already-real
+                // model item. Drag a fresh, id-less copy instead so the drop side sees the same
+                // "unmaterialized" shape a top-level drawer folder's own FolderInfo already has,
+                // restoring the real tag right after so a later plain tap on this same (possibly
+                // view-cache-reused) icon still opens the right subfolder.
+                FolderInfo dragInfo = new FolderInfo();
+                dragInfo.title = subFolderInfo.title;
+                for (ItemInfo contained : subFolderInfo.getContents()) {
+                    dragInfo.add(contained, false);
+                }
+                Object originalTag = v.getTag();
+                v.setTag(dragInfo);
+                boolean handled = ItemLongClickListener.INSTANCE_ALL_APPS.onLongClick(v);
+                v.setTag(originalTag);
+                if (handled) {
+                    mFolder.close(true);
+                }
+                return handled;
+            });
+        }
 
         CellLayoutLayoutParams lp = (CellLayoutLayoutParams) icon.getLayoutParams();
         if (lp == null) {

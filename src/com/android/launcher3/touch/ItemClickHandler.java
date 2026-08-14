@@ -68,6 +68,7 @@ import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ItemInfoMatcher;
+import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.Snackbar;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
@@ -151,6 +152,12 @@ public class ItemClickHandler {
     private static void onClickFolderIcon(View v) {
         Folder folder = ((FolderIcon) v).getFolder();
         if (!folder.isOpen() && !folder.isDestroyed()) {
+            // Opening an app hides the keyboard as a side effect of the LauncherState transition
+            // away from ALL_APPS (see SearchBarStateHandler#shouldAnimateKeyboard) - opening a
+            // folder never leaves ALL_APPS (the folder just opens on top of it), so that
+            // transition-driven hide never fires and a search query left focused/empty stays up
+            // with the keyboard shown. Hide it explicitly here instead; a no-op if it's not up.
+            ActivityContext.lookupContext(v.getContext()).hideKeyboard();
             // Open the requested folder
             folder.animateOpen();
             StatsLogManager.newInstance(v.getContext()).logger().withItemInfo(folder.mInfo)

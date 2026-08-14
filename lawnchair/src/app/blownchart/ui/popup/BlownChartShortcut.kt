@@ -12,6 +12,7 @@ import android.content.pm.LauncherApps
 import android.content.pm.SuspendDialogInfo
 import android.net.Uri
 import android.os.UserHandle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -146,7 +147,18 @@ class BlownChartShortcut {
     ) : SystemShortcut.AppInfo<BlownChartLauncher>(launcher, itemInfo, originalView) {
 
         override fun onClick(view: View) {
-            launcher.requestSettingsUnlock { super@GatedAppInfo.onClick(view) }
+            // super.onClick(view) launches App Info via a plain View reference, but by the time
+            // requestSettingsUnlock's callback would run (after the round-trip through
+            // SettingsLockUnlockActivity as a separate foreground Activity), the popup menu that
+            // held this view is already torn down - the same "silently no-ops after a round-trip"
+            // failure requestSettingsUnlockForIntent exists to avoid for the direct-icon-tap case
+            // (see its own doc comment). Building the equivalent App Info Intent up front and
+            // handing it to that already-fixed path sidesteps the stale-view problem entirely,
+            // at the cost of the shared-element open animation super.onClick() would have used.
+            val packageName = mItemInfo.targetComponent?.packageName ?: return
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                .setData(Uri.fromParts("package", packageName, null))
+            launcher.requestSettingsUnlockForIntent(intent)
         }
     }
 

@@ -59,7 +59,14 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
         FontManager.INSTANCE.get(context).setCustomFont(title, R.id.font_heading)
         FontManager.INSTANCE.get(context).setCustomFont(subtitle, R.id.font_body)
         delimiter = findViewById(R.id.delimiter)
-        setOnClickListener(icon)
+        // Delegates to icon's own performClick()/performLongClick() (rather than forwarding the
+        // raw OnClickListener/OnLongClickListener, which would hand the row view itself to
+        // ItemClickHandler/ItemLongClickListener as `v`) so tapping or dragging from anywhere in
+        // the row - not just the icon glyph - opens/drags the app exactly as if the icon itself
+        // had been touched: same view passed through for tag lookup, drag-shadow bitmap, and
+        // launch-reveal animation bounds.
+        setOnClickListener { icon.performClick() }
+        setOnLongClickListener { icon.performLongClick() }
 
         shortcutIcons = listOf(
             R.id.shortcut_0,
@@ -89,6 +96,11 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
         if (boundId == target.id) return
         boundId = target.id
         flags = getFlags(target.extras)
+        // Recycled views keep whatever click listener the previous bind() set below (calculator/
+        // suggestion/setting all install their own); reset to the default "forward to icon" one
+        // first so a plain app target bound onto a reused view doesn't inherit stale behavior
+        // from whatever this view showed last.
+        setOnClickListener { icon.performClick() }
 
         icon.bind(target) {
             title.text = it.title
