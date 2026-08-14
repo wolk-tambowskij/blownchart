@@ -25,25 +25,25 @@ AOSP-derived code and the GPLv3 Lawnchair/BlownChart code.
 App drawer search shows which folder an app is in, including the full path for a nested subfolder — long paths wrap onto a second line instead of getting cut off.<br>
 Поиск в меню приложений показывает, в какой папке находится приложение, включая полный путь для вложенной подпапки — длинный путь переносится на вторую строку вместо обрезки.
 
-<video src="docs/assets/screenshots/nested_folders.mp4" controls width="100%"></video>
+[▶ Watch: nested folders / Смотреть: вложенные папки](docs/assets/screenshots/nested_folders.mp4)
 
 Nested folders: create one by dropping a folder onto another, open it right where it was tapped, and drag it straight out to the home screen.<br>
 Вложенные папки: создание перетаскиванием одной папки на другую, открытие прямо там, где её нажали, и перетаскивание сразу на домашний экран.
 
-<video src="docs/assets/screenshots/settings-lock.mp4" controls width="100%"></video>
+[▶ Watch: settings lock / Смотреть: блокировка настроек](docs/assets/screenshots/settings-lock.mp4)
 
 A PIN/fingerprint lock for the launcher's own settings and any exit into system Settings.<br>
 Защита PIN-кодом/отпечатком пальца для настроек лончера и любого перехода в системные настройки.
 
-<video src="docs/assets/screenshots/split-lock.mp4" controls width="100%"></video>
+[▶ Watch: split lock / Смотреть: раздельная блокировка](docs/assets/screenshots/split-lock.mp4)
 
 App drawer lock and home screen lock as separate settings, each covering its own surface.<br>
 Блокировка меню приложений и блокировка рабочего стола — отдельные настройки, каждая для своей поверхности.
 
-<video src="docs/assets/screenshots/backup-restore.mp4" controls width="100%"></video>
+[▶ Watch: backup and restore / Смотреть: резервное копирование](docs/assets/screenshots/backup-restore.mp4)
 
-Backup and restore covering the full home screen layout, widgets, and grid size in a single pass.<br>
-Резервное копирование и восстановление за один проход сохраняют структуру рабочего стола, виджеты и размер сетки.
+Backup and restore covering the full home screen layout, widgets, and grid size in a single pass, plus an optional separate backup of the lock screen wallpaper.<br>
+Резервное копирование и восстановление за один проход сохраняют структуру рабочего стола, виджеты и размер сетки, а также опционально — обои экрана блокировки отдельно от обоев рабочего стола.
 
 ---
 
