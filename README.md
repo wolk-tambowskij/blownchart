@@ -25,7 +25,7 @@ AOSP-derived code and the GPLv3 Lawnchair/BlownChart code.
 App drawer search shows which folder an app is in, including the full path for a nested subfolder — long paths wrap onto a second line instead of getting cut off.<br>
 Поиск в меню приложений показывает, в какой папке находится приложение, включая полный путь для вложенной подпапки — длинный путь переносится на вторую строку вместо обрезки.
 
-https://github.com/wolk-tambowskij/blownchart/raw/15-dev/docs/assets/screenshots/nested_folders.mp4
+<video src="https://github.com/wolk-tambowskij/blownchart/raw/15-dev/docs/assets/screenshots/nested_folders.mp4" controls="controls" width="100%"></video>
 
 [▶ Watch: nested folders / Смотреть: вложенные папки](docs/assets/screenshots/nested_folders.mp4)
 
