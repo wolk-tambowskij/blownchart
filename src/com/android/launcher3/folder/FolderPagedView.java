@@ -281,12 +281,18 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
                 }
                 Object originalTag = v.getTag();
                 v.setTag(dragInfo);
-                boolean handled = ItemLongClickListener.INSTANCE_ALL_APPS.onLongClick(v);
+                // ItemLongClickListener.onAllAppsItemLongClick always returns false (by design -
+                // see its own trailing `return false`, unrelated to whether the drag it just
+                // started actually succeeded), so `handled` can't be used to gate the close
+                // below. Whether a drag genuinely started is instead visible via the drag
+                // controller's own state right after this call returns.
+                ItemLongClickListener.INSTANCE_ALL_APPS.onLongClick(v);
                 v.setTag(originalTag);
-                if (handled) {
+                boolean dragStarted = mFolder.mActivityContext.getDragController().isDragging();
+                if (dragStarted) {
                     mFolder.close(true);
                 }
-                return handled;
+                return dragStarted;
             });
         }
 

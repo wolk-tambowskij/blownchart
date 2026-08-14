@@ -9,7 +9,9 @@ import android.text.Spanned
 import android.text.style.ImageSpan
 import android.text.style.StyleSpan
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -41,6 +43,8 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
 
     private var boundId = ""
     private var flags = 0
+    private var lastTouchRawX = 0f
+    private var lastTouchRawY = 0f
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -65,8 +69,34 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
         // the row - not just the icon glyph - opens/drags the app exactly as if the icon itself
         // had been touched: same view passed through for tag lookup, drag-shadow bitmap, and
         // launch-reveal animation bounds.
+        setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                lastTouchRawX = event.rawX
+                lastTouchRawY = event.rawY
+            }
+            false
+        }
         setOnClickListener { icon.performClick() }
-        setOnLongClickListener { icon.performLongClick() }
+        setOnLongClickListener {
+            // Workspace#beginDragShared positions the drag shadow using solely `icon`'s own
+            // laid-out screen location (DragPreviewProvider#getScaleAndPosition), with no
+            // awareness of where within the wider row the touch actually started. Without this,
+            // starting a drag from the row's text visually anchors the shadow to the icon's fixed
+            // position instead of the finger. Temporarily nudging `icon` via translation - read
+            // synchronously inside performLongClick()'s call chain, before any frame is drawn, and
+            // undone right after it returns - makes the shadow originate centered on the actual
+            // touch point instead, regardless of where in the row the drag began.
+            val iconLoc = IntArray(2)
+            icon.getLocationOnScreen(iconLoc)
+            val offsetX = lastTouchRawX - (iconLoc[0] + icon.width / 2f)
+            val offsetY = lastTouchRawY - (iconLoc[1] + icon.height / 2f)
+            icon.translationX += offsetX
+            icon.translationY += offsetY
+            val handled = icon.performLongClick()
+            icon.translationX -= offsetX
+            icon.translationY -= offsetY
+            handled
+        }
 
         shortcutIcons = listOf(
             R.id.shortcut_0,
@@ -119,6 +149,12 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
             target.packageName == CALCULATOR
 
         bindShortcuts(shortcuts)
+        // Plain app targets never carry a searchAction (see SearchTargetFactory /
+        // SearchResultIcon.bind's plain-app branch), so their folder-name label - the only
+        // subtitle they can have - travels via extras instead.
+        val folderName = target.extras.getString("folder_name")
+        val subtitleText = target.searchAction?.subtitle
+            ?: folderName?.let { buildFolderSubtitle(it, target.extras.getString("folder_parent_name")) }
         var showDelimiter = true
         if (isSmall) {
             val textRows = ViewCompat.requireViewById<LinearLayout>(this, R.id.text_rows)
@@ -126,20 +162,28 @@ class SearchResultIconRow(context: Context, attrs: AttributeSet?) :
                 showDelimiter = false
                 layoutParams.height = resources.getDimensionPixelSize(R.dimen.search_result_row_medium_height)
                 textRows.orientation = VERTICAL
+                subtitle.isSingleLine = true
+                subtitle.setPadding(0, 0, 0, 0)
+            } else if (folderName != null) {
+                // A folder path ("Parent → Folder") can easily run longer than the single
+                // shared line title+delimiter+subtitle otherwise squeeze into - stack title and
+                // subtitle on their own lines instead, letting the path wrap onto up to two
+                // lines within the extra vertical room the icon's own height already provides,
+                // rather than truncating it on the right.
+                showDelimiter = false
+                layoutParams.height = WRAP_CONTENT
+                textRows.orientation = VERTICAL
+                subtitle.isSingleLine = false
+                subtitle.maxLines = 2
                 subtitle.setPadding(0, 0, 0, 0)
             } else {
                 layoutParams.height = resources.getDimensionPixelSize(R.dimen.search_result_small_row_height)
                 textRows.orientation = HORIZONTAL
+                subtitle.isSingleLine = true
                 val subtitleStartPadding = resources.getDimensionPixelSize(R.dimen.search_result_subtitle_padding_start)
                 subtitle.setPaddingRelative(subtitleStartPadding, 0, 0, 0)
             }
         }
-        // Plain app targets never carry a searchAction (see SearchTargetFactory /
-        // SearchResultIcon.bind's plain-app branch), so their folder-name label - the only
-        // subtitle they can have - travels via extras instead.
-        val folderName = target.extras.getString("folder_name")
-        val subtitleText = target.searchAction?.subtitle
-            ?: folderName?.let { buildFolderSubtitle(it, target.extras.getString("folder_parent_name")) }
         setSubtitleText(subtitleText, showDelimiter)
         if (shouldHandleClick(target) && !isSmall) {
             setOnClickListener {
