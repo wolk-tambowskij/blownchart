@@ -20,12 +20,30 @@ AOSP-derived code and the GPLv3 Lawnchair/BlownChart code.
 
 ### Screenshots / Скриншоты
 
-| | |
-|---|---|
-| ![App drawer folders](docs/assets/screenshots/drawer-folders.png) | ![Nested folder in the app drawer](docs/assets/screenshots/drawer-nested-folder.png) |
-| App drawer folders — a nested folder (badge in the corner) opens right where it's tapped.<br>Папки в меню приложений — вложенная папка (значок в углу) открывается прямо там, где её нажали. | A nested folder ("VPN") shown open inside its parent ("Сеть").<br>Вложенная папка («VPN») открыта внутри родительской («Сеть»). |
-| ![Nested folder on the home screen](docs/assets/screenshots/home-nested-folder.png) | ![Search shows an app's folder, including nested path](docs/assets/screenshots/search-folder-path.png) |
-| The same nesting works for a folder placed on the home screen.<br>То же самое вложение работает и для папки на домашнем экране. | Search results show which folder an app is in — including the full path for a nested subfolder.<br>Результаты поиска показывают, в какой папке находится приложение — включая полный путь для вложенной подпапки. |
+![App drawer search shows an app's folder path, wrapping onto a second line instead of truncating](docs/assets/screenshots/app-drawer_search.png)
+
+App drawer search shows which folder an app is in, including the full path for a nested subfolder — long paths wrap onto a second line instead of getting cut off.<br>
+Поиск в меню приложений показывает, в какой папке находится приложение, включая полный путь для вложенной подпапки — длинный путь переносится на вторую строку вместо обрезки.
+
+<video src="docs/assets/screenshots/nested_folders.mp4" controls width="100%"></video>
+
+Nested folders: create one by dropping a folder onto another, open it right where it was tapped, and drag it straight out to the home screen.<br>
+Вложенные папки: создание перетаскиванием одной папки на другую, открытие прямо там, где её нажали, и перетаскивание сразу на домашний экран.
+
+<video src="docs/assets/screenshots/settings-lock.mp4" controls width="100%"></video>
+
+A PIN/fingerprint lock for the launcher's own settings and any exit into system Settings.<br>
+Защита PIN-кодом/отпечатком пальца для настроек лончера и любого перехода в системные настройки.
+
+<video src="docs/assets/screenshots/split-lock.mp4" controls width="100%"></video>
+
+App drawer lock and home screen lock as separate settings, each covering its own surface.<br>
+Блокировка меню приложений и блокировка рабочего стола — отдельные настройки, каждая для своей поверхности.
+
+<video src="docs/assets/screenshots/backup-restore.mp4" controls width="100%"></video>
+
+Backup and restore covering the full home screen layout, widgets, and grid size in a single pass.<br>
+Резервное копирование и восстановление за один проход сохраняют структуру рабочего стола, виджеты и размер сетки.
 
 ---
 
