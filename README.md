@@ -7,6 +7,8 @@
 A simple, fast Android home screen launcher with categorized folders and a real screen-lock mode — a fork of the
 [Lawnchair Android launcher](https://github.com/LawnchairLauncher/lawnchair), built on Lawnchair 15.
 
+### 📥 [Download the latest release](https://github.com/wolk-tambowskij/blownchart/releases) / [Скачать последний релиз](https://github.com/wolk-tambowskij/blownchart/releases)
+
 **This is a fork of Lawnchair. Original project:
 https://github.com/LawnchairLauncher/lawnchair. Licensed under the GNU
 General Public License v3.0 (GPLv3), same as the original.** See
