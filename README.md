@@ -2,10 +2,10 @@
   <img src="docs/assets/blownchart-icon.png" alt="BlownChart icon" width="96" height="96">
 </p>
 
-# BlownChart
+# BlownChart — Advanced Lawnchair 15 Android Launcher Fork
 
-A simple, fast Android home screen launcher with categorized folders and a real screen-lock mode — a fork of
-[Lawnchair](https://github.com/LawnchairLauncher/lawnchair).
+A simple, fast Android home screen launcher with categorized folders and a real screen-lock mode — a fork of the
+[Lawnchair Android launcher](https://github.com/LawnchairLauncher/lawnchair), built on Lawnchair 15.
 
 **This is a fork of Lawnchair. Original project:
 https://github.com/LawnchairLauncher/lawnchair. Licensed under the GNU
@@ -56,8 +56,8 @@ launcher that categorizes apps into folders right in the app drawer, stays
 fast even with a large number of apps and categories, and can fully lock
 its settings and layout down (important once the drawer has grown large
 and you don't want to reorganize it by accident). Nothing off-the-shelf
-covered all three, so this fork builds on Lawnchair's solid Launcher3
-foundation to add them.
+covered all three, so this fork builds on the Lawnchair Android launcher's
+solid Launcher3 foundation to add them.
 
 ### Differences from the original
 
@@ -161,7 +161,7 @@ Other:
 
 **[Releases](https://github.com/wolk-tambowskij/blownchart/releases)** —
 signed APKs, built and published via GitHub Actions from `15-dev`.
-BlownChart v1.0.0 is based on
+BlownChart v1.0.0 is based on Lawnchair 15, specifically
 [Lawnchair v15.0.0-beta3.0](https://github.com/LawnchairLauncher/lawnchair/releases/tag/v15.0.0-beta3.0);
 see [`docs/UPSTREAM_SYNC.md`](docs/UPSTREAM_SYNC.md) for how later
 upstream changes are tracked, and the CI/release workflows under
@@ -240,7 +240,7 @@ why the Google Play build hides direct payment links.
 - Full license texts: [`LICENSE`](LICENSE) (GPLv3), [`LICENSE.txt`](LICENSE.txt) (Apache-2.0).
 - License boundaries and copyright: [`NOTICE`](NOTICE).
 - Third-party code carried over from other projects: [`THIRD_PARTY.md`](THIRD_PARTY.md).
-- Contributing to Lawnchair upstream: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- Contributing to the Lawnchair Android launcher upstream project: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ---
 
@@ -255,7 +255,7 @@ BlownChart появился из-за того, что на простое же�
 раскладку (это важно, когда меню приложений уже разрослось и не хочется
 случайно всё переорганизовать). Готового решения, закрывающего все три
 пункта разом, в открытом доступе найти не удалось — поэтому форк строится
-поверх прочной базы Lawnchair/Launcher3.
+поверх прочной базы лончера Lawnchair Android (Lawnchair 15) и Launcher3.
 
 ### Отличия от оригинала
 
@@ -370,7 +370,7 @@ BlownChart появился из-за того, что на простое же�
 
 **[Релизы](https://github.com/wolk-tambowskij/blownchart/releases)** —
 подписанные APK, собираются и публикуются через GitHub Actions из ветки
-`15-dev`. BlownChart v1.0.0 основан на
+`15-dev`. BlownChart v1.0.0 основан на Lawnchair 15, а именно на
 [Lawnchair v15.0.0-beta3.0](https://github.com/LawnchairLauncher/lawnchair/releases/tag/v15.0.0-beta3.0);
 о том, как отслеживаются последующие изменения апстрима, см.
 `docs/UPSTREAM_SYNC.md`; сами сценарии сборки — в
