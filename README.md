@@ -1,5 +1,3 @@
-<meta name="google-site-verification" content="C9W1FMYw6bzyIwbfOOV9634REBVMxGCX2eZyBEFnZMA" />
-
 <p align="center">
   <img src="docs/assets/blownchart-icon.png" alt="BlownChart icon" width="96" height="96">
 </p>
