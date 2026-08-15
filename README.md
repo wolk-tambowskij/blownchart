@@ -25,24 +25,22 @@ AOSP-derived code and the GPLv3 Lawnchair/BlownChart code.
 App drawer search shows which folder an app is in, including the full path for a nested subfolder — long paths wrap onto a second line instead of getting cut off.<br>
 Поиск в меню приложений показывает, в какой папке находится приложение, включая полный путь для вложенной подпапки — длинный путь переносится на вторую строку вместо обрезки.
 
-<video src="https://github.com/wolk-tambowskij/blownchart/raw/15-dev/docs/assets/screenshots/nested_folders.mp4" controls="controls" width="100%"></video>
-
-[▶ Watch: nested folders / Смотреть: вложенные папки](docs/assets/screenshots/nested_folders.mp4)
+https://github.com/user-attachments/assets/3a99ad5a-8663-4029-81cd-fedbcc4d9c8a
 
 Nested folders: create one by dropping a folder onto another, open it right where it was tapped, and drag it straight out to the home screen.<br>
 Вложенные папки: создание перетаскиванием одной папки на другую, открытие прямо там, где её нажали, и перетаскивание сразу на домашний экран.
 
-[▶ Watch: settings lock / Смотреть: блокировка настроек](docs/assets/screenshots/settings-lock.mp4)
+https://github.com/user-attachments/assets/88e43332-80de-4881-9961-1aac6c11c9b2
 
 A PIN/fingerprint lock for the launcher's own settings and any exit into system Settings.<br>
 Защита PIN-кодом/отпечатком пальца для настроек лончера и любого перехода в системные настройки.
 
-[▶ Watch: split lock / Смотреть: раздельная блокировка](docs/assets/screenshots/split-lock.mp4)
+https://github.com/user-attachments/assets/79d597af-b08b-4cb7-bde8-74b8c7206c8e
 
 App drawer lock and home screen lock as separate settings, each covering its own surface.<br>
 Блокировка меню приложений и блокировка рабочего стола — отдельные настройки, каждая для своей поверхности.
 
-[▶ Watch: backup and restore / Смотреть: резервное копирование](docs/assets/screenshots/backup-restore.mp4)
+https://github.com/user-attachments/assets/7328828e-24fb-4376-ab24-324ef6bcd7b8
 
 Backup and restore covering the full home screen layout, widgets, and grid size in a single pass, plus an optional separate backup of the lock screen wallpaper.<br>
 Резервное копирование и восстановление за один проход сохраняют структуру рабочего стола, виджеты и размер сетки, а также опционально — обои экрана блокировки отдельно от обоев рабочего стола.
