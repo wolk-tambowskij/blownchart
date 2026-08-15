@@ -171,6 +171,22 @@ upstream changes are tracked, and the CI/release workflows under
 
 ### Known issues and recommendations
 
+- **Glitches right after install** (icons disappearing or duplicating
+  after a drag, occasional crashes): this is an Android platform
+  characteristic, not a BlownChart bug. Right after an app is installed —
+  and again once it's set as the default launcher — Android runs a burst
+  of background work (indexing, database writes, and more) that can cause
+  serious jank on weaker or heavily loaded devices, similar to the
+  slowdown right after a phone reboot. How long it lasts depends on your
+  CPU, RAM, and number of installed apps (up to an hour or more on
+  low-end hardware with a very large app count). It clears up noticeably
+  after the launcher's first restart — not the phone's, the launcher's
+  own, via the three-dot menu on the main Settings screen — and settles
+  completely as the background work finishes; temporarily pausing
+  non-essential heavy background tasks (e.g. Play Store or app-store
+  auto-updates) can speed this up. This window is specifically between
+  install/being set as default and the launcher's first restart; it
+  shouldn't recur afterward.
 - **Background restrictions**: some device manufacturers limit background
   apps more aggressively than stock Android, which can affect widgets,
   notifications, and system gesture integration. If BlownChart misbehaves
@@ -380,6 +396,23 @@ BlownChart появился из-за того, что на простое же�
 
 ### Известные проблемы и рекомендации
 
+- **Глюки сразу после установки** (иконки пропадают или дублируются при
+  перетаскивании, изредка возможен краш): это архитектурная особенность
+  Android, а не баг BlownChart. Сразу после установки приложения — и ещё
+  раз после назначения его лончером по умолчанию — Android запускает
+  массу фоновых процессов (индексация, запись в базы данных и т.д.),
+  которые могут сильно тормозить и глючить на слабых или перегруженных
+  устройствах — примерно как сразу после перезагрузки телефона. Сколько
+  это займёт, зависит от процессора, объёма ОЗУ и количества установленных
+  приложений (на слабом устройстве с очень большим количеством приложений
+  — до часа-полутора). Заметно ускоряется после первого перезапуска
+  лончера — не телефона, а именно самого лончера, через меню с тремя
+  точками на главном экране настроек — и проблема полностью исчезает,
+  когда фоновая нагрузка спадает; ускорить процесс можно, временно
+  отключив необязательные ёмкие фоновые задачи (например, автообновления
+  Google Play или RuStore). Этот отрезок — строго между установкой/
+  назначением по умолчанию и первым перезапуском лончера; после этого
+  проблема повторяться не должна.
 - **Ограничения фоновой работы**: на некоторых устройствах производитель
   ограничивает работу приложений в фоне сильнее, чем в чистом Android —
   это может влиять на виджеты, уведомления и интеграцию с системными
